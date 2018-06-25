@@ -43,7 +43,6 @@ ENDIF()
 # ---- examples ----
 
 IF(LARS_BUILD_EXAMPLES)
-  set(CMAKE_CXX_STANDARD 11)
   file( GLOB example_sources ${CMAKE_CURRENT_SOURCE_DIR}/examples/*.cpp )
   foreach( examplesourcefile ${example_sources} )
     get_filename_component(filename ${examplesourcefile} NAME)
