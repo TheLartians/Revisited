@@ -8,8 +8,9 @@
 
 namespace lars{
   
-  using TypeIndex = ctti::type_index;
-  
+  // using TypeIndex = ctti::type_index;
+  using TypeIndex = ctti::type_id_t;
+
   template <class T> constexpr TypeIndex get_type_index(){
     return ctti::type_id<T>();
   }
