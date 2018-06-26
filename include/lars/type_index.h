@@ -14,6 +14,11 @@ namespace lars{
     return ctti::type_id<T>();
   }
   
+  template <class T> std::string get_type_name(){
+    auto name = ctti::type_id<T>().name();
+    return std::string(name.begin(),name.end());
+  }
+  
 }
 
 #else

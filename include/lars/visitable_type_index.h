@@ -5,8 +5,13 @@
 
 namespace lars{
   
-  template <class I> class VisitableTypeIndex:public Visitable<I>{
-    static const TypeIndex value = get_type_index<I>();
+  template <typename ...> class VisitableTypeIndex;
+  
+  template<> class VisitableTypeIndex<>:public Visitable<VisitableTypeIndex<>>{};
+  
+  template <class I> class VisitableTypeIndex<I>:public DVisitable<I,VisitableTypeIndex<>>{
+    static constexpr TypeIndex value = get_type_index<I>();
   };
+  
   
 }
