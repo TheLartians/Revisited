@@ -86,7 +86,7 @@ namespace lars{
       return visitor.result;
     }
     
-    template <class T,typename ... Args> void set(Args && ... args){ data = std::make_unique<AnyScalarData<T>>(args...); }
+    template <class T,typename ... Args> void set(Args && ... args){ data = std::make_unique<AnyScalarData<T>>(std::forward<Args>(args)...); }
     
     void accept_visitor(VisitorBase &visitor){ assert(data); data->accept(visitor); }
     void accept_visitor(ConstVisitorBase &visitor)const{ assert(data); data->accept(visitor); }
@@ -94,10 +94,14 @@ namespace lars{
     operator bool()const{ return bool(data); }
   };
   
-  template <class T,typename ... Args> Any make_any(Args && ... args){
+  template <class T,typename ... Args> typename std::enable_if<!std::is_same<Any, T>::value,Any>::type make_any(Args && ... args){
     Any result;
     result.set<T>(std::forward<Args>(args)...);
     return result;
+  }
+  
+  template <class T,typename ... Args> typename std::enable_if<std::is_same<Any, T>::value,Any>::type make_any(Args && ... args){
+    return Any(args...);
   }
   
   using AnyArguments = std::vector<Any>;
@@ -168,7 +172,7 @@ namespace lars{
     Any call_with_any_arguments(AnyArguments &args)const override{ return _call_with_any_arguments(args); }
     int argument_count()const override{ return -1; }
     TypeIndex return_type()const override{ return get_type_index<R>(); }
-    TypeIndex argument_type(unsigned)const override{ return get_type_index<AnyArguments>(); }
+    TypeIndex argument_type(unsigned)const override{ return get_type_index<Any>(); }
   };
   
   class AnyFunction{
