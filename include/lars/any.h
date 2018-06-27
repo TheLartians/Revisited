@@ -18,13 +18,13 @@
 namespace lars{
 
   struct AnyScalarBase:public lars::Visitable<AnyScalarBase>{
-    virtual TypeIndex type() = 0;
+    virtual TypeIndex type() const = 0;
   };
   
   template<class T> struct AnyScalarData:public DerivedVisitable<AnyScalarData<T>,WithVisitableBaseClass<AnyScalarBase>>::Type{
     T data;
     template <typename ... Args> AnyScalarData(Args && ... args):data(std::forward<Args>(args)...){ }
-    TypeIndex type()override{ return get_type_index<T>(); }
+    TypeIndex type()const override{ return get_type_index<T>(); }
   };
   
   class Any{
@@ -32,7 +32,9 @@ namespace lars{
     std::shared_ptr<AnyScalarBase> data;
   public:
     using BadAnyCast = lars::IncompatibleVisitorException;
-        
+    
+    TypeIndex type()const{ return data->type(); }
+    
     template <class T> T &get(){
       struct GetVisitor:public Visitor<AnyScalarData<T>>{
         T * result;
@@ -194,7 +196,8 @@ namespace lars{
     int argument_count()const{ return data->argument_count(); }
     TypeIndex return_type()const{ return data->return_type(); }
     TypeIndex argument_type(unsigned i)const{ return data->argument_type(i); }
-
+    operator bool()const{ return data.operator bool(); }
+    
     virtual ~AnyFunction(){}
   };
   
