@@ -104,7 +104,7 @@ namespace lars{
     return Any(args...);
   }
   
-  using AnyArguments = std::vector<Any>;
+  class AnyArguments:public std::vector<Any>{ using std::vector<Any>::vector; };
   
   class AnyFunctionBase{
   public:
