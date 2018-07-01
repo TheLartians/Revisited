@@ -13,6 +13,7 @@
 #include <functional>
 #include <type_traits>
 #include <iterator>
+#include <string>
 #include <assert.h>
 
 namespace lars{
@@ -74,20 +75,20 @@ namespace lars{
     }
 
     template <class T = double> T get_numeric()const{
-      struct GetVisitor:public ConstVisitor<AnyScalarData<float>,AnyScalarData<double>,AnyScalarData<unsigned>,AnyScalarData<int>,AnyScalarData<void*>>{
+      struct GetVisitor:public ConstVisitor<AnyScalarData<float>,AnyScalarData<double>,AnyScalarData<unsigned>,AnyScalarData<int>>{
         T result;
-        void visit(const AnyScalarData<float> &data){ result = data; }
-        void visit(const AnyScalarData<double> &data){ result = data; }
-        void visit(const AnyScalarData<int> &data){ result = data; }
-        void visit(const AnyScalarData<unsigned> &data){ result = data; }
-        void visit(const AnyScalarData<void*> &data){ result = data; }
+        void visit(const AnyScalarData<float> &data){ result = data.data; }
+        void visit(const AnyScalarData<double> &data){ result = data.data; }
+        void visit(const AnyScalarData<int> &data){ result = data.data; }
+        void visit(const AnyScalarData<unsigned> &data){ result = data.data; }
       } visitor;
       accept_visitor(visitor);
       return visitor.result;
     }
     
-    template <class T,typename ... Args> void set(Args && ... args){ data = std::make_unique<AnyScalarData<T>>(std::forward<Args>(args)...); }
-    
+    template <class T,typename ... Args> typename std::enable_if<!std::is_array<T>::value,void>::type set(Args && ... args){ data = std::make_unique<AnyScalarData<T>>(std::forward<Args>(args)...); }
+    template <class T,typename ... Args> typename std::enable_if<std::is_array<T>::value,void>::type set(Args && ... args){ data = std::make_unique<AnyScalarData<std::basic_string<typename std::remove_extent<T>::type>>>(std::forward<Args>(args)...); }
+
     void accept_visitor(VisitorBase &visitor){ assert(data); data->accept(visitor); }
     void accept_visitor(ConstVisitorBase &visitor)const{ assert(data); data->accept(visitor); }
     
