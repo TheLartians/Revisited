@@ -150,7 +150,7 @@ namespace lars{
     TypeIndex return_type()const override{ return get_type_index<R>(); }
     
     template <class D = TypeIndex> typename std::enable_if<(sizeof...(Args) > 0), D>::type _argument_type(unsigned i)const{
-      std::array<TypeIndex,sizeof...(Args)> types = {{ get_type_index<typename std::remove_const<typename std::remove_reference<Args>::type>::type>()... }};
+      constexpr std::array<TypeIndex,sizeof...(Args)> types = {{ get_type_index<typename std::remove_const<typename std::remove_reference<Args>::type>::type>()... }};
       return types[i];
     }
 
@@ -185,14 +185,13 @@ namespace lars{
     AnyFunction(){}
     template <class T> AnyFunction(const T & f){ set(f); }
     template <class F> void set(const F & f){ _set(make_function(f)); }
-    
+
     // template <class T> AnyFunction(T && f){ set(f); }
     //template <class F> void set(F && f){ _set(make_function(f)); }
     
     Any call(AnyArguments &args)const{ assert(data); return data->call_with_any_arguments(args); }
 
     template <typename ... Args> Any operator()(Args && ... args)const{
-      assert(data);
       std::array<Any, sizeof...(Args)> tmp = {{make_any< typename std::remove_const<typename std::remove_reference<Args>::type>::type >(std::forward<Args>(args)) ...}};
       AnyArguments args_vector(std::make_move_iterator(tmp.begin()), std::make_move_iterator(tmp.end()));
       return call(args_vector);

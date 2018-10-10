@@ -281,6 +281,10 @@ namespace lars{
     const char* what() const throw ()override{ return "IncompatibleVisitorException"; }
   };
   
+  inline void throw_incompatible_visitor_exception(){
+    throw IncompatibleVisitorException();
+  }
+  
 #endif
   
   template <class T> class Visitable<T>:public virtual VisitableBase{
@@ -293,7 +297,7 @@ namespace lars{
         casted->visit(static_cast<T &>(*this));
       }
       else{
-        throw IncompatibleVisitorException();
+        throw_incompatible_visitor_exception();
       }
     }
     
@@ -302,7 +306,7 @@ namespace lars{
         casted->visit(static_cast<const T &>(*this));
       }
       else{
-        throw IncompatibleVisitorException();
+        throw_incompatible_visitor_exception();
       }
     }
     
@@ -332,7 +336,7 @@ namespace lars{
         casted->visit(static_cast<Current &>(*this));
       }
       else{
-        throw IncompatibleVisitorException();
+        throw_incompatible_visitor_exception();
       }
     }
     
@@ -354,7 +358,7 @@ namespace lars{
         casted->visit(static_cast<const Current &>(*this));
       }
       else{
-        throw IncompatibleVisitorException();
+        throw_incompatible_visitor_exception();
       }
     }
     
