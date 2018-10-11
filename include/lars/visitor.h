@@ -413,7 +413,7 @@ namespace lars{
   
   template <typename ... Args> class DerivedVisitable;
   
-  template <typename ... Bases,typename ... VisitableBases> class DerivedVisitable<WithVirtualBaseClass<Bases...>,WithVisitableBaseClass<VisitableBases...>>{
+  template <typename ... Bases,typename ... VisitableBases> class DerivedVisitable<WithBaseClass<Bases...>,WithVisitableBaseClass<VisitableBases...>>{
     using AllBaseTypes = typename visitor_helper::AllBaseTypes<VisitableBases...>::Type;
     static const int current_order = visitor_helper::LowestOrderInOrderedTypeSet<AllBaseTypes>::value;
   public:
@@ -421,7 +421,7 @@ namespace lars{
     using Type = Visitable<WithBaseClass<>,WithVirtualBaseClass<Bases...> , typename ToWithVisitableBaseClass<BaseTypeList>::Type, BaseTypeList>;
   };
   
-  template <class T,typename ... Bases,typename ... VisitableBases> class DerivedVisitable<T,WithVirtualBaseClass<Bases...>,WithVisitableBaseClass<VisitableBases...>>{
+  template <class T,typename ... Bases,typename ... VisitableBases> class DerivedVisitable<T,WithBaseClass<Bases...>,WithVisitableBaseClass<VisitableBases...>>{
     using AllBaseTypes = typename visitor_helper::AllBaseTypes<VisitableBases...>::Type;
     static const int current_order = visitor_helper::LowestOrderInOrderedTypeSet<AllBaseTypes>::value;
   public:
@@ -429,8 +429,8 @@ namespace lars{
     using Type = Visitable<WithBaseClass<>,WithVirtualBaseClass<Bases...> , typename ToWithVisitableBaseClass<BaseTypeList>::Type, BaseTypeList>;
   };
   
-  template <class T,typename ... Bases> class DerivedVisitable<T,WithVisitableBaseClass<Bases...>>:public DerivedVisitable<T,WithVirtualBaseClass<Bases...>,WithVisitableBaseClass<Bases...>>{  };
-  template <typename ... Bases> class DerivedVisitable<WithVisitableBaseClass<Bases...>>:public DerivedVisitable<WithVirtualBaseClass<Bases...>,WithVisitableBaseClass<Bases...>>{  };
+  template <class T,typename ... Bases> class DerivedVisitable<T,WithVisitableBaseClass<Bases...>>:public DerivedVisitable<T,WithBaseClass<Bases...>,WithVisitableBaseClass<Bases...>>{  };
+  template <typename ... Bases> class DerivedVisitable<WithVisitableBaseClass<Bases...>>:public DerivedVisitable<WithBaseClass<Bases...>,WithVisitableBaseClass<Bases...>>{  };
   
   template <class T,typename ... Bases> using DVisitable = typename DerivedVisitable<T,WithVisitableBaseClass<Bases...>>::Type;
   
