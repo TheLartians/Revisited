@@ -18,79 +18,90 @@
 
 namespace lars{
 
-  struct AnyScalarBase:public lars::Visitable<AnyScalarBase>{
-    virtual TypeIndex type() const = 0;
+  template<class T> struct VisitableScalar:public lars::Visitable<VisitableScalar<T>>{
+    T data;
+    template <typename ... Args> VisitableScalar(Args && ... args):data(std::forward<Args>(args)...){ }
+    operator T &(){ return data; }
   };
   
-  template<class T> struct AnyScalarData:public DerivedVisitable<AnyScalarData<T>,WithVisitableBaseClass<AnyScalarBase>>::Type{
-    T data;
-    template <typename ... Args> AnyScalarData(Args && ... args):data(std::forward<Args>(args)...){ }
-    TypeIndex type()const override{ return get_type_index<T>(); }
-  };
+  template <class T> using VisitableType = typename std::conditional<is_visitable<T>::value, T, VisitableScalar<T>>::type;
   
   class Any{
   private:
-    std::shared_ptr<AnyScalarBase> data;
+    std::shared_ptr<VisitableBase> data;
+    TypeIndex _type = lars::get_type_index<void>();
+
   public:
-    using BadAnyCast = lars::IncompatibleVisitorException;
+    class BadAnyCast:public std::runtime_error{ using std::runtime_error::runtime_error; };
     
-    TypeIndex type()const{ return data->type(); }
+    TypeIndex type()const{ return _type; }
     
     template <class T> T &get(){
-      struct GetVisitor:public Visitor<AnyScalarData<T>>{
+      struct GetVisitor:public RecursiveVisitor<VisitableScalar<T>,T>{
         T * result;
-        void visit(AnyScalarData<T> &data){ result = &data.data; }
+        bool visit(T &obj){ result = &obj; return false; }
+        bool visit(VisitableScalar<T> &data){ result = &(T&)data; return false; }
       } visitor;
       accept_visitor(visitor);
-      return *visitor.result;
+      if(visitor.result) return *visitor.result;
+      else throw BadAnyCast("cannot convert " + std::string(type().name().begin(),type().name().end()) + " to " + get_type_name<T>());
     }
     
     template <class T> const T &get()const{
-      struct GetVisitor:public ConstVisitor<AnyScalarData<T>>{
+      struct GetVisitor:public RecursiveConstVisitor<VisitableScalar<T>,T>{
         const T * result;
-        void visit(const AnyScalarData<T> &data){ result = &data.data; }
+        bool visit(const T &obj){ result = &obj; return false; }
+        bool visit(const VisitableScalar<T> &data){ result = &(T&)data; return false; }
       } visitor;
       accept_visitor(visitor);
-      return *visitor.result;
+      if(visitor.result) return *visitor.result;
+      else throw BadAnyCast("cannot convert " + std::string(type().name().begin(),type().name().end()) + " to " + get_type_name<T>());
     }
     
-    template <class T> T *try_to_get(){
-      struct GetVisitor:public Visitor<AnyScalarBase,AnyScalarData<T>>{
-        T * result;
-        void visit(AnyScalarBase &){ result = nullptr; }
-        void visit(AnyScalarData<T> &data){ result = &data.data; }
-      } visitor;
-      accept_visitor(visitor);
-      return visitor.result;
-    }
-    
-    template <class T> const T * try_to_get()const{
-      struct GetVisitor:public ConstVisitor<AnyScalarBase,AnyScalarData<T>>{
-        const T * result;
-        void visit(const AnyScalarBase &){ result = nullptr; }
-        void visit(const AnyScalarData<T> &data){ result = &data.data; }
-      } visitor;
-      accept_visitor(visitor);
-      return visitor.result;
-    }
-
     template <class T = double> T get_numeric()const{
-      struct GetVisitor:public ConstVisitor<AnyScalarData<float>,AnyScalarData<double>,AnyScalarData<unsigned>,AnyScalarData<int>>{
+      struct GetVisitor:public ConstVisitor<VisitableType<float>,VisitableType<double>,VisitableType<unsigned>,VisitableType<int>,VisitableType<bool>,VisitableType<char>>{
         T result;
-        void visit(const AnyScalarData<float> &data){ result = data.data; }
-        void visit(const AnyScalarData<double> &data){ result = data.data; }
-        void visit(const AnyScalarData<int> &data){ result = data.data; }
-        void visit(const AnyScalarData<unsigned> &data){ result = data.data; }
+        void visit(const VisitableType<bool> &data){ result = data.data; }
+        void visit(const VisitableType<char> &data){ result = data.data; }
+        void visit(const VisitableType<float> &data){ result = data.data; }
+        void visit(const VisitableType<double> &data){ result = data.data; }
+        void visit(const VisitableType<int> &data){ result = data.data; }
+        void visit(const VisitableType<unsigned> &data){ result = data.data; }
       } visitor;
-      accept_visitor(visitor);
-      return visitor.result;
+      try{
+        accept_visitor(visitor);
+        return visitor.result;
+      }
+      catch(lars::IncompatibleVisitorException){
+        throw BadAnyCast("cannot convert " + std::string(type().name().begin(),type().name().end()) + " to " + get_type_name<T>());
+      }
     }
     
-    template <class T,typename ... Args> typename std::enable_if<!std::is_array<T>::value,void>::type set(Args && ... args){ data = std::make_unique<AnyScalarData<T>>(std::forward<Args>(args)...); }
-    template <class T,typename ... Args> typename std::enable_if<std::is_array<T>::value,void>::type set(Args && ... args){ data = std::make_unique<AnyScalarData<std::basic_string<typename std::remove_extent<T>::type>>>(std::forward<Args>(args)...); }
+    template <class T> typename std::enable_if<std::is_arithmetic<T>::value,T>::type smart_get(){
+      return get_numeric<T>();
+    }
+    
+    template <class T> typename std::enable_if<!std::is_arithmetic<T>::value && is_visitable<T>::value,T &>::type smart_get(){
+      
+      return get<T>();
+    }
+    
+    template <class T> typename std::enable_if<!std::is_arithmetic<T>::value && !is_visitable<T>::value,T &>::type smart_get(){
+      return get<T>();
+    }
+    
+    template <class T,typename ... Args> typename std::enable_if<!std::is_array<T>::value,void>::type set(Args && ... args){
+      data = std::make_unique<VisitableType<T>>(std::forward<Args>(args)...);
+      _type = lars::get_type_index<T>();
+    }
+    
+    template <class T,typename ... Args> typename std::enable_if<std::is_array<T>::value,void>::type set(Args && ... args){
+      data = std::make_unique<VisitableType<std::basic_string<typename std::remove_extent<T>::type>>>(std::forward<Args>(args)...);
+      _type = lars::get_type_index<T>();
+    }
 
-    void accept_visitor(VisitorBase &visitor){ assert(data); data->accept(visitor); }
-    void accept_visitor(ConstVisitorBase &visitor)const{ assert(data); data->accept(visitor); }
+    template <class Visitor> void accept_visitor(Visitor &visitor){ assert(data); data->accept(visitor); }
+    template <class ConstVisitor> void accept_visitor(ConstVisitor &visitor)const{ assert(data); data->accept(visitor); }
     
     operator bool()const{ return bool(data); }
   };
@@ -128,11 +139,11 @@ namespace lars{
     AnyFunctionData(const std::function<R(Args...)> &f):data(f){}
 
     template <class U=R> typename std::enable_if<!std::is_void<U>::value,Any>::type call_with_any_arguments(typename SecondType<Args,Any>::Type & ... args)const{
-      return make_any<R>(data(args.template get< typename std::remove_const<typename std::remove_reference<Args>::type>::type >() ...));
+      return make_any<R>(data(args.template smart_get< typename std::remove_const<typename std::remove_reference<Args>::type>::type >() ...));
     }
     
     template <class U=R> typename std::enable_if<std::is_void<U>::value,Any>::type call_with_any_arguments(typename SecondType<Args,Any>::Type & ... args)const{
-      data(args.template get< typename std::remove_const<typename std::remove_reference<Args>::type>::type >() ...);
+      data(args.template smart_get< typename std::remove_const<typename std::remove_reference<Args>::type>::type >() ...);
       return Any();
     }
     

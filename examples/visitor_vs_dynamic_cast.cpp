@@ -58,10 +58,10 @@ int main(){
   dynamic::D dd;
   
   lars::time_it([&](){ visitable::perform_cast(vd); });
-  std::cout << lars::time_it([&](){ visitable::perform_cast(vd); }) << std::endl;
+  std::cout << "visitor cast: " << lars::time_it([&](){ visitable::perform_cast(vd); }) << std::endl;
   
   lars::time_it([&](){ dynamic::perform_cast(dd); });
-  std::cout << lars::time_it([&](){ dynamic::perform_cast(dd); }) << std::endl;
+  std::cout << "dynamic cast: " << lars::time_it([&](){ dynamic::perform_cast(dd); }) << std::endl;
 
   return 0;
 }
