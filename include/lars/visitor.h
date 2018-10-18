@@ -148,6 +148,9 @@ namespace lars{
   template <typename ... Args> class WithVisitableBaseClass{};
   template <typename ... Args> class WithStaticVisitor{};
   
+  template <typename ... Args> using WithBaseClasses = WithBaseClass<Args...>;
+  template <typename ... Args> using WithVirtualBaseClasses = WithVirtualBaseClass<Args...>;
+  
   class VisitableBase;
   
   template <typename ... Args> class Visitable;
@@ -410,6 +413,14 @@ namespace lars{
   void accept(::lars::ConstVisitorBase &visitor)const override{ BASE::accept(visitor); }\
   void accept(::lars::RecursiveVisitorBase &visitor)override{ BASE::accept(visitor); }\
   void accept(::lars::RecursiveConstVisitorBase &visitor)const override{ BASE::accept(visitor); }
+
+  template <typename ... Args> class OrderedVisitableBaseClasses{
+    using AllBaseTypes = typename visitor_helper::AllBaseTypes<Args...>::Type;
+    static const int current_order = visitor_helper::LowestOrderInOrderedTypeSet<AllBaseTypes>::value;
+  public:
+    using BaseTypeList = typename visitor_helper::JoinOrderedTypeSets<AllBaseTypes, visitor_helper::OrderedTypeSet<visitor_helper::OrderedType<Args,current_order>...> >::Type;
+    using VisitableBaseClasses = typename ToWithVisitableBaseClass<BaseTypeList>::Type;
+  };
   
   template <typename ... Args> class DerivedVisitable;
   
@@ -433,11 +444,12 @@ namespace lars{
   template <typename ... Bases> class DerivedVisitable<WithVisitableBaseClass<Bases...>>:public DerivedVisitable<WithBaseClass<Bases...>,WithVisitableBaseClass<Bases...>>{  };
   
   template <class T,typename ... Bases> using DVisitable = typename DerivedVisitable<T,WithVisitableBaseClass<Bases...>>::Type;
-  
-  template <class T,typename ... Bases> using MVisitable = Visitable< WithBaseClass<T>, WithVirtualBaseClass<> , WithVisitableBaseClass<T,Bases...>, visitor_helper::OrderedTypeSet<visitor_helper::OrderedType<Bases, 0>...> >;
+  template <class T,typename ... Bases> using VVisitable = typename DerivedVisitable<T,WithVisitableBaseClass<Bases...>>::Type;
 
-  
-  
+  template <class T,typename ... Bases> using MVisitable = Visitable< WithBaseClass<T>, WithVirtualBaseClass<> , typename OrderedVisitableBaseClasses<T,Bases...>::VisitableBaseClasses , typename OrderedVisitableBaseClasses<T,Bases...>::BaseTypeList >;
+
+  template <class T,typename ... Bases> using BVisitable = Visitable< WithBaseClass<Bases...>, WithVirtualBaseClass<> , typename OrderedVisitableBaseClasses<T,Bases...>::VisitableBaseClasses , typename OrderedVisitableBaseClasses<T,Bases...>::BaseTypeList >;
+
 #pragma mark -
 #pragma mark visitor cast
   

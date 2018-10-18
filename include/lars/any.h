@@ -36,7 +36,7 @@ namespace lars{
     
     TypeIndex type()const{ return _type; }
     
-    template <class T> T &get(){
+    template <class T> T &get_reference(){
       struct GetVisitor:public RecursiveVisitor<VisitableScalar<T>,T>{
         T * result;
         bool visit(T &obj){ result = &obj; return false; }
@@ -47,7 +47,7 @@ namespace lars{
       else throw BadAnyCast("cannot convert " + std::string(type().name().begin(),type().name().end()) + " to " + get_type_name<T>());
     }
     
-    template <class T> const T &get()const{
+    template <class T> const T &get_reference()const{
       struct GetVisitor:public RecursiveConstVisitor<VisitableScalar<T>,T>{
         const T * result;
         bool visit(const T &obj){ result = &obj; return false; }
@@ -77,17 +77,16 @@ namespace lars{
       }
     }
     
-    template <class T> typename std::enable_if<std::is_arithmetic<T>::value,T>::type smart_get(){
+    template <class T> typename std::enable_if<std::is_arithmetic<T>::value,T>::type get()const{
       return get_numeric<T>();
     }
     
-    template <class T> typename std::enable_if<!std::is_arithmetic<T>::value && is_visitable<T>::value,T &>::type smart_get(){
-      
-      return get<T>();
+    template <class T> typename std::enable_if<!std::is_arithmetic<T>::value,T &>::type get(){
+      return get_reference<T>();
     }
     
-    template <class T> typename std::enable_if<!std::is_arithmetic<T>::value && !is_visitable<T>::value,T &>::type smart_get(){
-      return get<T>();
+    template <class T> typename std::enable_if<!std::is_arithmetic<T>::value,const T &>::type get()const{
+      return get_reference<T>();
     }
     
     template <class T,typename ... Args> typename std::enable_if<!std::is_array<T>::value,void>::type set(Args && ... args){
@@ -139,11 +138,11 @@ namespace lars{
     AnyFunctionData(const std::function<R(Args...)> &f):data(f){}
 
     template <class U=R> typename std::enable_if<!std::is_void<U>::value,Any>::type call_with_any_arguments(typename SecondType<Args,Any>::Type & ... args)const{
-      return make_any<R>(data(args.template smart_get< typename std::remove_const<typename std::remove_reference<Args>::type>::type >() ...));
+      return make_any<R>(data(args.template get< typename std::remove_const<typename std::remove_reference<Args>::type>::type >() ...));
     }
     
     template <class U=R> typename std::enable_if<std::is_void<U>::value,Any>::type call_with_any_arguments(typename SecondType<Args,Any>::Type & ... args)const{
-      data(args.template smart_get< typename std::remove_const<typename std::remove_reference<Args>::type>::type >() ...);
+      data(args.template get< typename std::remove_const<typename std::remove_reference<Args>::type>::type >() ...);
       return Any();
     }
     
@@ -179,6 +178,18 @@ namespace lars{
   public:
     std::function<R(AnyArguments &)> data;
     AnyFunctionData(const std::function<R(AnyArguments &)> &f):data(f){}
+    template <class T=R> typename std::enable_if<!std::is_void<T>::value,Any>::type _call_with_any_arguments(AnyArguments &args)const{ return make_any<R>(data(args)); }
+    template <class T=R> typename std::enable_if<std::is_void<T>::value,Any>::type _call_with_any_arguments(AnyArguments &args)const{ data(args); return Any(); }
+    Any call_with_any_arguments(AnyArguments &args)const override{ return _call_with_any_arguments(args); }
+    int argument_count()const override{ return -1; }
+    TypeIndex return_type()const override{ return get_type_index<R>(); }
+    TypeIndex argument_type(unsigned)const override{ return get_type_index<Any>(); }
+  };
+  
+  template <class R> class AnyFunctionData<R,const AnyArguments &>:public AnyFunctionBase{
+  public:
+    std::function<R(const AnyArguments &)> data;
+    AnyFunctionData(const std::function<R(const AnyArguments &)> &f):data(f){}
     template <class T=R> typename std::enable_if<!std::is_void<T>::value,Any>::type _call_with_any_arguments(AnyArguments &args)const{ return make_any<R>(data(args)); }
     template <class T=R> typename std::enable_if<std::is_void<T>::value,Any>::type _call_with_any_arguments(AnyArguments &args)const{ data(args); return Any(); }
     Any call_with_any_arguments(AnyArguments &args)const override{ return _call_with_any_arguments(args); }
