@@ -16,6 +16,11 @@
 #include <string>
 #include <assert.h>
 
+namespace std{
+  template<typename T> struct is_shared_ptr : std::false_type {};
+  template<typename T> struct is_shared_ptr<std::shared_ptr<T>> : std::true_type {};
+}
+
 namespace lars{
 
   template<class T> struct VisitableScalar:public lars::Visitable<VisitableScalar<T>>{
@@ -24,7 +29,25 @@ namespace lars{
     operator T &(){ return data; }
   };
   
-  template <class T> using VisitableType = typename std::conditional<is_visitable<T>::value, T, VisitableScalar<T>>::type;
+  template <class T> struct is_visitable_shared_ptr;
+  template <class T> struct is_visitable_shared_ptr<std::shared_ptr<T>>{
+    static const bool value = is_visitable<T>::value;
+  };
+  template <class T> struct is_visitable_shared_ptr{
+    static const std::false_type value;
+  };
+
+  
+  template <class T> struct VisitableTypeHolder;
+  template <class T> struct VisitableTypeHolder<std::shared_ptr<T>>{
+    using Type = typename std::conditional<is_visitable_shared_ptr<std::shared_ptr<T>>::value, T, VisitableScalar<std::shared_ptr<T>>>::type;
+  };
+  
+  template <class T> struct VisitableTypeHolder{
+    using Type = typename std::conditional<is_visitable<T>::value, T, VisitableScalar<T>>::type;
+  };
+
+  template <class T> using VisitableType = typename VisitableTypeHolder<T>::Type;
   
   class Any{
   private:
@@ -81,21 +104,34 @@ namespace lars{
       return get_numeric<T>();
     }
     
-    template <class T> typename std::enable_if<!std::is_arithmetic<T>::value,T &>::type get(){
+    template <class T> typename std::enable_if<!(std::is_arithmetic<T>::value || is_visitable_shared_ptr<T>::value),T &>::type get(){
       return get_reference<T>();
     }
     
-    template <class T> typename std::enable_if<!std::is_arithmetic<T>::value,const T &>::type get()const{
+    template <class T> typename std::enable_if<!(std::is_arithmetic<T>::value || is_visitable_shared_ptr<T>::value),const T &>::type get()const{
       return get_reference<T>();
     }
+
+    template <class T> typename std::enable_if<is_visitable_shared_ptr<T>::value,T>::type get(){
+      return T(data,&get_reference<typename T::element_type>());
+    }
     
-    template <class T,typename ... Args> typename std::enable_if<!std::is_array<T>::value,void>::type set(Args && ... args){
-      data = std::make_unique<VisitableType<T>>(std::forward<Args>(args)...);
+    template <class T> typename std::enable_if<is_visitable_shared_ptr<T>::value,T>::type get()const{
+      return T(data,&get_reference<typename T::element_type>());
+    }
+    
+    template <class T,typename ... Args> typename std::enable_if<!std::is_array<T>::value && !is_visitable_shared_ptr<T>::value,void>::type set(Args && ... args){
+      data = std::make_shared<VisitableType<T>>(std::forward<Args>(args)...);
       _type = lars::get_type_index<T>();
     }
     
     template <class T,typename ... Args> typename std::enable_if<std::is_array<T>::value,void>::type set(Args && ... args){
-      data = std::make_unique<VisitableType<std::basic_string<typename std::remove_extent<T>::type>>>(std::forward<Args>(args)...);
+      data = std::make_shared<VisitableType<std::basic_string<typename std::remove_extent<T>::type>>>(std::forward<Args>(args)...);
+      _type = lars::get_type_index<T>();
+    }
+    
+    template <class T,typename ... Args> typename std::enable_if<is_visitable_shared_ptr<T>::value,void>::type set(Args && ... args){
+      data = std::shared_ptr<VisitableType<T>>(std::forward<Args>(args)...);
       _type = lars::get_type_index<T>();
     }
 
@@ -207,9 +243,6 @@ namespace lars{
     AnyFunction(){}
     template <class T> AnyFunction(const T & f){ set(f); }
     template <class F> void set(const F & f){ _set(make_function(f)); }
-
-    // template <class T> AnyFunction(T && f){ set(f); }
-    //template <class F> void set(F && f){ _set(make_function(f)); }
     
     Any call(AnyArguments &args)const{ assert(data); return data->call_with_any_arguments(args); }
 
