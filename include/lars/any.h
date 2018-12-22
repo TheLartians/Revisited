@@ -131,8 +131,8 @@ namespace lars{
     }
     
     template <class T,typename ... Args> typename std::enable_if<is_visitable_shared_ptr<T>::value,void>::type set(Args && ... args){
-      data = std::shared_ptr<VisitableType<T>>(std::forward<Args>(args)...);
-      _type = lars::get_type_index<T>();
+      data = std::shared_ptr<typename T::element_type>(std::forward<Args>(args)...);
+      _type = lars::get_type_index<typename T::element_type>();
     }
 
     template <class Visitor> void accept_visitor(Visitor &visitor){ assert(data); data->accept(visitor); }
