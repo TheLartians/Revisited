@@ -72,6 +72,8 @@ namespace lars{
     }
     
     template <class T> const T &get_reference()const{
+      if(!data) throw BadAnyCast("cannot extract value: data not set.");
+      // if(type() == get_type_index<T>()) return static_cast<VisitableType<T>>(*data.get()).data;
       struct GetVisitor:public RecursiveConstVisitor<VisitableScalar<T>,VisitableScalar<std::shared_ptr<T>>,T>{
         const T * result = nullptr;
         bool visit(const T &obj){ result = &obj; return false; }
