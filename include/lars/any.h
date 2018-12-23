@@ -26,7 +26,6 @@ namespace lars{
   template<class T> struct VisitableScalar:public lars::Visitable<VisitableScalar<T>>{
     T data;
     template <typename ... Args> VisitableScalar(Args && ... args):data(std::forward<Args>(args)...){ }
-    operator T &(){ return data; }
   };
   
   template <class T> struct is_visitable_shared_ptr;
@@ -60,10 +59,12 @@ namespace lars{
     TypeIndex type()const{ return _type; }
     
     template <class T> T &get_reference(){
-      struct GetVisitor:public RecursiveVisitor<VisitableScalar<T>,T>{
-        T * result;
+      if(!data) throw BadAnyCast("cannot extract value: data not set.");
+      struct GetVisitor:public RecursiveVisitor<VisitableScalar<T>,VisitableScalar<std::shared_ptr<T>>,T>{
+        T * result = nullptr;
         bool visit(T &obj){ result = &obj; return false; }
-        bool visit(VisitableScalar<T> &data){ result = &(T&)data; return false; }
+        bool visit(VisitableScalar<T> &data){ result = &data.data; return false; }
+        bool visit(VisitableScalar<std::shared_ptr<T>> &data){ result = data.data.get(); return false; }
       } visitor;
       accept_visitor(visitor);
       if(visitor.result) return *visitor.result;
@@ -71,10 +72,11 @@ namespace lars{
     }
     
     template <class T> const T &get_reference()const{
-      struct GetVisitor:public RecursiveConstVisitor<VisitableScalar<T>,T>{
-        const T * result;
+      struct GetVisitor:public RecursiveConstVisitor<VisitableScalar<T>,VisitableScalar<std::shared_ptr<T>>,T>{
+        const T * result = nullptr;
         bool visit(const T &obj){ result = &obj; return false; }
-        bool visit(const VisitableScalar<T> &data){ result = &(T&)data; return false; }
+        bool visit(const VisitableScalar<T> &data){ result = &data.data; return false; }
+        bool visit(const VisitableScalar<std::shared_ptr<T>> &data){ result = data.data.get(); return false; }
       } visitor;
       accept_visitor(visitor);
       if(visitor.result) return *visitor.result;
