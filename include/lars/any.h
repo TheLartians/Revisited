@@ -23,8 +23,12 @@ namespace std{
 
 namespace lars{
 
+  template<class T> struct VisitableVirtualObject{
+    operator T &()const{ throw std::runtime_error("visitable error: accessing pure virtual object"); }
+  };
+  
   template<class T> struct VisitableScalar:public lars::Visitable<VisitableScalar<T>>{
-    T data;
+    typename std::conditional<!std::is_abstract<T>::value, T, VisitableVirtualObject<T>>::type data;
     template <typename ... Args> VisitableScalar(Args && ... args):data(std::forward<Args>(args)...){ }
   };
   
@@ -63,7 +67,7 @@ namespace lars{
       struct GetVisitor:public RecursiveVisitor<VisitableScalar<T>,VisitableScalar<std::shared_ptr<T>>,T>{
         T * result = nullptr;
         bool visit(T &obj){ result = &obj; return false; }
-        bool visit(VisitableScalar<T> &data){ result = &data.data; return false; }
+        bool visit(VisitableScalar<T> &data){ result = &(T&)data.data; return false; }
         bool visit(VisitableScalar<std::shared_ptr<T>> &data){ result = data.data.get(); return false; }
       } visitor;
       accept_visitor(visitor);
@@ -77,7 +81,7 @@ namespace lars{
       struct GetVisitor:public RecursiveConstVisitor<VisitableScalar<T>,VisitableScalar<std::shared_ptr<T>>,T>{
         const T * result = nullptr;
         bool visit(const T &obj){ result = &obj; return false; }
-        bool visit(const VisitableScalar<T> &data){ result = &data.data; return false; }
+        bool visit(const VisitableScalar<T> &data){ result = &(const T&)data.data; return false; }
         bool visit(const VisitableScalar<std::shared_ptr<T>> &data){ result = data.data.get(); return false; }
       } visitor;
       accept_visitor(visitor);
