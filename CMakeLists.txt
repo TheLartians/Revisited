@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 3.0)
 
 # ---- Configuration variables ----
 
-option(ENABLE_TESTS "Enable tests" OFF)
+option(ENABLE_LARS_VISITOR_TESTS "Enable tests" OFF)
 
 # ---- Include guards ----
 
@@ -89,7 +89,7 @@ install(
 
 # ---- Test ----
 
-if(${ENABLE_TESTS})
+if(${ENABLE_LARS_VISITOR_TESTS})
   ENABLE_TESTING()  
   add_subdirectory(tests)  
 endif()
