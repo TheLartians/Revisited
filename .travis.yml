@@ -2,6 +2,14 @@
 language: cpp
 sudo: require
 
+common_sources: &all_sources
+  - ubuntu-toolchain-r-test
+  - llvm-toolchain-trusty
+  - llvm-toolchain-trusty-3.9
+  - llvm-toolchain-trusty-4.0
+  - llvm-toolchain-trusty-5.0
+  - llvm-toolchain-trusty-6.0
+
 addons:
   apt:
     sources:
