@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 # ---- Project ----
 
-project(Tests CXX)
+project(LarsVisitorTests CXX)
 
 # ---- CXX Flags ----
 
@@ -25,8 +25,7 @@ add_subdirectory(../dependencies/catch2 ${PROJECT_BINARY_DIR}/catch2)
 file(GLOB tests_sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 add_executable(LarsVisitorTests ${tests_sources})
 
-target_link_libraries(LarsVisitorTests Catch2)
-target_link_libraries(LarsVisitorTests LarsVisitor)
+target_link_libraries(LarsVisitorTests LarsVisitor Catch2)
 
 # ---- Add tests ----
 

@@ -23,21 +23,17 @@ project(LarsVisitor
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ctti)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/LHC)
 
-# ---- add sources ----
+# ---- Header target ----
 
-file (GLOB headers ${CMAKE_CURRENT_SOURCE_DIR}/include/lars/*.h)
-
-# ---- enable c++14 ----
-
-if(NOT CMAKE_CXX_STANDARD GREATER 14)
-  set (CMAKE_CXX_STANDARD 14)
-endif()
+FILE(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/*.h")
+add_library(Visitor-headers EXCLUDE_FROM_ALL ${headers})
+SET_TARGET_PROPERTIES(Visitor-headers PROPERTIES LINKER_LANGUAGE CXX)
 
 # ---- includes ----
 
 add_library(LarsVisitor INTERFACE)
 
-target_link_libraries(LarsVisitor INTERFACE LHC)
+target_link_libraries(LarsVisitor INTERFACE dependency-LHC)
 
 target_include_directories(LarsVisitor
   INTERFACE 

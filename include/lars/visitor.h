@@ -219,7 +219,7 @@ namespace lars{
       return reinterpret_cast<Visitor<T> *>(as_visitor_for(get_type_index<T>()));
     }
     
-    virtual void visit_default(Default & visitable){
+    virtual void visit_default(Default &){
       throw IncompatibleVisitorException();
     }
     

@@ -1,19 +1,29 @@
 cmake_minimum_required(VERSION 3.13)
 
-find_package(LHC 0.1 QUIET)
-if(${LHC_FOUND})
+if(TARGET dependency-LHC)
   return()
 endif()
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/DownloadProject.cmake)
+find_package(LHC 0.1 QUIET)
 
-download_project(
-  PROJ LHC
-  GIT_REPOSITORY https://github.com/TheLartians/LHC.git
-  GIT_TAG fc7f199
-  UPDATE_DISCONNECTED 1
-  QUIET
-)
+if(${LHC_FOUND})
+  set_target_properties(LHC 
+    PROPERTIES
+      IMPORTED_GLOBAL True
+  )
+else()
+  include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/DownloadProject.cmake)
 
-add_subdirectory(${LHC_SOURCE_DIR} ${LHC_BINARY_DIR})
+  download_project(
+    PROJ LHC
+    GIT_REPOSITORY https://github.com/TheLartians/LHC.git
+    GIT_TAG fc7f199
+    UPDATE_DISCONNECTED 1
+    QUIET
+  )
+
+  add_subdirectory(${LHC_SOURCE_DIR} ${LHC_BINARY_DIR})
+endif()
+
+add_library(dependency-LHC ALIAS LHC)
 

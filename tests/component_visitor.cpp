@@ -1,16 +1,18 @@
-
+#include <catch2/catch.hpp>
 #include <lars/component_visitor.h>
-#include <iostream>
 
-using namespace lars;
-using namespace std;
+TEST_CASE("Component visitor") {
+  using namespace lars;
+  
+  struct A:public Visitable<A>{ };
+  struct B:public DVisitable<B,A>{ };
+  struct C:public DVisitable<C,A>{ };
+  struct D:public DVisitable<D,B,C>{ };
+  struct E:public DVisitable<E,A>{ };
+  
+}
 
-struct A:public Visitable<A>{ };
-struct B:public DVisitable<B,A>{ };
-struct C:public DVisitable<C,A>{ };
-struct D:public DVisitable<D,B,C>{ };
-struct E:public DVisitable<E,A>{ };
-
+/*
 int main(){
   D d;
 
@@ -35,3 +37,4 @@ int main(){
   v.remove_component<B>();
   v.accept(visitor);
 }
+*/
