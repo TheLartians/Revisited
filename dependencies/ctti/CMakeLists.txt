@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/DownloadProject.cmake)
 
