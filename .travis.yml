@@ -10,6 +10,24 @@ common_sources: &all_sources
   - llvm-toolchain-trusty-5.0
   - llvm-toolchain-trusty-6.0
 
+matrix:
+  include:
+  - os: linux
+    compiler: gcc
+    addons: &gcc8
+      apt:
+        sources: *all_sources
+        packages: ['g++-8']
+    env: COMPILER='g++-8'
+
+  - os: linux
+    compiler: clang
+    addons:
+        apt:
+            sources: *all_sources
+            packages: ['clang-6.0']
+    env: COMPILER='clang++-6.0'
+
 before_install:
  # Install a supported cmake version (>= 3.5)
  - wget -O cmake.sh https://cmake.org/files/v3.10/cmake-3.10.0-rc1-Linux-x86_64.sh 
