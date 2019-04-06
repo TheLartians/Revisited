@@ -16,7 +16,7 @@ TEST_CASE("Visitor") {
   D d;
   E e;
   F f;
-  
+
   SECTION("Visitors"){
     struct TestVisitor: public Visitor<A,C,D> {
       char result = '0';
