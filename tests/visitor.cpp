@@ -30,7 +30,7 @@ TEST_CASE("Visitor") {
       a.accept(visitor);
       return visitor.result;
     };
-
+    
     REQUIRE(getType(a) == 'a');
     REQUIRE(getType(b) == 'a');
     REQUIRE(getType(c) == 'c');

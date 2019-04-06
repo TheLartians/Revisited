@@ -19,6 +19,3 @@ target_include_directories(Catch2
     $<BUILD_INTERFACE:${catch2_SOURCE_DIR}/single_include>
     $<INSTALL_INTERFACE:${catch2_SOURCE_DIR}/single_include>
 )
-
-
-

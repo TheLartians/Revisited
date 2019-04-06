@@ -2,34 +2,38 @@
 language: cpp
 sudo: require
 
-addons:
-  apt:
-    sources:
-      # cmake
-      - george-edison55-precise-backports
-      - ubuntu-toolchain-r-test  
-      # c++17
-      - llvm-toolchain-trusty-5.0        
-    packages:
-      # cmake
-      - cmake-data
-      - cmake
-      # c++17
-      - g++-7
-      - gcc-7
-      - clang-5.0        
+common_sources: &all_sources
+  - ubuntu-toolchain-r-test
+  - llvm-toolchain-trusty
+  - llvm-toolchain-trusty-3.9
+  - llvm-toolchain-trusty-4.0
+  - llvm-toolchain-trusty-5.0
+  - llvm-toolchain-trusty-6.0
 
-# Compiler selection
-compiler:
-  - clang  
-  - gcc
+matrix:
+  include:
+    - os: linux
+    compiler: gcc
+    addons: &gcc8
+      apt:
+        sources: *all_sources
+        packages: ['g++-8']
+    env: COMPILER='g++-8'
+
+    - os: linux
+      compiler: clang
+      addons:
+          apt:
+              sources: *all_sources
+              packages: ['clang-6.0']
+      env: COMPILER='clang++-6.0'
+
+before_install:
+ # Install a supported cmake version (>= 3.5)
+ - wget -O cmake.sh https://cmake.org/files/v3.10/cmake-3.10.0-rc1-Linux-x86_64.sh 
+ - sudo sh cmake.sh --skip-license --exclude-subdir --prefix=/usr/local
 
 install:
-  # c++17
-  - sudo ln -s /usr/bin/gcc-7 /usr/local/bin/gcc
-  - sudo ln -s /usr/bin/g++-7 /usr/local/bin/g++
-  - gcc -v && g++ -v && cmake --version   
-  # LHC
   - cmake -H. -Bbuild
   - cmake --build build
   - sudo cmake --build build --target install

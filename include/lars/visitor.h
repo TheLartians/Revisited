@@ -375,8 +375,10 @@ namespace lars{
     
     using VisitableBaseTypes = OrderedBases;
     
+#if defined (__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Woverloaded-virtual"
+#endif
 
     void accept(VisitorBase &visitor)override{
       try_to_accept<VisitableBases...>(visitor);
@@ -394,7 +396,9 @@ namespace lars{
       try_to_accept<VisitableBases...>(visitor);
     }
     
+#if defined (__clang__)
 #pragma clang diagnostic pop
+#endif
 
   };
   
