@@ -40,39 +40,39 @@ TEST_CASE("Visitor") {
   }
   
   SECTION("Visitor Cast"){
-    REQUIRE(visitor_cast<A>(&a));
+    REQUIRE(visitor_cast<A>(&a) == &a);
     REQUIRE_FALSE(visitor_cast<B>(&a));
     REQUIRE_FALSE(visitor_cast<C>(&a));
     REQUIRE_FALSE(visitor_cast<D>(&a));
     REQUIRE_FALSE(visitor_cast<E>(&a));
     REQUIRE_FALSE(visitor_cast<F>(&a));
 
-    REQUIRE(visitor_cast<A>(&b));
-    REQUIRE(visitor_cast<B>(&b));
+    REQUIRE(visitor_cast<A>(&b) == &b);
+    REQUIRE(visitor_cast<B>(&b) == &b);
     REQUIRE_FALSE(visitor_cast<C>(&b));
     REQUIRE_FALSE(visitor_cast<D>(&b));
     REQUIRE_FALSE(visitor_cast<E>(&b));
     REQUIRE_FALSE(visitor_cast<F>(&b));
 
-    REQUIRE(visitor_cast<A>(&c));
+    REQUIRE(visitor_cast<A>(&c) == &c);
     REQUIRE_FALSE(visitor_cast<B>(&c));
-    REQUIRE(visitor_cast<C>(&c));
+    REQUIRE(visitor_cast<C>(&c) == &c);
     REQUIRE_FALSE(visitor_cast<D>(&c));
     REQUIRE_FALSE(visitor_cast<E>(&c));
     REQUIRE_FALSE(visitor_cast<F>(&c));
 
-    REQUIRE(visitor_cast<A>(&d));
-    REQUIRE(visitor_cast<B>(&d));
-    REQUIRE(visitor_cast<C>(&d));
-    REQUIRE(visitor_cast<D>(&d));
+    REQUIRE(visitor_cast<A>(&d) == &d);
+    REQUIRE(visitor_cast<B>(&d) == &d);
+    REQUIRE(visitor_cast<C>(&d) == &d);
+    REQUIRE(visitor_cast<D>(&d) == &d);
     REQUIRE_FALSE(visitor_cast<E>(&d));
     REQUIRE_FALSE(visitor_cast<F>(&d));
 
-    REQUIRE(visitor_cast<A>(&e));
+    REQUIRE(visitor_cast<A>(&e) == &e);
     REQUIRE_FALSE(visitor_cast<B>(&e));
     REQUIRE_FALSE(visitor_cast<C>(&e));
     REQUIRE_FALSE(visitor_cast<D>(&e));
-    REQUIRE(visitor_cast<E>(&e));
+    REQUIRE(visitor_cast<E>(&e) == &e);
     REQUIRE_FALSE(visitor_cast<F>(&e));
 
     REQUIRE_FALSE(visitor_cast<A>(&f));
@@ -80,7 +80,7 @@ TEST_CASE("Visitor") {
     REQUIRE_FALSE(visitor_cast<C>(&f));
     REQUIRE_FALSE(visitor_cast<D>(&f));
     REQUIRE_FALSE(visitor_cast<E>(&f));
-    REQUIRE(visitor_cast<F>(&f));
+    REQUIRE(visitor_cast<F>(&f) == &f);
   }
   
 }

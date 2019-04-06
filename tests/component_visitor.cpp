@@ -8,33 +8,36 @@ TEST_CASE("Component visitor") {
   struct B:public DVisitable<B,A>{ };
   struct C:public DVisitable<C,A>{ };
   struct D:public DVisitable<D,B,C>{ };
-  struct E:public DVisitable<E,A>{ };
-  
-}
 
-/*
-int main(){
   D d;
 
   ComponentVisitor visitor;
-  visitor.add_visitor<A>([](A &a){ cout << "visit a: " << &a << endl; });
+
+  char current = 0;
+  visitor.add_visitor<A>([&](A &){ current = 'a'; });
   d.accept(visitor);
-  
-  visitor.add_visitor<B>([](B &a){ cout << "visit b: " << &a << endl; });
+  REQUIRE(current == 'a');
+
+  visitor.add_visitor<B>([&](B &){ current = 'b';; });
   d.accept(visitor);
-  
-  visitor.add_visitor<D>([](D &a){ cout << "visit d: " << &a << endl; });
+  REQUIRE(current == 'b');
+
+  visitor.add_visitor<D>([&](D &){ current = 'd'; });
   d.accept(visitor);
+  REQUIRE(current == 'd');
 
   visitor.remove_visitor<D>();
   d.accept(visitor);
-  
+  REQUIRE(current == 'b');
+
   ComponentVisitable v;
   v.create_component<A>();
   v.create_component<B>();
   
   v.accept(visitor);
+  REQUIRE(current == 'b');
+
   v.remove_component<B>();
   v.accept(visitor);
+  REQUIRE(current == 'a');
 }
-*/
