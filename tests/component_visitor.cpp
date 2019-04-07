@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 
-#if false
+
+#if false // Test deactivated as component_visitor.h crashes GCC
 #include <lars/component_visitor.h>
 
 TEST_CASE("Component visitor") {
