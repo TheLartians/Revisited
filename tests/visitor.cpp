@@ -1,4 +1,5 @@
 #include <catch2/catch.hpp>
+
 #include <lars/visitor.h>
 
 TEST_CASE("Visitor") {

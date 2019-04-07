@@ -1,4 +1,6 @@
 #include <catch2/catch.hpp>
+
+#if false
 #include <lars/component_visitor.h>
 
 TEST_CASE("Component visitor") {
@@ -41,3 +43,5 @@ TEST_CASE("Component visitor") {
   v.accept(visitor);
   REQUIRE(current == 'a');
 }
+
+#endif
