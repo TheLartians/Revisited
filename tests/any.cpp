@@ -9,6 +9,7 @@ TEST_CASE("Any") {
 
   REQUIRE(any.get<std::string>() == "Hello World!");
   REQUIRE_THROWS_AS(any.get<int>(), Any::BadAnyCast);
+  REQUIRE_THROWS_AS(any.get_numeric<int>(), Any::BadAnyCast);
   
   any.set<int>(42);
   REQUIRE(any.get_numeric<int>() == 42);
@@ -16,5 +17,6 @@ TEST_CASE("Any") {
   REQUIRE(any.get_numeric<size_t>() == 42);
   REQUIRE(any.get_numeric<float>() == 42);
   REQUIRE(any.get_numeric<double>() == 42);
+  REQUIRE_THROWS_AS(any.get<std::string>(), Any::BadAnyCast);
 
 }
