@@ -57,7 +57,7 @@ configure_package_config_file(
 )
 
 install(
-  EXPORT LarsVisitorTargets 
+  EXPORT cttiTargets 
   DESTINATION lib/cmake/ctti
 )
 
