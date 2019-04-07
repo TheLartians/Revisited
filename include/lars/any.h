@@ -190,7 +190,7 @@ namespace lars{
       return Any();
     }
     
-    template <size_t ... Indices> Any call_with_arguments_and_indices(AnyArguments &args,StaticIndexTuple<Indices...> indices)const{
+    template <size_t ... Indices> Any call_with_arguments_and_indices(AnyArguments &args,StaticIndexTuple<Indices...>)const{
       return call_with_any_arguments(args[Indices] ...);
     }
     
@@ -208,7 +208,7 @@ namespace lars{
       return types[i];
     }
 
-    template <class D = TypeIndex> typename std::enable_if<sizeof...(Args) == 0, D>::type _argument_type(unsigned i)const{
+    template <class D = TypeIndex> typename std::enable_if<sizeof...(Args) == 0, D>::type _argument_type(unsigned)const{
       throw std::runtime_error("invalid argument");
     }
 
