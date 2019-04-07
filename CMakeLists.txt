@@ -1,5 +1,11 @@
 
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.0)
+
+# ---- Configuration variables ----
+
+option(ENABLE_LARS_VISITOR_TESTS "Enable tests" OFF)
+
+# ---- Include guards ----
 
 if (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
       message(FATAL_ERROR "Source and build directories cannot be the same.")
@@ -7,47 +13,84 @@ endif()
 
 # ---- create project ----
 
-project(LarsVisitor)
+project(LarsVisitor 
+  VERSION 0.1
+  LANGUAGES CXX
+)
 
-set(PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/source)
-set(PROJECT_INCUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# ---- dependencies ----
 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ctti)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/LHC)
 
-# ---- add sources ----
+# ---- Header target ----
 
-file (GLOB sources ${PROJECT_SOURCE_DIR}/*.cpp)
-file (GLOB headers ${PROJECT_INCUDE_DIR}/lars/*.h)
-
-# ---- enable c++14 ----
-
-if(NOT CMAKE_CXX_STANDARD GREATER 14)
-  set (CMAKE_CXX_STANDARD 14)
-endif()
-
-# ---- create module ----
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+FILE(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/*.h")
+add_library(Visitor-headers EXCLUDE_FROM_ALL ${headers})
+SET_TARGET_PROPERTIES(Visitor-headers PROPERTIES LINKER_LANGUAGE CXX)
 
 # ---- includes ----
 
-IF(LARS_LIBRARY)
-  SET(lars_headers ${lars_headers} ${headers} PARENT_SCOPE)  
-  SET(lars_include_dirs ${lars_include_dirs} "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)
-ELSE()
-  message("Visitor has to be built as a lars library module")
-ENDIF()
+add_library(LarsVisitor INTERFACE)
 
-# ---- examples ----
+target_link_libraries(LarsVisitor INTERFACE dependency-LHC)
 
-IF(LARS_BUILD_EXAMPLES)
-  file( GLOB example_sources ${CMAKE_CURRENT_SOURCE_DIR}/examples/*.cpp )
-  foreach( examplesourcefile ${example_sources} )
-    get_filename_component(filename ${examplesourcefile} NAME)
-    string( REPLACE ".cpp" "" examplename ${filename} )
-    set(examplename lars_${examplename})
-    add_executable( ${examplename} ${examplesourcefile})
-    include_directories(${Lars_INCLUDE_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}/include")
-  endforeach()
-ENDIF()
+target_include_directories(LarsVisitor
+  INTERFACE 
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
 
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+  "${PROJECT_BINARY_DIR}/LarsVisitorConfigVersion.cmake"
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY AnyNewerVersion
+)
+
+# ---- Install ----
+
+install(
+  TARGETS LarsVisitor
+  EXPORT LarsVisitorTargets
+  LIBRARY DESTINATION lib COMPONENT Runtime
+  ARCHIVE DESTINATION lib COMPONENT Development
+  RUNTIME DESTINATION bin COMPONENT Runtime
+  PUBLIC_HEADER DESTINATION include COMPONENT Development
+  BUNDLE DESTINATION bin COMPONENT Runtime
+)
+
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(
+  "${PROJECT_SOURCE_DIR}/cmake/LarsVisitorConfig.cmake.in"
+  "${PROJECT_BINARY_DIR}/LarsVisitorConfig.cmake"
+  INSTALL_DESTINATION lib/cmake/LarsVisitor
+)
+
+install(
+  EXPORT LarsVisitorTargets 
+  DESTINATION lib/cmake/LarsVisitor
+)
+
+install(
+  FILES 
+    "${PROJECT_BINARY_DIR}/LarsVisitorConfigVersion.cmake"
+    "${PROJECT_BINARY_DIR}/LarsVisitorConfig.cmake"
+  DESTINATION 
+    lib/cmake/LarsVisitor
+)
+
+install(
+  DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+  DESTINATION include
+)
+
+# ---- Test ----
+
+if(${ENABLE_LARS_VISITOR_TESTS})
+  ENABLE_TESTING()  
+  add_subdirectory(tests)  
+endif()
 

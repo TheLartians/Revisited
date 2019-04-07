@@ -219,7 +219,7 @@ namespace lars{
       return reinterpret_cast<Visitor<T> *>(as_visitor_for(get_type_index<T>()));
     }
     
-    virtual void visit_default(Default & visitable){
+    virtual void visit_default(Default &){
       throw IncompatibleVisitorException();
     }
     
@@ -375,8 +375,10 @@ namespace lars{
     
     using VisitableBaseTypes = OrderedBases;
     
+#if defined (__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Woverloaded-virtual"
+#endif
 
     void accept(VisitorBase &visitor)override{
       try_to_accept<VisitableBases...>(visitor);
@@ -394,7 +396,9 @@ namespace lars{
       try_to_accept<VisitableBases...>(visitor);
     }
     
+#if defined (__clang__)
 #pragma clang diagnostic pop
+#endif
 
   };
   
