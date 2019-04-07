@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
-if(TARGET dependency-LHC)
+if(TARGET LHC)
   return()
 endif()
 
@@ -26,6 +26,4 @@ else()
 
   add_subdirectory(${LHC_SOURCE_DIR} ${LHC_BINARY_DIR})
 endif()
-
-add_library(dependency-LHC ALIAS LHC)
 
