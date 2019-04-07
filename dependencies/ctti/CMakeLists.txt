@@ -4,6 +4,11 @@ if(TARGET ctti)
   return()
 endif()
 
+project(ctti 
+  VERSION 0.0.1
+  LANGUAGES CXX
+)
+
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/DownloadProject.cmake)
 
 download_project(
@@ -14,12 +19,23 @@ download_project(
   QUIET
 )
 
+# Don't add the project, as it defines no install target
+# add_subdirectory(${ctti_SOURCE_DIR} ${ctti_BINARY_DIR})
+
 add_library(ctti INTERFACE)
 
 target_include_directories(ctti
   INTERFACE
   $<BUILD_INTERFACE:${ctti_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
+)
+
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+  "${PROJECT_BINARY_DIR}/cttiConfigVersion.cmake"
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY AnyNewerVersion
 )
 
 install(
@@ -32,16 +48,28 @@ install(
   BUNDLE DESTINATION bin COMPONENT Runtime
 )
 
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(
+  "${PROJECT_SOURCE_DIR}/cttiConfig.cmake.in"
+  "${PROJECT_BINARY_DIR}/cttiConfig.cmake"
+  INSTALL_DESTINATION lib/cmake/ctti
+)
+
 install(
-  EXPORT cttiTargets 
+  EXPORT LarsVisitorTargets 
   DESTINATION lib/cmake/ctti
+)
+
+install(
+  FILES 
+    "${PROJECT_BINARY_DIR}/cttiConfigVersion.cmake"
+    "${PROJECT_BINARY_DIR}/cttiConfig.cmake"
+  DESTINATION 
+  lib/cmake/ctti
 )
 
 install(
   DIRECTORY ${ctti_SOURCE_DIR}/include/
   DESTINATION include
 )
-
-# Don't add the project, as it defines no install target
-# add_subdirectory(${ctti_SOURCE_DIR} ${ctti_BINARY_DIR})
-
