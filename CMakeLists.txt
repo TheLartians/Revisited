@@ -7,6 +7,10 @@ option(ENABLE_LARS_VISITOR_TESTS "Enable tests" OFF)
 
 # ---- Include guards ----
 
+if(TARGET LarsVisitor)
+  return()
+endif()
+
 if (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
       message(FATAL_ERROR "Source and build directories cannot be the same.")
 endif()
