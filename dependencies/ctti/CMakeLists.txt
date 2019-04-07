@@ -23,6 +23,21 @@ target_include_directories(ctti
 )
 
 install(
+  TARGETS ctti
+  EXPORT cttiTargets
+  LIBRARY DESTINATION lib COMPONENT Runtime
+  ARCHIVE DESTINATION lib COMPONENT Development
+  RUNTIME DESTINATION bin COMPONENT Runtime
+  PUBLIC_HEADER DESTINATION include COMPONENT Development
+  BUNDLE DESTINATION bin COMPONENT Runtime
+)
+
+install(
+  EXPORT cttiTargets 
+  DESTINATION lib/cmake/ctti
+)
+
+install(
   DIRECTORY ${ctti_SOURCE_DIR}/include/
   DESTINATION include
 )
