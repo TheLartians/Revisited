@@ -27,12 +27,15 @@ endif()
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ctti)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/LHC)
 
+# ---- Header target ----
+
+FILE(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/*.h")
+add_library(LarsVisitor-headers EXCLUDE_FROM_ALL ${headers})
+SET_TARGET_PROPERTIES(LarsVisitor-headers PROPERTIES LINKER_LANGUAGE CXX)
+
 # ---- includes ----
 
 add_library(LarsVisitor INTERFACE)
-
-FILE(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/*.h")
-target_sources(LarsVisitor INTERFACE ${headers})
 
 target_link_libraries(LarsVisitor INTERFACE LHC ctti)
 
