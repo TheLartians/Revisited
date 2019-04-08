@@ -1,22 +1,26 @@
 
 cmake_minimum_required (VERSION 3.0)
 
+# ---- create project ----
+
+project(LarsVisitor 
+  VERSION 0.2
+  LANGUAGES CXX
+)
+
 # ---- Configuration variables ----
 
 option(ENABLE_LARS_VISITOR_TESTS "Enable tests" OFF)
 
 # ---- Include guards ----
 
+if(TARGET LarsVisitor)
+  return()
+endif()
+
 if (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
       message(FATAL_ERROR "Source and build directories cannot be the same.")
 endif()
-
-# ---- create project ----
-
-project(LarsVisitor 
-  VERSION 0.1
-  LANGUAGES CXX
-)
 
 # ---- dependencies ----
 
@@ -26,20 +30,22 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/LHC)
 # ---- Header target ----
 
 FILE(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/*.h")
-add_library(Visitor-headers EXCLUDE_FROM_ALL ${headers})
-SET_TARGET_PROPERTIES(Visitor-headers PROPERTIES LINKER_LANGUAGE CXX)
+add_library(LarsVisitor-headers EXCLUDE_FROM_ALL ${headers})
+SET_TARGET_PROPERTIES(LarsVisitor-headers PROPERTIES LINKER_LANGUAGE CXX)
 
 # ---- includes ----
 
 add_library(LarsVisitor INTERFACE)
 
-target_link_libraries(LarsVisitor INTERFACE dependency-LHC ctti)
+target_link_libraries(LarsVisitor INTERFACE LHC ctti)
 
 target_include_directories(LarsVisitor
-  INTERFACE 
+  INTERFACE
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
+
+# ---- Install ----
 
 include(CMakePackageConfigHelpers)
 
@@ -48,8 +54,6 @@ write_basic_package_version_file(
   VERSION ${PROJECT_VERSION}
   COMPATIBILITY AnyNewerVersion
 )
-
-# ---- Install ----
 
 install(
   TARGETS LarsVisitor
@@ -93,4 +97,3 @@ if(${ENABLE_LARS_VISITOR_TESTS})
   ENABLE_TESTING()  
   add_subdirectory(tests)  
 endif()
-

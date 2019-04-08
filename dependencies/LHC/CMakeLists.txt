@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
-if(TARGET dependency-LHC)
+if(TARGET LHC)
   return()
 endif()
 
@@ -19,13 +19,12 @@ else()
   download_project(
     PROJ LHC
     GIT_REPOSITORY https://github.com/TheLartians/LHC.git
-    GIT_TAG "v${lhc_min_version}"
+#    GIT_TAG "v${lhc_min_version}"
+    GIT_TAG include-guards
     UPDATE_DISCONNECTED 1
     QUIET
   )
 
   add_subdirectory(${LHC_SOURCE_DIR} ${LHC_BINARY_DIR})
 endif()
-
-add_library(dependency-LHC ALIAS LHC)
 
