@@ -1,5 +1,5 @@
 
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.5)
 
 # ---- create project ----
 
@@ -24,8 +24,15 @@ endif()
 
 # ---- dependencies ----
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake)
+
+CPMAddPackage(
+  NAME LHC
+  GIT_REPOSITORY https://github.com/TheLartians/LHC.git
+  VERSION 0.3
+)
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ctti)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/LHC)
 
 # ---- Header target ----
 

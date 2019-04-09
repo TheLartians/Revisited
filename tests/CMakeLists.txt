@@ -18,7 +18,7 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   find_package(LarsVisitor REQUIRED)
 endif()
 
-add_subdirectory(../dependencies/catch2 ${PROJECT_BINARY_DIR}/catch2)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/catch2 ${PROJECT_BINARY_DIR}/catch2)
 
 # ---- Create binary ----
 
