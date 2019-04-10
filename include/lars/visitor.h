@@ -18,8 +18,6 @@
 
 namespace lars{
   
-#pragma mark -
-#pragma mark Helper
   namespace visitor_helper{
   
     template <typename ... Args> class TypeList{};
@@ -135,9 +133,6 @@ namespace lars{
 
   }
   
-#pragma mark -
-#pragma mark Predefinitions
-  
   class VisitorBase;
   class ConstVisitorBase;
   class RecursiveVisitorBase;
@@ -156,9 +151,6 @@ namespace lars{
   template <typename ... Args> class Visitable;
   template <typename ... Args> class StaticVisitable;
   template <typename ... Args> class VisitableAndStaticVisitable;
-  
-#pragma mark -
-#pragma mark Visitor
   
   struct IncompatibleVisitorException:public std::exception{
     const char* what() const throw ()override{ return "IncompatibleVisitorException"; }
@@ -207,9 +199,6 @@ namespace lars{
   template <typename ... Args> using RecursiveVisitor = VisitorPrototype<RecursiveVisitorBase,visitor_helper::TypeList<Args...>,visitor_helper::TypeList<Args &...>,bool>;
   template <typename ... Args> using RecursiveConstVisitor = VisitorPrototype<RecursiveConstVisitorBase,visitor_helper::TypeList<Args...>,visitor_helper::TypeList<const Args &...>,bool>;
   
-#pragma mark -
-#pragma mark Base Classes
-  
   template <template <typename ... Args> class Visitor,class Default> class VisitorBasePrototype{
   public:
     using TypeIndex = lars::TypeIndex;
@@ -239,10 +228,6 @@ namespace lars{
     virtual void accept(RecursiveConstVisitorBase &visitor)const = 0;
     virtual ~VisitableBase(){}
   };
-  
-  
-#pragma mark -
-#pragma mark Visitable
   
   template <class T> class Visitable<T>:public virtual VisitableBase{
   public:
@@ -407,9 +392,6 @@ namespace lars{
     using Type = WithVisitableBaseClass<typename Args::Type ...>;
   };
   
-#pragma mark -
-#pragma mark Derived Visitable
-  
 #define LARS_REMOVE_VISITABLE_ACCEPT_METHODS() void accept(lars::VisitorBase&)override = 0; void accept(lars::ConstVisitorBase&)const override = 0; void accept(lars::RecursiveVisitorBase&)override = 0; void accept(lars::RecursiveConstVisitorBase&)const override = 0
   
 #define LARS_DEFINE_FORWARDED_VISITABLE_ACCEPT_METHODS(BASE) \
@@ -453,9 +435,6 @@ namespace lars{
   template <class T,typename ... Bases> using MVisitable = Visitable< WithBaseClass<T>, WithVirtualBaseClass<> , typename OrderedVisitableBaseClasses<T,Bases...>::VisitableBaseClasses , typename OrderedVisitableBaseClasses<T,Bases...>::BaseTypeList >;
 
   template <class T,typename ... Bases> using BVisitable = Visitable< WithBaseClass<Bases...>, WithVirtualBaseClass<> , typename OrderedVisitableBaseClasses<T,Bases...>::VisitableBaseClasses , typename OrderedVisitableBaseClasses<T,Bases...>::BaseTypeList >;
-
-#pragma mark -
-#pragma mark visitor cast
   
   template <class T> T * visitor_cast(VisitableBase *base){
     struct CastVisitor:public lars::RecursiveVisitor<T>{
