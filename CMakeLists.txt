@@ -29,7 +29,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake)
 CPMAddPackage(
   NAME LHC
   GIT_REPOSITORY https://github.com/TheLartians/LHC.git
-  VERSION 0.3
+  VERSION 0.4
 )
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ctti)
