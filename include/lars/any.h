@@ -62,7 +62,7 @@ namespace lars{
     
     TypeIndex type()const{ return _type; }
     
-    template <class T> T &get_reference(){
+    template <class T> typename std::enable_if<!std::is_same<T,Any>::value,T &>::type get_reference(){
       if(!data) throw BadAnyCast("cannot extract value: data not set.");
       struct GetVisitor:public RecursiveVisitor<VisitableScalar<T>,VisitableScalar<std::shared_ptr<T>>,T>{
         T * result = nullptr;
@@ -75,7 +75,7 @@ namespace lars{
       else throw BadAnyCast("cannot convert " + std::string(type().name().begin(),type().name().end()) + " to " + get_type_name<T>());
     }
     
-    template <class T> const T &get_reference()const{
+    template <class T> typename std::enable_if<!std::is_same<T,Any>::value,const T &>::type get_reference()const{
       if(!data) throw BadAnyCast("cannot extract value: data not set.");
       // if(type() == get_type_index<T>()) return static_cast<VisitableType<T>>(*data.get()).data;
       struct GetVisitor:public RecursiveConstVisitor<VisitableScalar<T>,VisitableScalar<std::shared_ptr<T>>,T>{
@@ -87,6 +87,14 @@ namespace lars{
       accept_visitor(visitor);
       if(visitor.result) return *visitor.result;
       else throw BadAnyCast("cannot convert " + std::string(type().name().begin(),type().name().end()) + " to " + get_type_name<T>());
+    }
+
+    template <class T> typename std::enable_if<std::is_same<T,Any>::value,T &>::type get_reference(){
+      return *this;
+    }
+    
+    template <class T> typename std::enable_if<std::is_same<T,Any>::value,const T &>::type get_reference()const{
+      return *this;
     }
     
     template <class T = double> T get_numeric()const{
@@ -141,6 +149,14 @@ namespace lars{
     template <class T,typename ... Args> typename std::enable_if<is_visitable_shared_ptr<T>::value,void>::type set(Args && ... args){
       data = std::shared_ptr<typename T::element_type>(std::forward<Args>(args)...);
       _type = lars::get_type_index<typename T::element_type>();
+    }
+
+    void set(Any && other){
+      *this = std::forward<Any>(other);
+    }
+
+    void set(const Any &other){
+      *this = other;
     }
 
     template <class Visitor> void accept_visitor(Visitor &visitor){ assert(data); data->accept(visitor); }
