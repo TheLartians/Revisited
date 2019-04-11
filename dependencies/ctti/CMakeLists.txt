@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 if(TARGET ctti)
   return()
@@ -9,15 +9,18 @@ project(ctti
   LANGUAGES CXX
 )
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/DownloadProject.cmake)
-
-download_project(
-  PROJ ctti
+FetchContent_Declare(
+  ctti
   GIT_REPOSITORY https://github.com/Manu343726/ctti.git
   GIT_TAG d7e9828
   UPDATE_DISCONNECTED 1
   QUIET
 )
+
+FetchContent_GetProperties(ctti)
+if(NOT ctti_POPULATED)
+  FetchContent_Populate(ctti)
+endif()
 
 # Don't add the project, as it defines no install target
 # add_subdirectory(${ctti_SOURCE_DIR} ${ctti_BINARY_DIR})
