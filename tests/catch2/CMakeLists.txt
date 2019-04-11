@@ -1,14 +1,17 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/DownloadProject.cmake)
-
-download_project(
-  PROJ catch2
+FetchContent_Declare(
+  catch2
   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
   GIT_TAG v2.7.0
   UPDATE_DISCONNECTED 1
   QUIET
 )
+
+FetchContent_GetProperties(catch2)
+if(NOT catch2_POPULATED)
+  FetchContent_Populate(catch2)
+endif()
 
 # add_subdirectory(${catch2_SOURCE_DIR} ${catch2_BINARY_DIR})
 
