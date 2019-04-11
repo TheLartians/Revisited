@@ -111,7 +111,7 @@ namespace lars{
         accept_visitor(visitor);
         return visitor.result;
       }
-      catch(lars::IncompatibleVisitorException){
+      catch(const lars::IncompatibleVisitorException &){
         throw BadAnyCast("cannot convert " + std::string(type().name().begin(),type().name().end()) + " to " + get_type_name<T>());
       }
     }
