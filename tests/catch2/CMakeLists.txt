@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+
+include(FetchContent)
 
 FetchContent_Declare(
   catch2
@@ -12,8 +14,6 @@ FetchContent_GetProperties(catch2)
 if(NOT catch2_POPULATED)
   FetchContent_Populate(catch2)
 endif()
-
-# add_subdirectory(${catch2_SOURCE_DIR} ${catch2_BINARY_DIR})
 
 add_library(Catch2 INTERFACE)
 
