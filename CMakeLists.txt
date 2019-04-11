@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 3.5)
 # ---- create project ----
 
 project(LarsVisitor 
-  VERSION 0.6
+  VERSION 0.7
   LANGUAGES CXX
 )
 
@@ -29,7 +29,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake)
 CPMAddPackage(
   NAME LHC
   GIT_REPOSITORY https://github.com/TheLartians/LHC.git
-  VERSION 0.4
+  VERSION 0.6
 )
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ctti)
