@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <lars/type_index.h>
 
-#define LARS_VISITOR_DEBUG
+// #define LARS_VISITOR_DEBUG
 
 #ifdef LARS_VISITOR_DEBUG
 #include <lars/log.h>
@@ -19,7 +19,7 @@ struct LARS_VISITOR_WITH_INDENT_KEEPER {
   LARS_VISITOR_WITH_INDENT_KEEPER(){ LARS_VISITOR_INCREASE_INDENT; }
   ~LARS_VISITOR_WITH_INDENT_KEEPER(){ LARS_VISITOR_DECREASE_INDENT; }
 };
-#define LARS_VISITOR_WITH_INDENT() LARS_VISITOR_LOG(get_type_name<decltype(*this)>() << " accepting " << get_type_name<decltype(visitor)>()); LARS_VISITOR_WITH_INDENT_KEEPER __LARS_VISITOR_INDENT_KEEPER
+#define LARS_VISITOR_WITH_INDENT() LARS_VISITOR_LOG(get_type_name<decltype(*v)>() << " accepting visitor"); LARS_VISITOR_WITH_INDENT_KEEPER __LARS_VISITOR_INDENT_KEEPER
 #else
 #define LARS_VISITOR_LOG(X)
 #define LARS_VISITOR_WITH_INDENT()
@@ -151,25 +151,31 @@ namespace lars {
 
     template <class T> class Visitable: public virtual VisitableBase {
     public:
-            
-      bool accept(VisitorBase &visitor, bool permissive) override {
+      
+      template <typename ... Args> static bool staticAccept(Visitable *v,Args && ... args){
         LARS_VISITOR_WITH_INDENT();
-        return visit<T>(this, visitor, permissive);
+        return visit<T>(v, args...);
+      }
+      
+      template <typename ... Args> static bool staticAccept(const Visitable *v,Args && ... args){
+        LARS_VISITOR_WITH_INDENT();
+        return visit<const T>(v, args...);
+      }
+
+      bool accept(VisitorBase &visitor, bool permissive) override {
+        return staticAccept(this, visitor, permissive);
       }
       
       bool accept(VisitorBase &visitor, bool permissive) const override {
-        LARS_VISITOR_WITH_INDENT();
-        return visit<const T>(this, visitor, permissive);
+        return staticAccept(this, visitor, permissive);
       }
       
       bool accept(RecursiveVisitorBase &visitor) override {
-        LARS_VISITOR_WITH_INDENT();
-        return visit<T>(this, visitor);
+        return staticAccept(this, visitor);
       }
       
       bool accept(RecursiveVisitorBase &visitor) const override {
-        LARS_VISITOR_WITH_INDENT();
-        return visit<const T>(this, visitor);
+        return staticAccept(this, visitor);
       }
       
     };
@@ -183,7 +189,7 @@ namespace lars {
       if(visit<T>(v, visitor, true)) {
         return true;
       }
-      if (v->B::accept(visitor, true)) {
+      if (B::staticAccept(v,visitor, true)) {
         return true;
       }
       if (permissive) {
@@ -198,7 +204,7 @@ namespace lars {
         return false;
       }
       LARS_VISITOR_LOG("recursive visit derived base " << lars::get_type_name<B>());
-      if (!v->B::accept(visitor)) {
+      if (!B::staticAccept(v, visitor)) {
         return false;
       }
       return true;
@@ -208,24 +214,30 @@ namespace lars {
     public:
       template <typename ... Args> DerivedVisitable(Args ... args):B(args...){ }
       
-      bool accept(VisitorBase &visitor, bool permissive) override {
+      template <typename ... Args> static bool staticAccept(DerivedVisitable *v,Args && ... args){
         LARS_VISITOR_WITH_INDENT();
-        return visitDerived<T, B>(this, visitor, permissive);
+        return visitDerived<T,B>(v, args...);
+      }
+      
+      template <typename ... Args> static bool staticAccept(const DerivedVisitable *v,Args && ... args){
+        LARS_VISITOR_WITH_INDENT();
+        return visitDerived<const T,const B>(v, args...);
+      }
+      
+      bool accept(VisitorBase &visitor, bool permissive) override {
+        return staticAccept(this, visitor, permissive);
       }
       
       bool accept(VisitorBase &visitor, bool permissive) const override {
-        LARS_VISITOR_WITH_INDENT();
-        return visitDerived<const T, const B>(this, visitor, permissive);
+        return staticAccept(this, visitor, permissive);
       }
 
       bool accept(RecursiveVisitorBase &visitor) override {
-        LARS_VISITOR_WITH_INDENT();
-        return visitDerived<T, B>(this, visitor);
+        return staticAccept(this, visitor);
       }
       
       bool accept(RecursiveVisitorBase &visitor) const override {
-        LARS_VISITOR_WITH_INDENT();
-        return visitDerived<const T, const B>(this, visitor);
+        return staticAccept(this, visitor);
       }
 
     };
@@ -236,7 +248,7 @@ namespace lars {
     
     template <class T, typename ... Rest, class V> bool visitJoint(V * v, VisitorBase &visitor, bool permissive) {
       LARS_VISITOR_LOG("visit join " << lars::get_type_name<V>());
-      if(v->T::accept(visitor, true)) {
+      if(T::staticAccept(v, visitor, true)) {
         return true;
       }
       if constexpr (sizeof...(Rest) > 0) {
@@ -252,7 +264,7 @@ namespace lars {
     
     template <class T, typename ... Rest, class V> bool visitJoint(V * v, RecursiveVisitorBase &visitor) {
       LARS_VISITOR_LOG("recursive visit join " << lars::get_type_name<V>() << ": " << lars::get_type_name<T>());
-      if(!v->T::accept(visitor)) {
+      if(!T::staticAccept(v, visitor)) {
         return false;
       }
       if constexpr (sizeof...(Rest) > 0) {
@@ -266,24 +278,30 @@ namespace lars {
     template <typename ... Bases> class JointVisitable: public Bases ... {
     public:
       
-      bool accept(VisitorBase &visitor, bool permissive) override {
+      template <typename ... Args> static bool staticAccept(JointVisitable *v,Args && ... args){
         LARS_VISITOR_WITH_INDENT();
-        return visitJoint<Bases...>(this, visitor, permissive);
+        return visitJoint<Bases...>(v, args...);
+      }
+      
+      template <typename ... Args> static bool staticAccept(const JointVisitable *v,Args && ... args){
+        LARS_VISITOR_WITH_INDENT();
+        return visitJoint<const Bases...>(v, args...);
+      }
+
+      bool accept(VisitorBase &visitor, bool permissive) override {
+        return staticAccept(this, visitor, permissive);
       }
       
       bool accept(VisitorBase &visitor, bool permissive) const override {
-        LARS_VISITOR_WITH_INDENT();
-        return visitJoint<const Bases...>(this, visitor, permissive);
+        return staticAccept(this, visitor, permissive);
       }
       
       bool accept(RecursiveVisitorBase &visitor) override {
-        LARS_VISITOR_WITH_INDENT();
-        return visitJoint<Bases...>(this, visitor);
+        return staticAccept(this, visitor);
       }
       
       bool accept(RecursiveVisitorBase &visitor) const override {
-        LARS_VISITOR_WITH_INDENT();
-        return visitJoint<const Bases...>(this, visitor);
+        return staticAccept(this, visitor);
       }
 
     };
