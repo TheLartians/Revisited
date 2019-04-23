@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-TEST_CASE("New") {
+namespace {
   using namespace lars::NEW;
  
   struct X: Visitable<X>{
@@ -54,28 +54,35 @@ TEST_CASE("New") {
     
   };
 
-  struct ABXVisitor: public lars::NEW::Visitor<A, B, X> {
-    char result = 0;
+  struct ABXVisitor: public lars::NEW::RecursiveVisitor<A, B, X> {
+    std::string result;
     
-    void visit(A &v) override {
-      result = v.name;
+    bool visit(A &v) override {
+      result += v.name;
+      return true;
     }
     
-    void visit(B &v) override {
-      result = v.name;
+    bool visit(B &v) override {
+      result += v.name;
+      return true;
     }
     
-    void visit(X &) override {
-      result = 'X';
+    bool visit(X &) override {
+      result += 'X';
+      return true;
     }
     
-    char getTypeName(VisitableBase &v) {
-      result = 0;
+    auto getTypeName(VisitableBase &v) {
+      result = "";
       v.accept(*this);
       return result;
     }
     
   };
+}
+
+TEST_CASE("New") {
+  using namespace lars::NEW;
 
   std::shared_ptr<VisitableBase> a = std::make_shared<A>();
   std::shared_ptr<VisitableBase> b = std::make_shared<B>();
@@ -97,12 +104,11 @@ TEST_CASE("New") {
   REQUIRE(abcVisitor.getTypeName(*c) == 'C');
   
   REQUIRE_THROWS_AS(abcVisitor.getTypeName(*x), IncompatibleVisitorException);
-  REQUIRE_THROWS_WITH(abcVisitor.getTypeName(*x), Catch::Matchers::Contains("Visitable<X>"));
-  REQUIRE(abxVisitor.getTypeName(*x) == 'X');
+  REQUIRE_THROWS_WITH(abcVisitor.getTypeName(*x), Catch::Matchers::Contains("X") && Catch::Matchers::Contains("incompatible visitor"));
+  REQUIRE(abxVisitor.getTypeName(*x) == "X");
 
   REQUIRE(abcVisitor.getTypeName(*cx) == 'C');
-  REQUIRE(abxVisitor.getTypeName(*cx) == 'X');
-  REQUIRE(abcVisitor.getTypeName(*bx) == 'B');
-  REQUIRE(abxVisitor.getTypeName(*bx) == 'B');
+  REQUIRE(abxVisitor.getTypeName(*cx) == "AX");
+  REQUIRE(abxVisitor.getTypeName(*bx) == "BX");
   
 }
