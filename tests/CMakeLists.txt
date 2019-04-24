@@ -40,3 +40,9 @@ target_link_libraries(LarsVisitorTests LarsVisitor Catch2)
 ENABLE_TESTING() 
 ADD_TEST(LarsVisitorTests LarsVisitorTests)
 
+# ---- code coverage ----
+
+if (${ENABLE_TEST_COVERAGE})
+  set_target_properties(LarsVisitorTests PROPERTIES CXX_STANDARD 17 COMPILE_FLAGS "-O0 -g -fprofile-arcs -ftest-coverage --coverage")
+  target_link_options(LarsVisitorTests PUBLIC "--coverage")
+endif()
