@@ -43,7 +43,7 @@ namespace {
   struct CX: public JoinVisitable<C, X> {
   };
   
-  struct XC: public JoinVisitable<X, C> {
+  struct XC: public VirtualJoinVisitable<X, C> {
   };
 
   struct ABCVisitor: public lars::Visitor<const A, const B, const C> {
