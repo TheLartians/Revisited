@@ -5,17 +5,17 @@ TEST_CASE("Type Index") {
 
   using namespace lars;
 
-  REQUIRE(get_type_index<int>() == get_type_index<int>());
-  REQUIRE(get_type_index<float>() == get_type_index<float>());
-  REQUIRE(get_type_index<int>() != get_type_index<float>());
+  REQUIRE(getTypeIndex<int>() == getTypeIndex<int>());
+  REQUIRE(getTypeIndex<float>() == getTypeIndex<float>());
+  REQUIRE(getTypeIndex<int>() != getTypeIndex<float>());
 
   using A = int;
   using B = float;
 
-  REQUIRE(get_type_index<A>() == get_type_index<int>());
-  REQUIRE(get_type_index<B>() == get_type_index<float>());
-  REQUIRE(get_type_index<A>() != get_type_index<B>());
-  REQUIRE(get_type_index<A>() != get_type_index<float>());
-  REQUIRE(get_type_index<B>() != get_type_index<int>());
+  REQUIRE(getTypeIndex<A>() == getTypeIndex<int>());
+  REQUIRE(getTypeIndex<B>() == getTypeIndex<float>());
+  REQUIRE(getTypeIndex<A>() != getTypeIndex<B>());
+  REQUIRE(getTypeIndex<A>() != getTypeIndex<float>());
+  REQUIRE(getTypeIndex<B>() != getTypeIndex<int>());
   
 }

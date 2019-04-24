@@ -232,3 +232,28 @@ TEST_CASE("Visitor") {
   }
   
 }
+
+template <class T, class V> void testVisitorCast(V & v) {
+  if constexpr (std::is_base_of<T, V>::value) {
+    REQUIRE(visitor_cast<T>(&v) == &v);
+    REQUIRE(&visitor_cast<T>(v) == &v);
+    REQUIRE(visitor_cast<const T>(&v) == &v);
+    REQUIRE(&visitor_cast<const T>(v) == &v);
+  } else {
+    REQUIRE(visitor_cast<T>(&v) == nullptr);
+    REQUIRE_THROWS(visitor_cast<T>(v));
+    REQUIRE(visitor_cast<const T>(&v) == nullptr);
+    REQUIRE_THROWS(visitor_cast<const T>(v));
+  }
+}
+
+TEMPLATE_TEST_CASE("VisitorCast", "", A, B, C, D, E ,F, BX, CX){
+  TestType t;
+  testVisitorCast<A>(t);
+  testVisitorCast<B>(t);
+  testVisitorCast<C>(t);
+  testVisitorCast<D>(t);
+  testVisitorCast<E>(t);
+  testVisitorCast<F>(t);
+}
+
