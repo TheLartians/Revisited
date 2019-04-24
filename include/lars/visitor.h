@@ -7,6 +7,7 @@
 #include <type_traits>
 #include <lars/type_index.h>
 
+// define flag for verbose debug output
 // #define LARS_VISITOR_DEBUG
 
 #ifdef LARS_VISITOR_DEBUG
@@ -241,16 +242,16 @@ namespace lars {
   };
   
   /**
-   * Joint Visitable
+   * Join Visitable
    */
   
-  template <class T, typename ... Rest, class V> bool visitJoint(V * v, VisitorBase &visitor, bool permissive) {
+  template <class T, typename ... Rest, class V> bool visitJoin(V * v, VisitorBase &visitor, bool permissive) {
     LARS_VISITOR_LOG("visit join " << lars::get_type_name<V>());
     if(T::staticAccept(v, visitor, true)) {
       return true;
     }
     if constexpr (sizeof...(Rest) > 0) {
-      if (visitJoint<Rest...>(v, visitor, true)) {
+      if (visitJoin<Rest...>(v, visitor, true)) {
         return true;
       }
     }
@@ -260,30 +261,94 @@ namespace lars {
     throw IncompatibleVisitorException(get_type_index<V>());
   }
   
-  template <class T, typename ... Rest, class V> bool visitJoint(V * v, RecursiveVisitorBase &visitor) {
+  template <class T, typename ... Rest, class V> bool visitJoin(V * v, RecursiveVisitorBase &visitor) {
     LARS_VISITOR_LOG("recursive visit join " << lars::get_type_name<V>() << ": " << lars::get_type_name<T>());
     if(!T::staticAccept(v, visitor)) {
       return false;
     }
     if constexpr (sizeof...(Rest) > 0) {
-      if (!visitJoint<Rest...>(v, visitor)) {
+      if (!visitJoin<Rest...>(v, visitor)) {
         return false;
       }
     }
     return true;
   }
   
-  template <typename ... Bases> class JointVisitable: public Bases ... {
+  template <typename ... Bases> class JoinVisitable: public Bases ... {
   public:
     
-    template <typename ... Args> static bool staticAccept(JointVisitable *v,Args && ... args){
+    template <typename ... Args> static bool staticAccept(JoinVisitable *v,Args && ... args){
       LARS_VISITOR_WITH_INDENT();
-      return visitJoint<Bases...>(v, args...);
+      return visitJoin<Bases...>(v, args...);
     }
     
-    template <typename ... Args> static bool staticAccept(const JointVisitable *v,Args && ... args){
+    template <typename ... Args> static bool staticAccept(const JoinVisitable *v,Args && ... args){
       LARS_VISITOR_WITH_INDENT();
-      return visitJoint<const Bases...>(v, args...);
+      return visitJoin<const Bases...>(v, args...);
+    }
+    
+    bool accept(VisitorBase &visitor, bool permissive) override {
+      return staticAccept(this, visitor, permissive);
+    }
+    
+    bool accept(VisitorBase &visitor, bool permissive) const override {
+      return staticAccept(this, visitor, permissive);
+    }
+    
+    bool accept(RecursiveVisitorBase &visitor) override {
+      return staticAccept(this, visitor);
+    }
+    
+    bool accept(RecursiveVisitorBase &visitor) const override {
+      return staticAccept(this, visitor);
+    }
+    
+  };
+
+/**
+ * Virtual Join Visitable
+ */
+
+  template <class T, typename ... Rest, class V> bool visitVirtualJoin(V * v, VisitorBase &visitor, bool permissive) {
+    LARS_VISITOR_LOG("visit join " << lars::get_type_name<V>());
+    if(T::staticAccept(v, visitor, true)) {
+      return true;
+    }
+    if constexpr (sizeof...(Rest) > 0) {
+      if (visitJoin<Rest...>(v, visitor, true)) {
+        return true;
+      }
+    }
+    if (permissive) {
+      return false;
+    }
+    throw IncompatibleVisitorException(get_type_index<V>());
+  }
+  
+  template <class T, typename ... Rest, class V> bool visitVirtualJoin(V * v, RecursiveVisitorBase &visitor) {
+    LARS_VISITOR_LOG("recursive visit join " << lars::get_type_name<V>() << ": " << lars::get_type_name<T>());
+    if(!T::staticAccept(v, visitor)) {
+      return false;
+    }
+    if constexpr (sizeof...(Rest) > 0) {
+      if (!visitJoin<Rest...>(v, visitor)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  template <typename ... Bases> class VirtualJoinVisitable: public virtual Bases ... {
+  public:
+    
+    template <typename ... Args> static bool staticAccept(VirtualJoinVisitable *v,Args && ... args){
+      LARS_VISITOR_WITH_INDENT();
+      return visitJoin<Bases...>(v, args...);
+    }
+    
+    template <typename ... Args> static bool staticAccept(const VirtualJoinVisitable *v,Args && ... args){
+      LARS_VISITOR_WITH_INDENT();
+      return visitJoin<const Bases...>(v, args...);
     }
     
     bool accept(VisitorBase &visitor, bool permissive) override {
