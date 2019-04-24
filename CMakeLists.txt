@@ -10,7 +10,7 @@ project(LarsVisitor
 
 # ---- Configuration variables ----
 
-option(ENABLE_LARS_VISITOR_TESTS "Enable tests" OFF)
+option(LARS_VISITOR_ENABLE_TESTS "Enable tests" OFF)
 
 # ---- Include guards ----
 
@@ -29,14 +29,19 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake)
 CPMAddPackage(
   NAME LHC
   GIT_REPOSITORY https://github.com/TheLartians/LHC.git
-  VERSION 0.6
+  VERSION 0.7
 )
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ctti)
+CPMAddPackage(
+  NAME ctti
+  GIT_REPOSITORY https://github.com/hunter-packages/ctti.git
+  VERSION 0.0.2
+  GIT_TAG 0.0.2
+)
 
 # ---- Header target ----
 
-FILE(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/*.h")
+FILE(GLOB_RECURSE headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/*.h")
 add_library(LarsVisitor-headers EXCLUDE_FROM_ALL ${headers})
 SET_TARGET_PROPERTIES(LarsVisitor-headers PROPERTIES LINKER_LANGUAGE CXX)
 
@@ -100,7 +105,7 @@ install(
 
 # ---- Test ----
 
-if(${ENABLE_LARS_VISITOR_TESTS})
+if(${LARS_VISITOR_ENABLE_TESTS})
   ENABLE_TESTING()  
   add_subdirectory(tests)  
 endif()
