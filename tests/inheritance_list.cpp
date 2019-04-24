@@ -17,6 +17,8 @@ TEST_CASE("InheritanceList") {
 
   SECTION("Push and Merge"){
     using L = lars::InheritanceList<>;
+    REQUIRE(std::is_same<L::Types, T<>>::value);
+
     using LA = L::Push<A, 1>;  // "{[A,1]}"
     REQUIRE(std::is_same<LA::Types, T<A>>::value);
     
@@ -59,5 +61,4 @@ TEST_CASE("InheritanceList") {
     using LABC = lars::InheritanceList<>::Push<A>::Push<B>::Push<C>; // "{[C,2][B,1][A,0]}"
     REQUIRE(std::is_same<LABC::Types, T<C,B,A>>::value);
   }
-  
-};
+}

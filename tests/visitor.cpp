@@ -26,8 +26,12 @@ namespace {
     char name = 'D';
   };
   
-  struct E: public DerivedVisitable<E,VirtualJoinVisitable<B, A, D, X>> {
-    char name = 'D';
+  struct E: public DerivedVisitable<E,VirtualJoinVisitable<D, A, X>> {
+    char name = 'E';
+  };
+  
+  struct F: public DerivedVisitable<F,VirtualJoinVisitable<B, E>> {
+    char name = 'F';
   };
   
   struct BX: public DerivedVisitable<BX, JoinVisitable<B, X>> {
@@ -89,33 +93,43 @@ namespace {
     }
   };
   
-  struct ABCDRecursiveVisitor: public lars::RecursiveVisitor<const A, const B, const C, const D> {
+  struct ABCDRecursiveVisitor: public lars::RecursiveVisitor<A, B, C, D, E, F> {
     std::string result;
     bool recursive;
 
-    bool visit(const A &v) override {
+    bool visit(A &v) override {
       result += v.name;
       return recursive;
     }
     
-    bool visit(const B &v) override {
+    bool visit(B &v) override {
       result += v.name;
       return recursive;
     }
     
-    bool visit(const C &v) override {
+    bool visit(C &v) override {
       result += v.name;
       return recursive;
     }
     
-    bool visit(const D &v) override {
+    bool visit(D &v) override {
+      result += v.name;
+      return recursive;
+    }
+    
+    bool visit(E &v) override {
+      result += v.name;
+      return recursive;
+    }
+    
+    bool visit(F &v) override {
       result += v.name;
       return recursive;
     }
     
     struct Error: std::exception{};
     
-    char getTypeName(const VisitableBase &v) {
+    char getTypeName(VisitableBase &v) {
       result = "";
       recursive = false;
       v.accept(*this);
@@ -123,7 +137,7 @@ namespace {
       return result[0];
     }
     
-    std::string getFullTypeName(const VisitableBase &v) {
+    std::string getFullTypeName(VisitableBase &v) {
       result = "";
       recursive = true;
       v.accept(*this);
@@ -141,6 +155,7 @@ TEST_CASE("Visitor") {
   std::shared_ptr<VisitableBase> c = std::make_shared<C>();
   std::shared_ptr<VisitableBase> d = std::make_shared<D>();
   std::shared_ptr<VisitableBase> e = std::make_shared<E>();
+  std::shared_ptr<VisitableBase> f = std::make_shared<F>();
   std::shared_ptr<VisitableBase> x = std::make_shared<X>();
   std::shared_ptr<VisitableBase> bx = std::make_shared<BX>();
   std::shared_ptr<VisitableBase> xb = std::make_shared<XB>();
@@ -160,7 +175,8 @@ TEST_CASE("Visitor") {
     REQUIRE_THROWS_AS(visitor.getTypeName(*x), IncompatibleVisitorException);
     REQUIRE_THROWS_WITH(visitor.getTypeName(*x), Catch::Matchers::Contains("X") && Catch::Matchers::Contains("incompatible visitor"));
     REQUIRE(visitor.getTypeName(*d) == 'A');
-    REQUIRE(visitor.getTypeName(*e) == 'B');
+    REQUIRE(visitor.getTypeName(*e) == 'A');
+    REQUIRE(visitor.getTypeName(*f) == 'B');
     REQUIRE(visitor.getTypeName(*bx) == 'B');
     REQUIRE(visitor.getTypeName(*xb) == 'B');
     REQUIRE(visitor.getTypeName(*cx) == 'C');
@@ -174,7 +190,8 @@ TEST_CASE("Visitor") {
     REQUIRE(visitor.getTypeName(*b) == 'B');
     REQUIRE(visitor.getTypeName(*c) == 'A');
     REQUIRE(visitor.getTypeName(*d) == 'A');
-    REQUIRE(visitor.getTypeName(*e) == 'B');
+    REQUIRE(visitor.getTypeName(*e) == 'A');
+    REQUIRE(visitor.getTypeName(*f) == 'B');
     REQUIRE(visitor.getTypeName(*x) == 'X');
     REQUIRE(visitor.getTypeName(*bx) == 'B');
     REQUIRE(visitor.getTypeName(*xb) == 'X');
@@ -182,7 +199,7 @@ TEST_CASE("Visitor") {
     REQUIRE(visitor.getTypeName(*xc) == 'X');
   }
   
-  SECTION("ABCXRecursiveVisitor"){
+  SECTION("ABCDRecursiveVisitor"){
     ABCDRecursiveVisitor visitor;
 
     SECTION("getTypeName"){
@@ -190,7 +207,8 @@ TEST_CASE("Visitor") {
       REQUIRE(visitor.getTypeName(*b) == 'B');
       REQUIRE(visitor.getTypeName(*c) == 'C');
       REQUIRE(visitor.getTypeName(*d) == 'D');
-      REQUIRE(visitor.getTypeName(*e) == 'D');
+      REQUIRE(visitor.getTypeName(*e) == 'E');
+      REQUIRE(visitor.getTypeName(*f) == 'F');
       REQUIRE_THROWS_AS(visitor.getTypeName(*x), ABCDRecursiveVisitor::Error);
       REQUIRE(visitor.getTypeName(*bx) == 'B');
       REQUIRE(visitor.getTypeName(*xb) == 'B');
@@ -203,7 +221,8 @@ TEST_CASE("Visitor") {
       REQUIRE(visitor.getFullTypeName(*b) == "B");
       REQUIRE(visitor.getFullTypeName(*c) == "CA");
       REQUIRE(visitor.getFullTypeName(*d) == "DAB");
-      REQUIRE(visitor.getFullTypeName(*e) == "DBA");
+      REQUIRE(visitor.getFullTypeName(*e) == "EDAB");
+      REQUIRE(visitor.getFullTypeName(*f) == "FEDBA");
       REQUIRE(visitor.getFullTypeName(*x) == "");
       REQUIRE(visitor.getFullTypeName(*bx) == "B");
       REQUIRE(visitor.getFullTypeName(*xb) == "B");
