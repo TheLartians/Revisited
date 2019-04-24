@@ -23,7 +23,7 @@ namespace lars {
   public:
     
     template <class T> Single<T> * asVisitorFor(){
-      return static_cast<Single<T>*>(getVisitorFor(get_type_index<T>()));
+      return static_cast<Single<T>*>(getVisitorFor(getTypeIndex<T>()));
     }
     
     virtual ~VisitorBasePrototype(){}
@@ -37,7 +37,7 @@ namespace lars {
   template <class SingleBase, template <class T> class Single,typename ... Args> class VisitorPrototype: public virtual VisitorBasePrototype<SingleBase, Single>, public Single<Args> ... {
     
     template <class First, typename ... Rest> inline SingleBase * getVisitorForWorker(const lars::TypeIndex &idx){
-      if (idx == get_type_index<First>()) {
+      if (idx == getTypeIndex<First>()) {
         return static_cast<Single<First>*>(this);
       }
       if constexpr (sizeof...(Rest) > 0){
@@ -85,13 +85,12 @@ namespace lars {
     mutable std::string buffer;
     
   public:
-    TypeIndex typeIndex;
-    IncompatibleVisitorException(TypeIndex t): typeIndex(t){}
+    NamedTypeIndex typeIndex;
+    IncompatibleVisitorException(NamedTypeIndex t): typeIndex(t){}
     
     const char * what() const noexcept override {
       if (buffer.size() == 0){
-        auto typeName = std::string(typeIndex.name().begin(),typeIndex.name().end());
-        buffer = "IncompatibleVisitor: incompatible visitor for " + typeName;
+        buffer = "IncompatibleVisitor: incompatible visitor for " + typeIndex.name();
       }
       return buffer.c_str();
     }
@@ -119,7 +118,7 @@ namespace lars {
     if (permissive) {
       return false;
     } else {
-      throw IncompatibleVisitorException(get_type_index<V>());
+      throw IncompatibleVisitorException(getNamedTypeIndex<V>());
     }
   }
 
@@ -287,7 +286,7 @@ namespace lars {
     if (auto res = visitor_cast<T>(&v)) {
       return *res;
     } else {
-      throw IncompatibleVisitorException(get_type_index<T>());
+      throw IncompatibleVisitorException(getNamedTypeIndex<T>());
     }
   }
 }

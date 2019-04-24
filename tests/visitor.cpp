@@ -247,7 +247,7 @@ template <class T, class V> void testVisitorCast(V & v) {
   }
 }
 
-TEMPLATE_TEST_CASE("VisitorCast", "", A, B, C, D, E ,F){
+TEMPLATE_TEST_CASE("VisitorCast", "", A, B, C, D, E ,F, BX, CX){
   TestType t;
   testVisitorCast<A>(t);
   testVisitorCast<B>(t);
