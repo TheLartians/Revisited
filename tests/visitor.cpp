@@ -26,7 +26,7 @@ namespace {
     char name = 'D';
   };
   
-  struct E: public DerivedVisitable<E,VirtualJoinVisitable<A, B, D, X>> {
+  struct E: public DerivedVisitable<E,VirtualJoinVisitable<B, A, D, X>> {
     char name = 'D';
   };
   
@@ -146,7 +146,7 @@ TEST_CASE("Visitor") {
   std::shared_ptr<VisitableBase> xb = std::make_shared<XB>();
   std::shared_ptr<VisitableBase> cx = std::make_shared<CX>();
   std::shared_ptr<VisitableBase> xc = std::make_shared<XC>();
-
+  
   SECTION("ABCVisitor"){
     ABCVisitor visitor;
     REQUIRE(visitor.asVisitorFor<const A>() == static_cast<SingleVisitor<const A>*>(&visitor));
@@ -160,7 +160,7 @@ TEST_CASE("Visitor") {
     REQUIRE_THROWS_AS(visitor.getTypeName(*x), IncompatibleVisitorException);
     REQUIRE_THROWS_WITH(visitor.getTypeName(*x), Catch::Matchers::Contains("X") && Catch::Matchers::Contains("incompatible visitor"));
     REQUIRE(visitor.getTypeName(*d) == 'A');
-    REQUIRE(visitor.getTypeName(*e) == 'A');
+    REQUIRE(visitor.getTypeName(*e) == 'B');
     REQUIRE(visitor.getTypeName(*bx) == 'B');
     REQUIRE(visitor.getTypeName(*xb) == 'B');
     REQUIRE(visitor.getTypeName(*cx) == 'C');
@@ -174,7 +174,7 @@ TEST_CASE("Visitor") {
     REQUIRE(visitor.getTypeName(*b) == 'B');
     REQUIRE(visitor.getTypeName(*c) == 'A');
     REQUIRE(visitor.getTypeName(*d) == 'A');
-    REQUIRE(visitor.getTypeName(*e) == 'A');
+    REQUIRE(visitor.getTypeName(*e) == 'B');
     REQUIRE(visitor.getTypeName(*x) == 'X');
     REQUIRE(visitor.getTypeName(*bx) == 'B');
     REQUIRE(visitor.getTypeName(*xb) == 'X');
@@ -190,7 +190,7 @@ TEST_CASE("Visitor") {
       REQUIRE(visitor.getTypeName(*b) == 'B');
       REQUIRE(visitor.getTypeName(*c) == 'C');
       REQUIRE(visitor.getTypeName(*d) == 'D');
-      // REQUIRE(visitor.getTypeName(*e) == 'D'); TODO
+      REQUIRE(visitor.getTypeName(*e) == 'D');
       REQUIRE_THROWS_AS(visitor.getTypeName(*x), ABCDRecursiveVisitor::Error);
       REQUIRE(visitor.getTypeName(*bx) == 'B');
       REQUIRE(visitor.getTypeName(*xb) == 'B');
@@ -203,7 +203,7 @@ TEST_CASE("Visitor") {
       REQUIRE(visitor.getFullTypeName(*b) == "B");
       REQUIRE(visitor.getFullTypeName(*c) == "CA");
       REQUIRE(visitor.getFullTypeName(*d) == "DAB");
-      // REQUIRE(visitor.getFullTypeName(*e) == "DBA"); TODO
+      REQUIRE(visitor.getFullTypeName(*e) == "DBA");
       REQUIRE(visitor.getFullTypeName(*x) == "");
       REQUIRE(visitor.getFullTypeName(*bx) == "B");
       REQUIRE(visitor.getFullTypeName(*xb) == "B");

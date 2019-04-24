@@ -5,26 +5,8 @@
 #include <stdexcept>
 #include <string>
 #include <type_traits>
+#include <lars/inheritance_list.h>
 #include <lars/type_index.h>
-
-// define flag for verbose debug output
-// #define LARS_VISITOR_DEBUG
-
-#ifdef LARS_VISITOR_DEBUG
-#include <lars/log.h>
-std::string LARS_VISITOR_LOG_INDENT;
-#define LARS_VISITOR_LOG(X) LARS_LOG(LARS_VISITOR_LOG_INDENT << X)
-#define LARS_VISITOR_INCREASE_INDENT LARS_VISITOR_LOG_INDENT += "  "
-#define LARS_VISITOR_DECREASE_INDENT LARS_VISITOR_LOG_INDENT = LARS_VISITOR_LOG_INDENT.substr(2)
-struct LARS_VISITOR_WITH_INDENT_KEEPER {
-  LARS_VISITOR_WITH_INDENT_KEEPER(){ LARS_VISITOR_INCREASE_INDENT; }
-  ~LARS_VISITOR_WITH_INDENT_KEEPER(){ LARS_VISITOR_DECREASE_INDENT; }
-};
-#define LARS_VISITOR_WITH_INDENT() LARS_VISITOR_LOG(get_type_name<decltype(*v)>() << " accepting visitor"); LARS_VISITOR_WITH_INDENT_KEEPER __LARS_VISITOR_INDENT_KEEPER
-#else
-#define LARS_VISITOR_LOG(X)
-#define LARS_VISITOR_WITH_INDENT()
-#endif
 
 namespace lars {
 
@@ -116,7 +98,7 @@ namespace lars {
   };
   
   /**
-   * Visitable
+   * VisitableBase
    */
   
   class VisitableBase {
@@ -128,53 +110,73 @@ namespace lars {
     virtual ~VisitableBase(){}
   };
   
-  template <class T, class V> static bool visit(V *visitable, VisitorBase &visitor, bool permissive) {
-    LARS_VISITOR_LOG("visit single " << lars::get_type_name<T>());
+  template <class V> static bool visit(
+    V *,
+    TypeList<>,
+    VisitorBase &,
+    bool permissive
+  ) {
+    if (permissive) {
+      return false;
+    } else {
+      throw IncompatibleVisitorException(get_type_index<V>());
+    }
+  }
+
+  template <class V, class T, typename ... Rest> static bool visit(
+    V * visitable,
+    TypeList<T, Rest...>,
+    VisitorBase &visitor,
+    bool permissive
+  ) {
     if (auto *v = visitor.asVisitorFor<T>()) {
       v->visit(static_cast<T&>(*visitable));
       return true;
+    } else {
+      return visit(visitable, TypeList<Rest...>(), visitor, permissive);
     }
-    if (permissive) {
-      return false;
-    }
-    throw IncompatibleVisitorException(get_type_index<V>());
   }
   
-  template <class T, class V> static bool visit(V *visitable, RecursiveVisitorBase &visitor) {
-    LARS_VISITOR_LOG("recursive visit single " << lars::get_type_name<T>());
+  template <class V, class T, typename ... Rest> static bool visit(
+    V * visitable,
+    TypeList<T, Rest...>,
+    RecursiveVisitorBase &visitor
+  ) {
     if (auto *v = visitor.asVisitorFor<T>()) {
-      return v->visit(static_cast<T&>(*visitable));
+      if (!v->visit(static_cast<T&>(*visitable))) {
+        return false;
+      }
     }
-    return true;
+    if constexpr (sizeof...(Rest) > 0) {
+      return visit(visitable, TypeList<Rest...>(), visitor);
+    } else {
+      return true;
+    }
   }
+  
+  /**
+   * Visitable
+   */
   
   template <class T> class Visitable: public virtual VisitableBase {
   public:
     
-    template <typename ... Args> static bool staticAccept(Visitable *v,Args && ... args){
-      LARS_VISITOR_WITH_INDENT();
-      return visit<T>(v, args...);
-    }
-    
-    template <typename ... Args> static bool staticAccept(const Visitable *v,Args && ... args){
-      LARS_VISITOR_WITH_INDENT();
-      return visit<const T>(v, args...);
-    }
-    
+    using InheritanceList = lars::InheritanceList<OrderedType<T, 0>>;
+
     bool accept(VisitorBase &visitor, bool permissive) override {
-      return staticAccept(this, visitor, permissive);
+      return visit(this, typename InheritanceList::Types(), visitor, permissive);
     }
     
     bool accept(VisitorBase &visitor, bool permissive) const override {
-      return staticAccept(this, visitor, permissive);
+      return visit(this, typename InheritanceList::ConstTypes(), visitor, permissive);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
-      return staticAccept(this, visitor);
+      return visit(this, typename InheritanceList::Types(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) const override {
-      return staticAccept(this, visitor);
+      return visit(this, typename InheritanceList::ConstTypes(), visitor);
     }
     
   };
@@ -183,190 +185,81 @@ namespace lars {
    * Derived Visitable
    */
   
-  template <class T, class B, class V> bool visitDerived(V * v, VisitorBase &visitor, bool permissive) {
-    LARS_VISITOR_LOG("visit derived " << lars::get_type_name<T>() << " with base " << lars::get_type_name<B>());
-    if(visit<T>(v, visitor, true)) {
-      return true;
-    }
-    if (B::staticAccept(v,visitor, true)) {
-      return true;
-    }
-    if (permissive) {
-      return false;
-    }
-    throw IncompatibleVisitorException(get_type_index<T>());
-  }
-  
-  template <class T, class B, class V> bool visitDerived(V * v, RecursiveVisitorBase &visitor) {
-    LARS_VISITOR_LOG("recursive visit derived type " << lars::get_type_name<T>());
-    if(!visit<T>(v, visitor)) {
-      return false;
-    }
-    LARS_VISITOR_LOG("recursive visit derived base " << lars::get_type_name<B>());
-    if (!B::staticAccept(v, visitor)) {
-      return false;
-    }
-    return true;
-  }
-  
   template <class T, class B> class DerivedVisitable: public B {
   public:
-    template <typename ... Args> DerivedVisitable(Args ... args):B(args...){ }
     
-    template <typename ... Args> static bool staticAccept(DerivedVisitable *v,Args && ... args){
-      LARS_VISITOR_WITH_INDENT();
-      return visitDerived<T,B>(v, args...);
-    }
-    
-    template <typename ... Args> static bool staticAccept(const DerivedVisitable *v,Args && ... args){
-      LARS_VISITOR_WITH_INDENT();
-      return visitDerived<const T,const B>(v, args...);
-    }
-    
+    using InheritanceList = typename B::InheritanceList::template Push<T>;
+
     bool accept(VisitorBase &visitor, bool permissive) override {
-      return staticAccept(this, visitor, permissive);
+      return visit(this, typename InheritanceList::Types(), visitor, permissive);
     }
     
     bool accept(VisitorBase &visitor, bool permissive) const override {
-      return staticAccept(this, visitor, permissive);
+      return visit(this, typename InheritanceList::ConstTypes(), visitor, permissive);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
-      return staticAccept(this, visitor);
+      return visit(this, typename InheritanceList::Types(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) const override {
-      return staticAccept(this, visitor);
+      return visit(this, typename InheritanceList::ConstTypes(), visitor);
     }
-    
+
   };
   
   /**
    * Join Visitable
    */
   
-  template <class T, typename ... Rest, class V> bool visitJoin(V * v, VisitorBase &visitor, bool permissive) {
-    LARS_VISITOR_LOG("visit join " << lars::get_type_name<V>());
-    if(T::staticAccept(v, visitor, true)) {
-      return true;
-    }
-    if constexpr (sizeof...(Rest) > 0) {
-      if (visitJoin<Rest...>(v, visitor, true)) {
-        return true;
-      }
-    }
-    if (permissive) {
-      return false;
-    }
-    throw IncompatibleVisitorException(get_type_index<V>());
-  }
-  
-  template <class T, typename ... Rest, class V> bool visitJoin(V * v, RecursiveVisitorBase &visitor) {
-    LARS_VISITOR_LOG("recursive visit join " << lars::get_type_name<V>() << ": " << lars::get_type_name<T>());
-    if(!T::staticAccept(v, visitor)) {
-      return false;
-    }
-    if constexpr (sizeof...(Rest) > 0) {
-      if (!visitJoin<Rest...>(v, visitor)) {
-        return false;
-      }
-    }
-    return true;
-  }
-  
   template <typename ... Bases> class JoinVisitable: public Bases ... {
   public:
     
-    template <typename ... Args> static bool staticAccept(JoinVisitable *v,Args && ... args){
-      LARS_VISITOR_WITH_INDENT();
-      return visitJoin<Bases...>(v, args...);
-    }
-    
-    template <typename ... Args> static bool staticAccept(const JoinVisitable *v,Args && ... args){
-      LARS_VISITOR_WITH_INDENT();
-      return visitJoin<const Bases...>(v, args...);
-    }
-    
+    using InheritanceList = lars::InheritanceList<>::Merge<typename Bases::InheritanceList ...>;
+
     bool accept(VisitorBase &visitor, bool permissive) override {
-      return staticAccept(this, visitor, permissive);
+      return visit(this, typename InheritanceList::Types(), visitor, permissive);
     }
     
     bool accept(VisitorBase &visitor, bool permissive) const override {
-      return staticAccept(this, visitor, permissive);
+      return visit(this, typename InheritanceList::ConstTypes(), visitor, permissive);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
-      return staticAccept(this, visitor);
+      return visit(this, typename InheritanceList::Types(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) const override {
-      return staticAccept(this, visitor);
+      return visit(this, typename InheritanceList::ConstTypes(), visitor);
     }
-    
+
   };
 
-/**
- * Virtual Join Visitable
- */
-
-  template <class T, typename ... Rest, class V> bool visitVirtualJoin(V * v, VisitorBase &visitor, bool permissive) {
-    LARS_VISITOR_LOG("visit join " << lars::get_type_name<V>());
-    if(T::staticAccept(v, visitor, true)) {
-      return true;
-    }
-    if constexpr (sizeof...(Rest) > 0) {
-      if (visitJoin<Rest...>(v, visitor, true)) {
-        return true;
-      }
-    }
-    if (permissive) {
-      return false;
-    }
-    throw IncompatibleVisitorException(get_type_index<V>());
-  }
-  
-  template <class T, typename ... Rest, class V> bool visitVirtualJoin(V * v, RecursiveVisitorBase &visitor) {
-    LARS_VISITOR_LOG("recursive visit join " << lars::get_type_name<V>() << ": " << lars::get_type_name<T>());
-    if(!T::staticAccept(v, visitor)) {
-      return false;
-    }
-    if constexpr (sizeof...(Rest) > 0) {
-      if (!visitJoin<Rest...>(v, visitor)) {
-        return false;
-      }
-    }
-    return true;
-  }
+  /**
+   * Virtual Join Visitable
+   */
   
   template <typename ... Bases> class VirtualJoinVisitable: public virtual Bases ... {
   public:
     
-    template <typename ... Args> static bool staticAccept(VirtualJoinVisitable *v,Args && ... args){
-      LARS_VISITOR_WITH_INDENT();
-      return visitJoin<Bases...>(v, args...);
-    }
-    
-    template <typename ... Args> static bool staticAccept(const VirtualJoinVisitable *v,Args && ... args){
-      LARS_VISITOR_WITH_INDENT();
-      return visitJoin<const Bases...>(v, args...);
-    }
-    
+    using InheritanceList = lars::InheritanceList<>::Merge<typename Bases::InheritanceList ...>;
+
     bool accept(VisitorBase &visitor, bool permissive) override {
-      return staticAccept(this, visitor, permissive);
+      return visit(this, typename InheritanceList::Types(), visitor, permissive);
     }
     
     bool accept(VisitorBase &visitor, bool permissive) const override {
-      return staticAccept(this, visitor, permissive);
+      return visit(this, typename InheritanceList::ConstTypes(), visitor, permissive);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
-      return staticAccept(this, visitor);
+      return visit(this, typename InheritanceList::Types(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) const override {
-      return staticAccept(this, visitor);
+      return visit(this, typename InheritanceList::ConstTypes(), visitor);
     }
-    
+
   };
   
 }
