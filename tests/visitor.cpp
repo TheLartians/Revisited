@@ -231,20 +231,6 @@ TEST_CASE("Visitor") {
     }
   }
   
-  SECTION("VisitorCast"){
-    REQUIRE(visitor_cast<A>(a.get()) == a.get());
-    REQUIRE(visitor_cast<A>(b.get()) == nullptr);
-    REQUIRE(&visitor_cast<A>(*a) == a.get());
-    REQUIRE_THROWS(visitor_cast<B>(*a));
-    REQUIRE(visitor_cast<const B>(b.get()) == b.get());
-    REQUIRE(visitor_cast<const A>(b.get()) == nullptr);
-    REQUIRE(visitor_cast<const C>(c.get()) == c.get());
-    REQUIRE(visitor_cast<const D>(d.get()) == d.get());
-    REQUIRE(visitor_cast<const E>(e.get()) == e.get());
-    REQUIRE(visitor_cast<const F>(f.get()) == f.get());
-    
-  }
-  
 }
 
 template <class T, class V> void testVisitorCast(V & v) {
