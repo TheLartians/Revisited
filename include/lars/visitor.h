@@ -262,4 +262,32 @@ namespace lars {
 
   };
   
+  /**
+   * Visitor cast
+   */
+
+  template <class T> struct CastVisitor: public RecursiveVisitor<T> {
+    T * result = nullptr;
+    bool visit(T & t) { result = &t; return false; }
+  };
+  
+  template <class T> typename std::enable_if<!std::is_const<T>::value, T>::type * visitor_cast(VisitableBase * v) {
+    CastVisitor<T> visitor;
+    v->accept(visitor);
+    return visitor.result;
+  }
+  
+  template <class T> typename std::enable_if<std::is_const<T>::value, T>::type * visitor_cast(const VisitableBase * v) {
+    CastVisitor<T> visitor;
+    v->accept(visitor);
+    return visitor.result;
+  }
+
+  template <class T, class V> T & visitor_cast(V & v) {
+    if (auto res = visitor_cast<T>(&v)) {
+      return *res;
+    } else {
+      throw IncompatibleVisitorException(get_type_index<T>());
+    }
+  }
 }
