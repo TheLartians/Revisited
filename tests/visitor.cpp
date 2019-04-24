@@ -22,13 +22,16 @@ namespace {
     char name = 'C';
   };
   
-  struct CX: public JointVisitable<C, X> {
-  };
-  
   struct BX: public DerivedVisitable<BX, JointVisitable<B, X>> {
   };
   
   struct XB: public DerivedVisitable<XB, JointVisitable<X, B>> {
+  };
+
+  struct CX: public JointVisitable<C, X> {
+  };
+  
+  struct XC: public JointVisitable<X, C> {
   };
 
   struct ABCVisitor: public lars::Visitor<const A, const B, const C> {
@@ -126,9 +129,10 @@ TEST_CASE("Visitor") {
   std::shared_ptr<VisitableBase> b = std::make_shared<B>();
   std::shared_ptr<VisitableBase> c = std::make_shared<C>();
   std::shared_ptr<VisitableBase> x = std::make_shared<X>();
-  std::shared_ptr<VisitableBase> cx = std::make_shared<CX>();
   std::shared_ptr<VisitableBase> bx = std::make_shared<BX>();
   std::shared_ptr<VisitableBase> xb = std::make_shared<XB>();
+  std::shared_ptr<VisitableBase> cx = std::make_shared<CX>();
+  std::shared_ptr<VisitableBase> xc = std::make_shared<XC>();
 
   SECTION("ABCVisitor"){
     ABCVisitor visitor;
@@ -142,9 +146,10 @@ TEST_CASE("Visitor") {
     REQUIRE(visitor.getTypeName(*c) == 'C');
     REQUIRE_THROWS_AS(visitor.getTypeName(*x), IncompatibleVisitorException);
     REQUIRE_THROWS_WITH(visitor.getTypeName(*x), Catch::Matchers::Contains("X") && Catch::Matchers::Contains("incompatible visitor"));
-    REQUIRE(visitor.getTypeName(*cx) == 'C');
     REQUIRE(visitor.getTypeName(*bx) == 'B');
     REQUIRE(visitor.getTypeName(*xb) == 'B');
+    REQUIRE(visitor.getTypeName(*cx) == 'C');
+    REQUIRE(visitor.getTypeName(*xc) == 'C');
  }
   
   SECTION("ABXVisitor"){
@@ -154,9 +159,10 @@ TEST_CASE("Visitor") {
     REQUIRE(visitor.getTypeName(*b) == 'B');
     REQUIRE(visitor.getTypeName(*c) == 'A');
     REQUIRE(visitor.getTypeName(*x) == 'X');
-    REQUIRE(visitor.getTypeName(*cx) == 'A');
     REQUIRE(visitor.getTypeName(*bx) == 'B');
     REQUIRE(visitor.getTypeName(*xb) == 'X');
+    REQUIRE(visitor.getTypeName(*cx) == 'A');
+    REQUIRE(visitor.getTypeName(*xc) == 'X');
   }
   
   SECTION("ABCXRecursiveVisitor"){
@@ -166,17 +172,19 @@ TEST_CASE("Visitor") {
     REQUIRE(visitor.getTypeName(*b) == 'B');
     REQUIRE(visitor.getTypeName(*c) == 'C');
     REQUIRE(visitor.getTypeName(*x) == 'X');
-    REQUIRE(visitor.getTypeName(*cx) == 'C');
     REQUIRE(visitor.getTypeName(*bx) == 'B');
     REQUIRE(visitor.getTypeName(*xb) == 'X');
+    REQUIRE(visitor.getTypeName(*cx) == 'C');
+    REQUIRE(visitor.getTypeName(*xc) == 'X');
 
     REQUIRE(visitor.getFullTypeName(*a) == "A");
     REQUIRE(visitor.getFullTypeName(*b) == "B");
     REQUIRE(visitor.getFullTypeName(*c) == "CA");
     REQUIRE(visitor.getFullTypeName(*x) == "X");
-    REQUIRE(visitor.getFullTypeName(*cx) == "CAX");
     REQUIRE(visitor.getFullTypeName(*bx) == "BX");
     REQUIRE(visitor.getFullTypeName(*xb) == "XB");
+    REQUIRE(visitor.getFullTypeName(*cx) == "CAX");
+    REQUIRE(visitor.getFullTypeName(*xc) == "XCA");
   }
   
 }
