@@ -3,6 +3,7 @@
 #include <exception>
 
 #include <lars/visitor.h>
+#include <lars/visitor_pointer_cast.h>
 
 namespace {
   using namespace lars;
@@ -233,18 +234,22 @@ TEST_CASE("Visitor") {
   
 }
 
-template <class T, class V> void testVisitorCast(V & v) {
-  if constexpr (std::is_base_of<T, V>::value) {
-    REQUIRE(visitor_cast<T>(&v) == &v);
-    REQUIRE(&visitor_cast<T>(v) == &v);
-    REQUIRE(visitor_cast<const T>(&v) == &v);
-    REQUIRE(&visitor_cast<const T>(v) == &v);
+template <class T, class V, class P> void testVisitorCastAs(V & v, P * p) {
+  if constexpr (std::is_base_of<T, P>::value) {
+    REQUIRE(visitor_cast<T>(&v) == p);
+    REQUIRE(&visitor_cast<T>(v) == p);
+    REQUIRE(visitor_cast<const T>(&v) == p);
+    REQUIRE(&visitor_cast<const T>(v) == p);
   } else {
     REQUIRE(visitor_cast<T>(&v) == nullptr);
     REQUIRE_THROWS(visitor_cast<T>(v));
     REQUIRE(visitor_cast<const T>(&v) == nullptr);
     REQUIRE_THROWS(visitor_cast<const T>(v));
   }
+}
+
+template <class T, class P> void testVisitorCast(P & v) {
+  return testVisitorCastAs<T, P, P>(v, &v);
 }
 
 TEMPLATE_TEST_CASE("VisitorCast", "", A, B, C, D, E ,F, BX, CX){
@@ -257,3 +262,19 @@ TEMPLATE_TEST_CASE("VisitorCast", "", A, B, C, D, E ,F, BX, CX){
   testVisitorCast<F>(t);
 }
 
+TEST_CASE("SharedVisitorCast"){
+  auto t = std::make_shared<A>();
+  REQUIRE(visitor_pointer_cast<A>(t) == t);
+  REQUIRE(visitor_pointer_cast<B>(t) == std::shared_ptr<B>());
+}
+
+TEMPLATE_TEST_CASE("Proxy Visitable", "", A, B, C, D, E ,F, BX, CX){
+  TestType t;
+  lars::ProxyVisitable<TestType, typename TestType::InheritanceList> proxy(&t);
+  testVisitorCastAs<A,TestType>(proxy, &t);
+  testVisitorCastAs<B,TestType>(proxy, &t);
+  testVisitorCastAs<C,TestType>(proxy, &t);
+  testVisitorCastAs<D,TestType>(proxy, &t);
+  testVisitorCastAs<E,TestType>(proxy, &t);
+  testVisitorCastAs<F,TestType>(proxy, &t);
+}
