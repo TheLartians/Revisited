@@ -300,12 +300,18 @@ TEMPLATE_TEST_CASE("Data Visitable", "", char, int, float, double, unsigned , si
     REQUIRE(visitor_cast<double>(v) == 42);
     REQUIRE(visitor_cast<unsigned>(v) == 42);
     REQUIRE(visitor_cast<long>(v) == 42);
-    REQUIRE_THROWS(visitor_cast<bool>(v));
-    REQUIRE_THROWS(visitor_cast<std::string>(v));
+    REQUIRE_THROWS_AS(visitor_cast<bool>(v), InvalidVisitorException);
+    REQUIRE_THROWS_AS(visitor_cast<std::string>(v), InvalidVisitorException);
   }
   
   SECTION("reference casting"){
     REQUIRE(visitor_cast<TestType &>(v) == 42);
     REQUIRE(visitor_cast<const TestType &>(v) == 42);
+  }
+  
+  SECTION("accept visitor"){
+    Visitor<> visitor;
+    REQUIRE_THROWS_AS(v.accept(visitor), InvalidVisitorException);
+    REQUIRE_THROWS_AS(std::as_const(v).accept(visitor), InvalidVisitorException);
   }
 }
