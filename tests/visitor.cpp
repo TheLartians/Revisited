@@ -2,6 +2,7 @@
 #include <catch2/catch.hpp>
 #include <exception>
 
+#include <lars/unused.h>
 #include <lars/visitor.h>
 #include <lars/visitor_pointer_cast.h>
 
@@ -234,7 +235,7 @@ TEST_CASE("Visitor") {
   
 }
 
-template <class T, class V, class P> void testVisitorCastAs(V & v, P * p) {
+template <class T, class V, class P> void testVisitorCastAs(V & v, P * UNUSED p) {
   if constexpr (std::is_base_of<T, P>::value) {
     REQUIRE(visitor_cast<T>(&v) == p);
     REQUIRE(&visitor_cast<T>(v) == p);
