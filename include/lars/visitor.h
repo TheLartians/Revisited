@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <type_traits>
+#include <optional>
 #include <lars/inheritance_list.h>
 #include <lars/type_index.h>
 
@@ -119,7 +120,7 @@ namespace lars {
     VisitorBase &visitor
   ) {
     if (auto *v = visitor.asVisitorFor<T>()) {
-      return v->visit(static_cast<T&>(*visitable));
+      return v->visit(static_cast<T>(*visitable));
     } else if constexpr (sizeof...(Rest) > 0) {
       return visit(visitable, TypeList<Rest...>(), visitor);
     } else {
@@ -137,19 +138,19 @@ namespace lars {
     RecursiveVisitorBase &visitor
   ) {
     if (auto *v = visitor.asVisitorFor<T>()) {
-      if (!v->visit(static_cast<T&>(*visitable))) {
-        return false;
+      if (v->visit(static_cast<T>(*visitable))) {
+        return true;
       }
     }
     if constexpr (sizeof...(Rest) > 0) {
       return visit(visitable, TypeList<Rest...>(), visitor);
     } else {
-      return true;
+      return false;
     }
   }
   
-  template <class V> static void visit(V *, TypeList<>, RecursiveVisitorBase &) {
-    throw IncompatibleVisitorException(getNamedTypeIndex<V>());
+  template <class V> static bool visit(V *, TypeList<>, RecursiveVisitorBase &) {
+    return false;
   }
   
   /**
@@ -321,11 +322,11 @@ namespace lars {
     template <typename ... Args> DataVisitable(Args && ... args):data(args...){}
     
     void accept(VisitorBase &visitor) override {
-      return visit(this, Types(), visitor);
+      visit(this, Types(), visitor);
     }
     
     void accept(VisitorBase &visitor) const override {
-      return visit(this, ConstTypes(), visitor);
+      visit(this, ConstTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
@@ -336,15 +337,24 @@ namespace lars {
       return visit(this, ConstTypes(), visitor);
     }
     
-    operator T & (){
+    template <
+      class O,
+    typename = typename std::enable_if<std::is_same<T,O>::value || std::is_base_of<O, T>::value>::type
+    > operator O & () {
       return data;
     }
     
-    operator const T & ()const{
+    template <
+      class O,
+      typename = typename std::enable_if<std::is_same<T,O>::value || std::is_base_of<O, T>::value>::type
+    > operator const O & () const {
       return data;
     }
     
-    template <class O> operator O ()const{
+    template <
+      class O,
+      typename = typename std::enable_if<!(std::is_same<T,O>::value || std::is_base_of<O, T>::value)>::type
+    > operator O () const {
       return data;
     }
 
@@ -354,27 +364,35 @@ namespace lars {
    * Visitor cast
    */
 
-  template <class T> struct CastVisitor: public RecursiveVisitor<typename std::remove_pointer<T>::type &> {
-    T result = nullptr;
-    bool visit(typename std::remove_pointer<T>::type & t) { result = &t; return false; }
+  template <class T> struct PointerCastVisitor: public RecursiveVisitor<typename std::remove_pointer<T>::type &> {
+    T result;
+    bool visit(typename std::remove_pointer<T>::type & t) { result = &t; return true; }
   };
   
   template <class T> typename std::enable_if<
-    !std::is_const<typename std::remove_pointer<T>::type>::value,
+    std::is_pointer<T>::value
+    && !std::is_const<typename std::remove_pointer<T>::type>::value,
     T
   >::type visitor_cast(VisitableBase * v) {
-    CastVisitor<T> visitor;
-    v->accept(visitor);
-    return visitor.result;
+    PointerCastVisitor<T> visitor;
+    if (v->accept(visitor)) {
+      return visitor.result;
+    } else {
+      return nullptr;
+    }
   }
   
   template <class T> typename std::enable_if<
-    std::is_const<typename std::remove_pointer<T>::type>::value,
+    std::is_pointer<T>::value
+    && std::is_const<typename std::remove_pointer<T>::type>::value,
     T
-  >::type  visitor_cast(const VisitableBase * v) {
-    CastVisitor<T> visitor;
-    v->accept(visitor);
-    return visitor.result;
+  >::type visitor_cast(const VisitableBase * v) {
+    PointerCastVisitor<T> visitor;
+    if (v->accept(visitor)) {
+      return visitor.result;
+    } else {
+      return nullptr;
+    }
   }
 
   template <class T, class V> typename std::enable_if<
@@ -387,4 +405,19 @@ namespace lars {
       throw IncompatibleVisitorException(getNamedTypeIndex<T>());
     }
   }
+  
+  template <class T> struct CastVisitor: public Visitor<T> {
+    std::optional<T> result;
+    void visit(T t) { result = t; }
+  };
+  
+  template <class T, class V> typename std::enable_if<
+    !std::is_reference<T>::value,
+    T
+  >::type visitor_cast(V & v) {
+    CastVisitor<T> visitor;
+    v.accept(visitor);
+    return *visitor.result;
+  }
+  
 }

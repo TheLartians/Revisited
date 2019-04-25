@@ -97,43 +97,43 @@ namespace {
   
   struct ABCDRecursiveVisitor: public lars::RecursiveVisitor<A &, B &, C &, D &, E &, F &> {
     std::string result;
-    bool recursive;
+    bool non_recursive;
 
     bool visit(A &v) override {
       result += v.name;
-      return recursive;
+      return non_recursive;
     }
     
     bool visit(B &v) override {
       result += v.name;
-      return recursive;
+      return non_recursive;
     }
     
     bool visit(C &v) override {
       result += v.name;
-      return recursive;
+      return non_recursive;
     }
     
     bool visit(D &v) override {
       result += v.name;
-      return recursive;
+      return non_recursive;
     }
     
     bool visit(E &v) override {
       result += v.name;
-      return recursive;
+      return non_recursive;
     }
     
     bool visit(F &v) override {
       result += v.name;
-      return recursive;
+      return non_recursive;
     }
     
     struct Error: std::exception{};
     
     char getTypeName(VisitableBase &v) {
       result = "";
-      recursive = false;
+      non_recursive = true;
       v.accept(*this);
       if(result.size() != 1) throw Error();
       return result[0];
@@ -141,7 +141,7 @@ namespace {
     
     std::string getFullTypeName(VisitableBase &v) {
       result = "";
-      recursive = true;
+      non_recursive = false;
       v.accept(*this);
       return result;
     }
@@ -281,8 +281,15 @@ TEMPLATE_TEST_CASE("Proxy Visitable", "", A, B, C, D, E ,F, BX, CX){
 }
 
 TEMPLATE_TEST_CASE("Data Visitable", "", char, int, float, double, unsigned , size_t, long){
-  //using CastTypes = TypeList<char, int, float, double, unsigned , size_t, long>;
-  // DataVisitable<TestType, TypeList<>, CastTypes> v(42);
-  
-  
+  using CastTypes = TypeList<TestType &, char, int, float, double, unsigned , size_t, long>;
+  using ConstCastTypes = TypeList<const TestType &, char, int, float, double, unsigned , size_t, long>;
+  DataVisitable<TestType, CastTypes, ConstCastTypes> v(42);
+  REQUIRE(visitor_cast<char>(v) == 42);
+  REQUIRE(visitor_cast<int>(v) == 42);
+  REQUIRE(visitor_cast<float>(v) == 42);
+  REQUIRE(visitor_cast<double>(v) == 42);
+  REQUIRE(visitor_cast<unsigned>(v) == 42);
+  REQUIRE(visitor_cast<long>(v) == 42);
+  REQUIRE(visitor_cast<TestType &>(v) == 42);
+  REQUIRE(visitor_cast<const TestType &>(v) == 42);
 }
