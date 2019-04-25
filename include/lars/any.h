@@ -37,6 +37,13 @@ namespace lars {
     > void set(Args && ... args) {
       data = std::make_unique<VisitableType>(std::forward<Args>(args)...);
     }
+    
+    /**
+     * Same as `Any::set`, but uses an internal type that can be visitor_casted to the base types.
+     */
+    template <class T, typename ... Bases, typename ... Args> void setWithBases(Args && ... args){
+      set<T, DataVisitableWithBases<T,Bases...>>(std::forward<Args>(args)...);
+    }
         
     template <class T> Any & operator=(T && o) {
       set<typename std::remove_reference<T>::type>(o);

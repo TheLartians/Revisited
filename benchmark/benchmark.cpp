@@ -149,7 +149,6 @@ static void DynamicCast(benchmark::State& state) {
   }
 }
 
-
 BENCHMARK(ClassicVisitor);
 BENCHMARK(LarsVisitor);
 BENCHMARK(DynamicVisitor);

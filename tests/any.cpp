@@ -75,7 +75,7 @@ TEST_CASE("Inheritance", "[any]"){
   
   SECTION("Inheritance"){
     Any v;
-    v.set<E, DataVisitableWithBases<E,D,C,B,A>>();
+    v.setWithBases<E,D,C,B,A>();
     REQUIRE(v.get<A &>().name == 'A');
     REQUIRE(v.get<const B &>().name == 'B');
     REQUIRE(v.get<C>().name == 'C');
