@@ -1,13 +1,10 @@
 #include <lars/visitor.h>
 #include <lars/timeit.h>
 
+#include <memory>
 #include <benchmark/benchmark.h>
 
 #include <iostream>
-
-template <class T> void doNotOptimizeAway(T && v) {
-  asm volatile("" :: "g" (v));
-}
 
 namespace classic {
   struct B;
@@ -44,7 +41,6 @@ namespace classic {
   };
   
   char __attribute__ ((noinline)) getValue (A & a){
-    doNotOptimizeAway(a);
     BOrEVisitor visitor;
     a.accept(visitor);
     return visitor.result;
@@ -53,7 +49,6 @@ namespace classic {
 
 namespace dynamic {
   char __attribute__ ((noinline)) getValue (classic::A & a){
-    doNotOptimizeAway(a);
     if (auto b = dynamic_cast<classic::B*>(&a)) {
       return b->b;
     } else {
@@ -78,53 +73,88 @@ namespace visitor {
   };
   
   char __attribute__ ((noinline)) getValue (A & a){
-    doNotOptimizeAway(a);
     BOrEVisitor visitor;
     a.accept(visitor);
     return visitor.result;
   }
 }
 
-void Assert(bool v){
-  if (!v) {
-    throw std::runtime_error("assertion failed");
-  }
+bool Assert(bool v){
+  if (!v) { throw std::runtime_error("assertion failed"); }
+  return v;
 }
 
+static void ClassicVisitor(benchmark::State& state) {
+  using namespace classic;
+  std::shared_ptr<A> b = std::make_shared<B>();
+  std::shared_ptr<A> d = std::make_shared<D>();
+  std::shared_ptr<A> e = std::make_shared<E>();
 
-static void BM_SomeFunction(benchmark::State& state) {
-  // Perform setup here
   for (auto _ : state) {
-    // This code gets timed
-    SomeFunction();
+    Assert(getValue(*b) == 'B');
+    Assert(getValue(*d) == 'D');
+    Assert(getValue(*e) == 'E');
   }
 }
-// Register the function as a benchmark
-BENCHMARK(BM_SomeFunction);
-// Run the benchmark
-BENCHMARK_MAIN();
 
-/*
-int main(){
-  do {
-    using namespace classic;
-    std::shared_ptr<A> b = std::make_shared<B>();
-    std::shared_ptr<A> d = std::make_shared<D>();
-    std::shared_ptr<A> e = std::make_shared<E>();
-    doNotOptimizeAway(b);
-    doNotOptimizeAway(d);
-    doNotOptimizeAway(e);
-    
-    auto result = lars::time_it([&](){
-      Assert(getValue(*b) == 'B');
-      Assert(getValue(*d) == 'D');
-      Assert(getValue(*e) == 'E');
-    });
-    
-    std::cout << "classical visitor: " << result << std::endl;
-    
-  } while (false);
-  
-  return 0;
+static void LarsVisitor(benchmark::State& state) {
+  using namespace visitor;
+  std::shared_ptr<A> b = std::make_shared<B>();
+  std::shared_ptr<A> d = std::make_shared<D>();
+  std::shared_ptr<A> e = std::make_shared<E>();
+
+  for (auto _ : state) {
+    Assert(getValue(*b) == 'B');
+    Assert(getValue(*d) == 'D');
+    Assert(getValue(*e) == 'E');
+  }
 }
-*/
+
+static void DynamicVisitor(benchmark::State& state) {
+  using namespace classic;
+  std::shared_ptr<A> b = std::make_shared<B>();
+  std::shared_ptr<A> d = std::make_shared<D>();
+  std::shared_ptr<A> e = std::make_shared<E>();
+
+  for (auto _ : state) {
+    Assert(dynamic::getValue(*b) == 'B');
+    Assert(dynamic::getValue(*d) == 'D');
+    Assert(dynamic::getValue(*e) == 'E');
+  }
+}
+
+static void VisitorCast(benchmark::State& state) {
+  using namespace visitor;
+  std::shared_ptr<A> b = std::make_shared<B>();
+  std::shared_ptr<A> e = std::make_shared<E>();
+
+  for (auto _ : state) {
+    benchmark::DoNotOptimize(Assert(lars::visitor_cast<B *>(b.get())));
+    benchmark::DoNotOptimize(Assert(!lars::visitor_cast<B *>(e.get())));
+    benchmark::DoNotOptimize(Assert(lars::visitor_cast<E *>(e.get())));
+    benchmark::DoNotOptimize(Assert(!lars::visitor_cast<B *>(e.get())));
+  }
+}
+
+static void DynamicCast(benchmark::State& state) {
+  using namespace classic;
+  std::shared_ptr<A> b = std::make_shared<B>();
+  std::shared_ptr<A> e = std::make_shared<E>();
+
+  for (auto _ : state) {
+    benchmark::DoNotOptimize(Assert(dynamic_cast<B *>(b.get())));
+    benchmark::DoNotOptimize(Assert(!dynamic_cast<B *>(e.get())));
+    benchmark::DoNotOptimize(Assert(dynamic_cast<E *>(e.get())));
+    benchmark::DoNotOptimize(Assert(!dynamic_cast<B *>(e.get())));
+  }
+}
+
+
+BENCHMARK(ClassicVisitor);
+BENCHMARK(LarsVisitor);
+BENCHMARK(DynamicVisitor);
+
+BENCHMARK(VisitorCast);
+BENCHMARK(DynamicCast);
+
+BENCHMARK_MAIN();
