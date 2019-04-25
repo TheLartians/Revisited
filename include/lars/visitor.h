@@ -287,7 +287,7 @@ namespace lars {
   public:
     T data;
     
-    template <typename ... Args> DataVisitable(Args && ... args):data(args...){}
+    template <typename ... Args> DataVisitable(Args && ... args):data(std::forward<Args>(args)...){}
     
     void accept(VisitorBase &visitor) override {
       visit(this, Types(), visitor);
@@ -350,10 +350,10 @@ namespace lars {
     }
   }
 
-  template <class T, class V> typename std::enable_if<
+  template <class T> typename std::enable_if<
     std::is_reference<T>::value,
     T
-  >::type visitor_cast(V & v) {
+  >::type visitor_cast(VisitableBase & v) {
     if (auto res = visitor_cast<typename std::remove_reference<T>::type *>(&v)) {
       return *res;
     } else {
@@ -366,10 +366,10 @@ namespace lars {
     void visit(T t) { result = t; }
   };
   
-  template <class T, class V> typename std::enable_if<
-    !std::is_reference<T>::value && !std::is_pointer<V>::value,
+  template <class T> typename std::enable_if<
+    !std::is_reference<T>::value,
     T
-  >::type visitor_cast(const V & v) {
+  >::type visitor_cast(const VisitableBase & v) {
     CastVisitor<T> visitor;
     v.accept(visitor);
     return *visitor.result;
