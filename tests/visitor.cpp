@@ -282,7 +282,7 @@ TEMPLATE_TEST_CASE("Data Visitable", "", char, int, float, double, unsigned , si
   using ConstCastTypes = TypeList<const TestType &, char, int, float, double, unsigned , size_t, long>;
   DataVisitable<TestType, CastTypes, ConstCastTypes> v(42);
 
-  SECTION("value casting"){
+  SECTION("implicit value casting"){
     REQUIRE(visitor_cast<char>(v) == 42);
     REQUIRE(visitor_cast<int>(v) == 42);
     REQUIRE(visitor_cast<float>(v) == 42);

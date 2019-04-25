@@ -306,28 +306,7 @@ namespace lars {
     operator const T & () const {
       return data;
     }
-    
-    template <
-      class O,
-      typename = typename std::enable_if<std::is_base_of<O, T>::value>::type
-    > operator O & () {
-      return data;
-    }
-    
-    template <
-      class O,
-      typename = typename std::enable_if<std::is_base_of<O, T>::value>::type
-    > operator const O & () const {
-      return data;
-    }
-    
-    template <
-      class O,
-      typename = typename std::enable_if<!(std::is_base_of<O, T>::value)>::type
-    > operator O () const {
-      return data;
-    }
-
+        
   };
   
   /**
