@@ -9,7 +9,7 @@ namespace lars {
     std::unique_ptr<VisitableBase> data;
   public:
     
-    Any():data(std::make_unique<NonVisitable>()){}
+    Any():data(std::make_unique<EmptyVisitable>()){}
     
     template <class T, typename ... Bases> void set(T &&){
       // data.reset(new ScalarDataVisitable<T, InheritanceList<OrderedType<T, 0>, OrderedType<Bases, 0> ...>>(t));

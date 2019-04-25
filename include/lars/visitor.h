@@ -81,17 +81,17 @@ namespace lars {
    * Errors
    */
   
-  class IncompatibleVisitorException: public std::exception {
+  class InvalidVisitorException: public std::exception {
   private:
     mutable std::string buffer;
     
   public:
     NamedTypeIndex typeIndex;
-    IncompatibleVisitorException(NamedTypeIndex t): typeIndex(t){}
+    InvalidVisitorException(NamedTypeIndex t): typeIndex(t){}
     
     const char * what() const noexcept override {
       if (buffer.size() == 0){
-        buffer = "IncompatibleVisitor: incompatible visitor for " + typeIndex.name();
+        buffer = "invalid visitor for " + typeIndex.name();
       }
       return buffer.c_str();
     }
@@ -124,12 +124,12 @@ namespace lars {
     } else if constexpr (sizeof...(Rest) > 0) {
       return visit(visitable, TypeList<Rest...>(), visitor);
     } else {
-      throw IncompatibleVisitorException(getNamedTypeIndex<V>());
+      throw InvalidVisitorException(getNamedTypeIndex<V>());
     }
   }
   
   template <class V> static bool visit(V *, TypeList<>, VisitorBase &) {
-    throw IncompatibleVisitorException(getNamedTypeIndex<V>());
+    throw InvalidVisitorException(getNamedTypeIndex<V>());
   }
   
   template <class V, class T, typename ... Rest> static bool visit(
@@ -157,7 +157,7 @@ namespace lars {
    * NonVisitable
    */
   
-  class NonVisitable: public VisitableBase {
+  class EmptyVisitable: public VisitableBase {
   public:
     void accept(VisitorBase &v) override { visit(this, TypeList<>(), v); }
     void accept(VisitorBase &v) const override { visit(this, TypeList<>(), v); }
@@ -274,44 +274,6 @@ namespace lars {
   };
 
   /**
-   * Proxy Visitable
-   */
-  
-  template <class T, class Inheritance> class ProxyVisitable: public virtual VisitableBase {
-  public:
-    T * data;
-    
-    ProxyVisitable(T * d):data(d){}
-    
-    using InheritanceList = Inheritance;
-    
-    void accept(VisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::ReferenceTypes(), visitor);
-    }
-    
-    void accept(VisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
-    }
-    
-    bool accept(RecursiveVisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::ReferenceTypes(), visitor);
-    }
-    
-    bool accept(RecursiveVisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
-    }
-    
-    template <class O> operator O & (){
-      return *data;
-    }
-    
-    template <class O> operator const O & ()const{
-      return *data;
-    }
-    
-  };
-
-  /**
    * Data Visitable
    */
   
@@ -402,7 +364,7 @@ namespace lars {
     if (auto res = visitor_cast<typename std::remove_reference<T>::type *>(&v)) {
       return *res;
     } else {
-      throw IncompatibleVisitorException(getNamedTypeIndex<T>());
+      throw InvalidVisitorException(getNamedTypeIndex<T>());
     }
   }
   

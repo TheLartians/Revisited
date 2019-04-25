@@ -174,8 +174,8 @@ TEST_CASE("Visitor") {
     REQUIRE(visitor.getTypeName(*a) == 'A');
     REQUIRE(visitor.getTypeName(*b) == 'B');
     REQUIRE(visitor.getTypeName(*c) == 'C');
-    REQUIRE_THROWS_AS(visitor.getTypeName(*x), IncompatibleVisitorException);
-    REQUIRE_THROWS_WITH(visitor.getTypeName(*x), Catch::Matchers::Contains("X") && Catch::Matchers::Contains("incompatible visitor"));
+    REQUIRE_THROWS_AS(visitor.getTypeName(*x), InvalidVisitorException);
+    REQUIRE_THROWS_WITH(visitor.getTypeName(*x), Catch::Matchers::Contains("X") && Catch::Matchers::Contains("invalid visitor"));
     REQUIRE(visitor.getTypeName(*d) == 'A');
     REQUIRE(visitor.getTypeName(*e) == 'A');
     REQUIRE(visitor.getTypeName(*f) == 'B');
@@ -269,15 +269,10 @@ TEST_CASE("SharedVisitorCast"){
   REQUIRE(visitor_pointer_cast<B>(t) == std::shared_ptr<B>());
 }
 
-TEMPLATE_TEST_CASE("Proxy Visitable", "", A, B, C, D, E ,F, BX, CX){
-  TestType t;
-  lars::ProxyVisitable<TestType, typename TestType::InheritanceList> proxy(&t);
-  testVisitorCastAs<A,TestType>(proxy, &t);
-  testVisitorCastAs<B,TestType>(proxy, &t);
-  testVisitorCastAs<C,TestType>(proxy, &t);
-  testVisitorCastAs<D,TestType>(proxy, &t);
-  testVisitorCastAs<E,TestType>(proxy, &t);
-  testVisitorCastAs<F,TestType>(proxy, &t);
+TEST_CASE("Empty Visitable"){
+  EmptyVisitable v;
+  REQUIRE_THROWS_AS(visitor_cast<int>(v), InvalidVisitorException);
+  REQUIRE(visitor_cast<int *>(&v) == nullptr);
 }
 
 TEMPLATE_TEST_CASE("Data Visitable", "", char, int, float, double, unsigned , size_t, long){
@@ -292,4 +287,7 @@ TEMPLATE_TEST_CASE("Data Visitable", "", char, int, float, double, unsigned , si
   REQUIRE(visitor_cast<long>(v) == 42);
   REQUIRE(visitor_cast<TestType &>(v) == 42);
   REQUIRE(visitor_cast<const TestType &>(v) == 42);
+  REQUIRE_THROWS(visitor_cast<bool>(v));
+  REQUIRE_THROWS(visitor_cast<std::string>(v));
 }
+
