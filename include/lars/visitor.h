@@ -122,7 +122,7 @@ namespace lars {
     if (auto *v = visitor.asVisitorFor<T>()) {
       return v->visit(static_cast<T>(*visitable));
     } else if constexpr (sizeof...(Rest) > 0) {
-      return visit(visitable, TypeList<Rest...>(), visitor);
+      visit(visitable, TypeList<Rest...>(), visitor);
     } else {
       throw InvalidVisitorException(getNamedTypeIndex<V>());
     }
@@ -175,11 +175,11 @@ namespace lars {
     using InheritanceList = lars::InheritanceList<OrderedType<T, 0>>;
 
     void accept(VisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::ReferenceTypes(), visitor);
+      visit(this, typename InheritanceList::ReferenceTypes(), visitor);
     }
     
     void accept(VisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
+      visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
@@ -202,11 +202,11 @@ namespace lars {
     using InheritanceList = typename B::InheritanceList::template Push<T>;
 
     void accept(VisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::ReferenceTypes(), visitor);
+      visit(this, typename InheritanceList::ReferenceTypes(), visitor);
     }
     
     void accept(VisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
+      visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
@@ -229,11 +229,11 @@ namespace lars {
     using InheritanceList = lars::InheritanceList<>::Merge<typename Bases::InheritanceList ...>;
 
     void accept(VisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::ReferenceTypes(), visitor);
+      visit(this, typename InheritanceList::ReferenceTypes(), visitor);
     }
     
     void accept(VisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
+      visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
@@ -256,11 +256,11 @@ namespace lars {
     using InheritanceList = lars::InheritanceList<>::Merge<typename Bases::InheritanceList ...>;
     
     void accept(VisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::ReferenceTypes(), visitor);
+      visit(this, typename InheritanceList::ReferenceTypes(), visitor);
     }
     
     void accept(VisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
+      visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
