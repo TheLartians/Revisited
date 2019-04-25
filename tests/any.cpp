@@ -17,19 +17,25 @@ TEMPLATE_TEST_CASE("Numerics", "[any]", char, int, long, long long, unsigned cha
   REQUIRE(v.get<float>() == 42);
   REQUIRE(v.get<double>() == 42);
   REQUIRE(v.get<size_t>() == 42);
+  REQUIRE_THROWS_AS(v.get<std::string>(), InvalidVisitorException);
+
 }
 
 TEST_CASE("String", "[any]"){
-  
+  Any v;
+  REQUIRE_THROWS_AS(v.get<std::string>(), InvalidVisitorException);
+
   SECTION("string"){
-    Any v = std::string("Hello Any!");
+    v = std::string("Hello Any!");
     REQUIRE(v.get<std::string>() == "Hello Any!");
   }
 
   SECTION("string literal"){
-    Any v = "Hello Any!";
+    v = "Hello Any!";
     REQUIRE(v.get<std::string>() == "Hello Any!");
   }
+  
+  REQUIRE_THROWS_AS(v.get<int>(), InvalidVisitorException);
 }
 
 TEST_CASE("Inheritance", "[any]"){
