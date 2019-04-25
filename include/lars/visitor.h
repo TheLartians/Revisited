@@ -323,7 +323,7 @@ namespace lars {
     
     template <
       class O,
-      typename = typename std::enable_if<!(std::is_same<T,O>::value || std::is_base_of<O, T>::value)>::type
+      typename = typename std::enable_if<!(std::is_base_of<O, T>::value)>::type
     > operator O () const {
       return data;
     }
