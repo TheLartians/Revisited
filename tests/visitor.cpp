@@ -149,7 +149,7 @@ namespace {
 
 }
 
-TEST_CASE("Visitor") {
+TEST_CASE("visiting objects", "[visitor]") {
   using namespace lars;
   
   std::shared_ptr<VisitableBase> a = std::make_shared<A>();
@@ -253,7 +253,7 @@ template <class T, class P> void testVisitorCast(P & v) {
   return testVisitorCastAs<T, P, P>(v, &v);
 }
 
-TEMPLATE_TEST_CASE("VisitorCast", "", A, B, C, D, E ,F, BX, CX, XC){
+TEMPLATE_TEST_CASE("Casting", "[visitor]", A, B, C, D, E ,F, BX, CX, XC){
   TestType t;
   testVisitorCast<A>(t);
   testVisitorCast<B>(t);
@@ -263,18 +263,19 @@ TEMPLATE_TEST_CASE("VisitorCast", "", A, B, C, D, E ,F, BX, CX, XC){
   testVisitorCast<F>(t);
 }
 
-TEST_CASE("SharedVisitorCast"){
+TEST_CASE("SharedVisitorCast", "[visitor]"){
   auto t = std::make_shared<A>();
   REQUIRE(visitor_pointer_cast<A>(t) == t);
   REQUIRE(visitor_pointer_cast<B>(t) == std::shared_ptr<B>());
 }
 
-TEST_CASE("Empty Visitable"){
+TEST_CASE("Empty Visitable", "[visitor]"){
   EmptyVisitable v;
   REQUIRE_THROWS_AS(visitor_cast<int>(v), InvalidVisitorException);
   REQUIRE(visitor_cast<int *>(&v) == nullptr);
   REQUIRE_THROWS_AS(visitor_cast<int>(std::as_const(v)), InvalidVisitorException);
   REQUIRE(visitor_cast<const  int *>(&std::as_const(v)) == nullptr);
+  REQUIRE(v.namedTypeIndex() == getNamedTypeIndex<EmptyVisitable>());
   
   SECTION("Visitor"){
     Visitor<> visitor;
@@ -288,10 +289,13 @@ TEST_CASE("Empty Visitable"){
 
 }
 
-TEMPLATE_TEST_CASE("Data Visitable", "", char, int, float, double, unsigned , size_t, long){
+TEMPLATE_TEST_CASE("Data Visitable", "[visitor]", char, int, float, double, unsigned , size_t, long){
   using CastTypes = TypeList<TestType &>;
   using ConstCastTypes = TypeList<const TestType &, char, int, float, double, unsigned , size_t, long>;
-  DataVisitable<TestType, CastTypes, ConstCastTypes> v(42);
+  using DVisitable = DataVisitable<TestType, CastTypes, ConstCastTypes> ;
+  
+  DVisitable v(42);
+  REQUIRE(v.namedTypeIndex() == getNamedTypeIndex<DVisitable>());
 
   SECTION("implicit value casting"){
     REQUIRE(visitor_cast<char>(v) == 42);
