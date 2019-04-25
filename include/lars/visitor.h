@@ -120,7 +120,7 @@ namespace lars {
     VisitorBase &visitor
   ) {
     if (auto *v = visitor.asVisitorFor<T>()) {
-      return v->visit(static_cast<T>(*visitable));
+      v->visit(static_cast<T>(*visitable));
     } else if constexpr (sizeof...(Rest) > 0) {
       visit(visitable, TypeList<Rest...>(), visitor);
     } else {
