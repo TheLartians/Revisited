@@ -48,7 +48,7 @@ namespace {
   struct XC: public VirtualJoinVisitable<X, C> {
   };
 
-  struct ABCVisitor: public lars::Visitor<const A, const B, const C> {
+  struct ABCVisitor: public lars::Visitor<const A &, const B &, const C &> {
     char result = 0;
     
     void visit(const A &v) override {
@@ -73,7 +73,7 @@ namespace {
     }
   };
   
-  struct ABXVisitor: public lars::Visitor<A, B, X> {
+  struct ABXVisitor: public lars::Visitor<A &, B &, X &> {
     char result = 0;
 
     void visit(A &v) override {
@@ -95,7 +95,7 @@ namespace {
     }
   };
   
-  struct ABCDRecursiveVisitor: public lars::RecursiveVisitor<A, B, C, D, E, F> {
+  struct ABCDRecursiveVisitor: public lars::RecursiveVisitor<A &, B &, C &, D &, E &, F &> {
     std::string result;
     bool recursive;
 
@@ -166,9 +166,9 @@ TEST_CASE("Visitor") {
   
   SECTION("ABCVisitor"){
     ABCVisitor visitor;
-    REQUIRE(visitor.asVisitorFor<const A>() == static_cast<SingleVisitor<const A>*>(&visitor));
-    REQUIRE(visitor.asVisitorFor<const B>() == static_cast<SingleVisitor<const B>*>(&visitor));
-    REQUIRE(visitor.asVisitorFor<const C>() == static_cast<SingleVisitor<const C>*>(&visitor));
+    REQUIRE(visitor.asVisitorFor<const A &>() == static_cast<SingleVisitor<const A &>*>(&visitor));
+    REQUIRE(visitor.asVisitorFor<const B &>() == static_cast<SingleVisitor<const B &>*>(&visitor));
+    REQUIRE(visitor.asVisitorFor<const C &>() == static_cast<SingleVisitor<const C &>*>(&visitor));
     REQUIRE(visitor.asVisitorFor<X>() == nullptr);
     
     REQUIRE(visitor.getTypeName(*a) == 'A');
@@ -235,17 +235,17 @@ TEST_CASE("Visitor") {
   
 }
 
-template <class T, class V, class P> void testVisitorCastAs(V & v, P * UNUSED p) {
+template <class T, class V, class P> void testVisitorCastAs(V & v, P * p UNUSED) {
   if constexpr (std::is_base_of<T, P>::value) {
-    REQUIRE(visitor_cast<T>(&v) == p);
-    REQUIRE(&visitor_cast<T>(v) == p);
-    REQUIRE(visitor_cast<const T>(&v) == p);
-    REQUIRE(&visitor_cast<const T>(v) == p);
+    REQUIRE(visitor_cast<T*>(&v) == p);
+    REQUIRE(&visitor_cast<T&>(v) == p);
+    REQUIRE(visitor_cast<const T *>(&v) == p);
+    REQUIRE(&visitor_cast<const T &>(v) == p);
   } else {
-    REQUIRE(visitor_cast<T>(&v) == nullptr);
-    REQUIRE_THROWS(visitor_cast<T>(v));
-    REQUIRE(visitor_cast<const T>(&v) == nullptr);
-    REQUIRE_THROWS(visitor_cast<const T>(v));
+    REQUIRE(visitor_cast<T*>(&v) == nullptr);
+    REQUIRE_THROWS(visitor_cast<T&>(v));
+    REQUIRE(visitor_cast<const T *>(&v) == nullptr);
+    REQUIRE_THROWS(visitor_cast<const T &>(v));
   }
 }
 
@@ -278,4 +278,11 @@ TEMPLATE_TEST_CASE("Proxy Visitable", "", A, B, C, D, E ,F, BX, CX){
   testVisitorCastAs<D,TestType>(proxy, &t);
   testVisitorCastAs<E,TestType>(proxy, &t);
   testVisitorCastAs<F,TestType>(proxy, &t);
+}
+
+TEMPLATE_TEST_CASE("Data Visitable", "", char, int, float, double, unsigned , size_t, long){
+  //using CastTypes = TypeList<char, int, float, double, unsigned , size_t, long>;
+  // DataVisitable<TestType, TypeList<>, CastTypes> v(42);
+  
+  
 }
