@@ -3,6 +3,27 @@
 
 using namespace lars;
 
+TEST_CASE("Get", "[any]"){
+  Any v;
+  REQUIRE_THROWS_AS(v.get<int>(), InvalidVisitorException);
+  v.set<int>(3);
+  REQUIRE(v.get<int>() == 3);
+  REQUIRE(std::as_const(v).get<int>() == 3);
+  REQUIRE(v.get<int &>() == 3);
+  REQUIRE(v.get<const int &>() == 3);
+  REQUIRE(v.tryGet<int>()== &v.get<int &>());
+  REQUIRE_THROWS_AS(v.get<std::string>(), InvalidVisitorException);
+  REQUIRE(v.tryGet<std::string>() == nullptr);
+  
+  v = "Hello any!";
+  REQUIRE(v.get<std::string>() == "Hello any!");
+  REQUIRE(v.get<std::string &>() == "Hello any!");
+  REQUIRE(v.get<const std::string &>() == "Hello any!");
+  REQUIRE(v.tryGet<std::string>()== &v.get<std::string &>());
+  REQUIRE_THROWS_AS(v.get<int>(), InvalidVisitorException);
+  REQUIRE(v.tryGet<int>() == nullptr);
+}
+
 TEMPLATE_TEST_CASE("Numerics", "[any]", char, int, long, long long, unsigned char, unsigned int, unsigned long, unsigned long long, float, double) {
   Any v;
 
@@ -18,7 +39,6 @@ TEMPLATE_TEST_CASE("Numerics", "[any]", char, int, long, long long, unsigned cha
   REQUIRE(v.get<double>() == 42);
   REQUIRE(v.get<size_t>() == 42);
   REQUIRE_THROWS_AS(v.get<std::string>(), InvalidVisitorException);
-
 }
 
 TEST_CASE("String", "[any]"){

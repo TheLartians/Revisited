@@ -9,7 +9,7 @@ namespace lars {
   template <class T> struct AnyVisitable;
   
   /**
-   *
+   * A class that can hold an arbitrary value of any type.
    */
   class Any {
   private:
@@ -24,6 +24,12 @@ namespace lars {
     Any &operator=(const Any &) = delete;
     Any &operator=(Any &&) = default;
 
+    /**
+     * Sets the stored object to an object of type `T`, constructed with the arguments provided.
+     * The `VisitableType` templated paramter defines the internal type used for storing and
+     * casting the object. The default is `lars::AnyVisitable<T>::type` which can be specialized
+     * for user types.
+     */
     template <
       class T,
       class VisitableType = typename AnyVisitable<T>::type,
@@ -37,12 +43,27 @@ namespace lars {
       return *this;
     }
     
+    /**
+     * Casts the internal data to `T` using `visitor_cast`.
+     * A `InvalidVisitor` exception will be raised if the cast is unsuccessful.
+     */
     template <class T> T get(){
       return visitor_cast<T>(*data);
     }
     
+    /**
+     * Same as above for a const any object.
+     */
     template <class T> const T get()const{
       return visitor_cast<T>(*data);
+    }
+
+    /**
+     * Casts the internal data to `T *` using `visitor_cast`.
+     * `nullptr` will be returned if the cast is unsuccessful.
+     */
+    template <class T> T * tryGet(){
+      return visitor_cast<T*>(data.get());
     }
     
   };
