@@ -47,8 +47,14 @@ namespace lars {
       return nullptr;
     }
     
+  public:
+    
     SingleBase * getVisitorFor(const lars::TypeIndex &idx) override {
-      return getVisitorForWorker<Args...>(idx);
+      if constexpr (sizeof...(Args  ) > 0) {
+        return getVisitorForWorker<Args...>(idx);
+      } else {
+        return nullptr;
+      }
     }
     
   };
@@ -306,7 +312,7 @@ namespace lars {
     operator const T & () const {
       return data;
     }
-        
+    
   };
   
   /**
