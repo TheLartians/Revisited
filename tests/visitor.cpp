@@ -278,17 +278,23 @@ TEST_CASE("Empty Visitable"){
 }
 
 TEMPLATE_TEST_CASE("Data Visitable", "", char, int, float, double, unsigned , size_t, long){
-  using CastTypes = TypeList<TestType &, char, int, float, double, unsigned , size_t, long>;
+  using CastTypes = TypeList<TestType &>;
   using ConstCastTypes = TypeList<const TestType &, char, int, float, double, unsigned , size_t, long>;
   DataVisitable<TestType, CastTypes, ConstCastTypes> v(42);
-  REQUIRE(visitor_cast<char>(v) == 42);
-  REQUIRE(visitor_cast<int>(v) == 42);
-  REQUIRE(visitor_cast<float>(v) == 42);
-  REQUIRE(visitor_cast<double>(v) == 42);
-  REQUIRE(visitor_cast<unsigned>(v) == 42);
-  REQUIRE(visitor_cast<long>(v) == 42);
-  REQUIRE(visitor_cast<TestType &>(v) == 42);
-  REQUIRE(visitor_cast<const TestType &>(v) == 42);
-  REQUIRE_THROWS(visitor_cast<bool>(v));
-  REQUIRE_THROWS(visitor_cast<std::string>(v));
+
+  SECTION("value casting"){
+    REQUIRE(visitor_cast<char>(v) == 42);
+    REQUIRE(visitor_cast<int>(v) == 42);
+    REQUIRE(visitor_cast<float>(v) == 42);
+    REQUIRE(visitor_cast<double>(v) == 42);
+    REQUIRE(visitor_cast<unsigned>(v) == 42);
+    REQUIRE(visitor_cast<long>(v) == 42);
+    REQUIRE_THROWS(visitor_cast<bool>(v));
+    REQUIRE_THROWS(visitor_cast<std::string>(v));
+  }
+  
+  SECTION("reference casting"){
+    REQUIRE(visitor_cast<TestType &>(v) == 42);
+    REQUIRE(visitor_cast<const TestType &>(v) == 42);
+  }
 }

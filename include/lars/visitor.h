@@ -382,9 +382,9 @@ namespace lars {
   };
   
   template <class T, class V> typename std::enable_if<
-    !std::is_reference<T>::value,
+    !std::is_reference<T>::value && !std::is_pointer<V>::value,
     T
-  >::type visitor_cast(V & v) {
+  >::type visitor_cast(const V & v) {
     CastVisitor<T> visitor;
     v.accept(visitor);
     return *visitor.result;
