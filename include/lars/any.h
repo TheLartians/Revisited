@@ -8,14 +8,9 @@ namespace lars {
   
   template <class T> struct AnyVisitable;
   
-  template <class T> struct AnyVisitable {
-    using type = typename std::conditional<
-      std::is_base_of<VisitableBase, T>::value,
-      T,
-      DataVisitable<T, TypeList<T &>, TypeList<const T &, T>>
-    >::type;
-  };
-  
+  /**
+   *
+   */
   class Any {
   private:
     std::unique_ptr<VisitableBase> data;
@@ -52,6 +47,14 @@ namespace lars {
     
   };
   
+  template <class T> struct AnyVisitable {
+    using type = typename std::conditional<
+    std::is_base_of<VisitableBase, T>::value,
+    T,
+    DataVisitable<T, TypeList<T &>, TypeList<const T &, T>>
+    >::type;
+  };
+
 }
 
 /**
