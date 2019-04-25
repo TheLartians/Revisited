@@ -276,8 +276,15 @@ TEST_CASE("Empty Visitable"){
   REQUIRE_THROWS_AS(visitor_cast<int>(std::as_const(v)), InvalidVisitorException);
   REQUIRE(visitor_cast<const  int *>(&std::as_const(v)) == nullptr);
   
-  Visitor<> visitor;
-  REQUIRE_THROWS_AS(v.accept(visitor), InvalidVisitorException);
+  SECTION("Visitor"){
+    Visitor<> visitor;
+    REQUIRE_THROWS_AS(v.accept(visitor), InvalidVisitorException);
+  }
+  
+  SECTION("RecursiveVisitor"){
+    RecursiveVisitor<> visitor;
+    REQUIRE(v.accept(visitor) == false);
+  }
 
 }
 
