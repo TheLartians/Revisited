@@ -290,4 +290,3 @@ TEMPLATE_TEST_CASE("Data Visitable", "", char, int, float, double, unsigned , si
   REQUIRE_THROWS(visitor_cast<bool>(v));
   REQUIRE_THROWS(visitor_cast<std::string>(v));
 }
-

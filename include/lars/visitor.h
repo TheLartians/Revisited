@@ -298,17 +298,25 @@ namespace lars {
     bool accept(RecursiveVisitorBase &visitor) const override {
       return visit(this, ConstTypes(), visitor);
     }
+
+    operator T & () {
+      return data;
+    }
+    
+    operator const T & () const {
+      return data;
+    }
     
     template <
       class O,
-    typename = typename std::enable_if<std::is_same<T,O>::value || std::is_base_of<O, T>::value>::type
+      typename = typename std::enable_if<std::is_base_of<O, T>::value>::type
     > operator O & () {
       return data;
     }
     
     template <
       class O,
-      typename = typename std::enable_if<std::is_same<T,O>::value || std::is_base_of<O, T>::value>::type
+      typename = typename std::enable_if<std::is_base_of<O, T>::value>::type
     > operator const O & () const {
       return data;
     }
