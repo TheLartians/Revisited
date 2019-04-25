@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <type_traits>
+#include <optional>
 #include <lars/inheritance_list.h>
 #include <lars/type_index.h>
 
@@ -46,8 +47,14 @@ namespace lars {
       return nullptr;
     }
     
+  public:
+    
     SingleBase * getVisitorFor(const lars::TypeIndex &idx) override {
-      return getVisitorForWorker<Args...>(idx);
+      if constexpr (sizeof...(Args  ) > 0) {
+        return getVisitorForWorker<Args...>(idx);
+      } else {
+        return nullptr;
+      }
     }
     
   };
@@ -58,7 +65,7 @@ namespace lars {
   
   template <class T> class SingleVisitor: public SingleVisitorBase {
   public:
-    virtual void visit(T &v) = 0;
+    virtual void visit(T v) = 0;
   };
   
   using VisitorBase = VisitorBasePrototype<SingleVisitorBase, SingleVisitor>;
@@ -70,27 +77,27 @@ namespace lars {
   
   template <class T> class SingleRecursiveVisitor: public SingleVisitorBase {
   public:
-    virtual bool visit(T &v) = 0;
+    virtual bool visit(T v) = 0;
   };
   
   using RecursiveVisitorBase = VisitorBasePrototype<SingleVisitorBase, SingleRecursiveVisitor>;
   template <typename ... Args> using RecursiveVisitor = VisitorPrototype<SingleVisitorBase, SingleRecursiveVisitor, Args...>;
-  
+
   /**
    * Errors
    */
   
-  class IncompatibleVisitorException: public std::exception {
+  class InvalidVisitorException: public std::exception {
   private:
     mutable std::string buffer;
     
   public:
     NamedTypeIndex typeIndex;
-    IncompatibleVisitorException(NamedTypeIndex t): typeIndex(t){}
+    InvalidVisitorException(NamedTypeIndex t): typeIndex(t){}
     
     const char * what() const noexcept override {
       if (buffer.size() == 0){
-        buffer = "IncompatibleVisitor: incompatible visitor for " + typeIndex.name();
+        buffer = "invalid visitor for " + typeIndex.name();
       }
       return buffer.c_str();
     }
@@ -102,38 +109,33 @@ namespace lars {
   
   class VisitableBase {
   public:
-    virtual bool accept(VisitorBase &visitor, bool permissive = false) = 0;
-    virtual bool accept(VisitorBase &visitor, bool permissive = false) const = 0;
+    virtual void accept(VisitorBase &visitor) = 0;
+    virtual void accept(VisitorBase &visitor) const = 0;
     virtual bool accept(RecursiveVisitorBase &) = 0;
     virtual bool accept(RecursiveVisitorBase &) const = 0;
     virtual ~VisitableBase(){}
   };
   
-  template <class V> static bool visit(
-    V *,
-    TypeList<>,
-    VisitorBase &,
-    bool permissive
-  ) {
-    if (permissive) {
-      return false;
-    } else {
-      throw IncompatibleVisitorException(getNamedTypeIndex<V>());
-    }
-  }
+  /**
+   * Visit algorithms
+   */
 
-  template <class V, class T, typename ... Rest> static bool visit(
+  template <class V, class T, typename ... Rest> static void visit(
     V * visitable,
     TypeList<T, Rest...>,
-    VisitorBase &visitor,
-    bool permissive
+    VisitorBase &visitor
   ) {
     if (auto *v = visitor.asVisitorFor<T>()) {
-      v->visit(static_cast<T&>(*visitable));
-      return true;
+      v->visit(static_cast<T>(*visitable));
+    } else if constexpr (sizeof...(Rest) > 0) {
+      visit(visitable, TypeList<Rest...>(), visitor);
     } else {
-      return visit(visitable, TypeList<Rest...>(), visitor, permissive);
+      throw InvalidVisitorException(getNamedTypeIndex<V>());
     }
+  }
+  
+  template <class V> static bool visit(V *, TypeList<>, VisitorBase &) {
+    throw InvalidVisitorException(getNamedTypeIndex<V>());
   }
   
   template <class V, class T, typename ... Rest> static bool visit(
@@ -142,16 +144,32 @@ namespace lars {
     RecursiveVisitorBase &visitor
   ) {
     if (auto *v = visitor.asVisitorFor<T>()) {
-      if (!v->visit(static_cast<T&>(*visitable))) {
-        return false;
+      if (v->visit(static_cast<T>(*visitable))) {
+        return true;
       }
     }
     if constexpr (sizeof...(Rest) > 0) {
       return visit(visitable, TypeList<Rest...>(), visitor);
     } else {
-      return true;
+      return false;
     }
   }
+  
+  template <class V> static bool visit(V *, TypeList<>, RecursiveVisitorBase &) {
+    return false;
+  }
+  
+  /**
+   * NonVisitable
+   */
+  
+  class EmptyVisitable: public VisitableBase {
+  public:
+    void accept(VisitorBase &v) override { visit(this, TypeList<>(), v); }
+    void accept(VisitorBase &v) const override { visit(this, TypeList<>(), v); }
+    bool accept(RecursiveVisitorBase &) override { return false; }
+    bool accept(RecursiveVisitorBase &) const override { return false; }
+  };
   
   /**
    * Visitable
@@ -162,20 +180,20 @@ namespace lars {
     
     using InheritanceList = lars::InheritanceList<OrderedType<T, 0>>;
 
-    bool accept(VisitorBase &visitor, bool permissive) override {
-      return visit(this, typename InheritanceList::Types(), visitor, permissive);
+    void accept(VisitorBase &visitor) override {
+      visit(this, typename InheritanceList::ReferenceTypes(), visitor);
     }
     
-    bool accept(VisitorBase &visitor, bool permissive) const override {
-      return visit(this, typename InheritanceList::ConstTypes(), visitor, permissive);
+    void accept(VisitorBase &visitor) const override {
+      visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::Types(), visitor);
+      return visit(this, typename InheritanceList::ReferenceTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstTypes(), visitor);
+      return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
     }
     
   };
@@ -189,20 +207,20 @@ namespace lars {
     
     using InheritanceList = typename B::InheritanceList::template Push<T>;
 
-    bool accept(VisitorBase &visitor, bool permissive) override {
-      return visit(this, typename InheritanceList::Types(), visitor, permissive);
+    void accept(VisitorBase &visitor) override {
+      visit(this, typename InheritanceList::ReferenceTypes(), visitor);
     }
     
-    bool accept(VisitorBase &visitor, bool permissive) const override {
-      return visit(this, typename InheritanceList::ConstTypes(), visitor, permissive);
+    void accept(VisitorBase &visitor) const override {
+      visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::Types(), visitor);
+      return visit(this, typename InheritanceList::ReferenceTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstTypes(), visitor);
+      return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
     }
 
   };
@@ -216,20 +234,20 @@ namespace lars {
     
     using InheritanceList = lars::InheritanceList<>::Merge<typename Bases::InheritanceList ...>;
 
-    bool accept(VisitorBase &visitor, bool permissive) override {
-      return visit(this, typename InheritanceList::Types(), visitor, permissive);
+    void accept(VisitorBase &visitor) override {
+      visit(this, typename InheritanceList::ReferenceTypes(), visitor);
     }
     
-    bool accept(VisitorBase &visitor, bool permissive) const override {
-      return visit(this, typename InheritanceList::ConstTypes(), visitor, permissive);
+    void accept(VisitorBase &visitor) const override {
+      visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::Types(), visitor);
+      return visit(this, typename InheritanceList::ReferenceTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstTypes(), visitor);
+      return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
     }
 
   };
@@ -242,51 +260,119 @@ namespace lars {
   public:
     
     using InheritanceList = lars::InheritanceList<>::Merge<typename Bases::InheritanceList ...>;
-
-    bool accept(VisitorBase &visitor, bool permissive) override {
-      return visit(this, typename InheritanceList::Types(), visitor, permissive);
+    
+    void accept(VisitorBase &visitor) override {
+      visit(this, typename InheritanceList::ReferenceTypes(), visitor);
     }
     
-    bool accept(VisitorBase &visitor, bool permissive) const override {
-      return visit(this, typename InheritanceList::ConstTypes(), visitor, permissive);
+    void accept(VisitorBase &visitor) const override {
+      visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::Types(), visitor);
+      return visit(this, typename InheritanceList::ReferenceTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstTypes(), visitor);
+      return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
+    }
+    
+  };
+
+  /**
+   * Data Visitable
+   */
+  
+  template <class T, class Types, class ConstTypes> class DataVisitable: public virtual VisitableBase {
+  public:
+    T data;
+    
+    template <typename ... Args> DataVisitable(Args && ... args):data(args...){}
+    
+    void accept(VisitorBase &visitor) override {
+      visit(this, Types(), visitor);
+    }
+    
+    void accept(VisitorBase &visitor) const override {
+      visit(this, ConstTypes(), visitor);
+    }
+    
+    bool accept(RecursiveVisitorBase &visitor) override {
+      return visit(this, Types(), visitor);
+    }
+    
+    bool accept(RecursiveVisitorBase &visitor) const override {
+      return visit(this, ConstTypes(), visitor);
     }
 
+    operator T & () {
+      return data;
+    }
+    
+    operator const T & () const {
+      return data;
+    }
+    
   };
   
   /**
    * Visitor cast
    */
 
-  template <class T> struct CastVisitor: public RecursiveVisitor<T> {
-    T * result = nullptr;
-    bool visit(T & t) { result = &t; return false; }
+  template <class T> struct PointerCastVisitor: public RecursiveVisitor<typename std::remove_pointer<T>::type &> {
+    T result;
+    bool visit(typename std::remove_pointer<T>::type & t) { result = &t; return true; }
   };
   
-  template <class T> typename std::enable_if<!std::is_const<T>::value, T>::type * visitor_cast(VisitableBase * v) {
-    CastVisitor<T> visitor;
-    v->accept(visitor);
-    return visitor.result;
-  }
-  
-  template <class T> typename std::enable_if<std::is_const<T>::value, T>::type * visitor_cast(const VisitableBase * v) {
-    CastVisitor<T> visitor;
-    v->accept(visitor);
-    return visitor.result;
-  }
-
-  template <class T, class V> T & visitor_cast(V & v) {
-    if (auto res = visitor_cast<T>(&v)) {
-      return *res;
+  template <class T> typename std::enable_if<
+    std::is_pointer<T>::value
+    && !std::is_const<typename std::remove_pointer<T>::type>::value,
+    T
+  >::type visitor_cast(VisitableBase * v) {
+    PointerCastVisitor<T> visitor;
+    if (v->accept(visitor)) {
+      return visitor.result;
     } else {
-      throw IncompatibleVisitorException(getNamedTypeIndex<T>());
+      return nullptr;
     }
   }
+  
+  template <class T> typename std::enable_if<
+    std::is_pointer<T>::value
+    && std::is_const<typename std::remove_pointer<T>::type>::value,
+    T
+  >::type visitor_cast(const VisitableBase * v) {
+    PointerCastVisitor<T> visitor;
+    if (v->accept(visitor)) {
+      return visitor.result;
+    } else {
+      return nullptr;
+    }
+  }
+
+  template <class T, class V> typename std::enable_if<
+    std::is_reference<T>::value,
+    T
+  >::type visitor_cast(V & v) {
+    if (auto res = visitor_cast<typename std::remove_reference<T>::type *>(&v)) {
+      return *res;
+    } else {
+      throw InvalidVisitorException(getNamedTypeIndex<T>());
+    }
+  }
+  
+  template <class T> struct CastVisitor: public Visitor<T> {
+    std::optional<T> result;
+    void visit(T t) { result = t; }
+  };
+  
+  template <class T, class V> typename std::enable_if<
+    !std::is_reference<T>::value && !std::is_pointer<V>::value,
+    T
+  >::type visitor_cast(const V & v) {
+    CastVisitor<T> visitor;
+    v.accept(visitor);
+    return *visitor.result;
+  }
+  
 }

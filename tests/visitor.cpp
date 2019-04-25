@@ -2,7 +2,9 @@
 #include <catch2/catch.hpp>
 #include <exception>
 
+#include <lars/unused.h>
 #include <lars/visitor.h>
+#include <lars/visitor_pointer_cast.h>
 
 namespace {
   using namespace lars;
@@ -46,7 +48,7 @@ namespace {
   struct XC: public VirtualJoinVisitable<X, C> {
   };
 
-  struct ABCVisitor: public lars::Visitor<const A, const B, const C> {
+  struct ABCVisitor: public lars::Visitor<const A &, const B &, const C &> {
     char result = 0;
     
     void visit(const A &v) override {
@@ -71,7 +73,7 @@ namespace {
     }
   };
   
-  struct ABXVisitor: public lars::Visitor<A, B, X> {
+  struct ABXVisitor: public lars::Visitor<A &, B &, X &> {
     char result = 0;
 
     void visit(A &v) override {
@@ -93,45 +95,45 @@ namespace {
     }
   };
   
-  struct ABCDRecursiveVisitor: public lars::RecursiveVisitor<A, B, C, D, E, F> {
+  struct ABCDRecursiveVisitor: public lars::RecursiveVisitor<A &, B &, C &, D &, E &, F &> {
     std::string result;
-    bool recursive;
+    bool non_recursive;
 
     bool visit(A &v) override {
       result += v.name;
-      return recursive;
+      return non_recursive;
     }
     
     bool visit(B &v) override {
       result += v.name;
-      return recursive;
+      return non_recursive;
     }
     
     bool visit(C &v) override {
       result += v.name;
-      return recursive;
+      return non_recursive;
     }
     
     bool visit(D &v) override {
       result += v.name;
-      return recursive;
+      return non_recursive;
     }
     
     bool visit(E &v) override {
       result += v.name;
-      return recursive;
+      return non_recursive;
     }
     
     bool visit(F &v) override {
       result += v.name;
-      return recursive;
+      return non_recursive;
     }
     
     struct Error: std::exception{};
     
     char getTypeName(VisitableBase &v) {
       result = "";
-      recursive = false;
+      non_recursive = true;
       v.accept(*this);
       if(result.size() != 1) throw Error();
       return result[0];
@@ -139,7 +141,7 @@ namespace {
     
     std::string getFullTypeName(VisitableBase &v) {
       result = "";
-      recursive = true;
+      non_recursive = false;
       v.accept(*this);
       return result;
     }
@@ -164,16 +166,16 @@ TEST_CASE("Visitor") {
   
   SECTION("ABCVisitor"){
     ABCVisitor visitor;
-    REQUIRE(visitor.asVisitorFor<const A>() == static_cast<SingleVisitor<const A>*>(&visitor));
-    REQUIRE(visitor.asVisitorFor<const B>() == static_cast<SingleVisitor<const B>*>(&visitor));
-    REQUIRE(visitor.asVisitorFor<const C>() == static_cast<SingleVisitor<const C>*>(&visitor));
+    REQUIRE(visitor.asVisitorFor<const A &>() == static_cast<SingleVisitor<const A &>*>(&visitor));
+    REQUIRE(visitor.asVisitorFor<const B &>() == static_cast<SingleVisitor<const B &>*>(&visitor));
+    REQUIRE(visitor.asVisitorFor<const C &>() == static_cast<SingleVisitor<const C &>*>(&visitor));
     REQUIRE(visitor.asVisitorFor<X>() == nullptr);
     
     REQUIRE(visitor.getTypeName(*a) == 'A');
     REQUIRE(visitor.getTypeName(*b) == 'B');
     REQUIRE(visitor.getTypeName(*c) == 'C');
-    REQUIRE_THROWS_AS(visitor.getTypeName(*x), IncompatibleVisitorException);
-    REQUIRE_THROWS_WITH(visitor.getTypeName(*x), Catch::Matchers::Contains("X") && Catch::Matchers::Contains("incompatible visitor"));
+    REQUIRE_THROWS_AS(visitor.getTypeName(*x), InvalidVisitorException);
+    REQUIRE_THROWS_WITH(visitor.getTypeName(*x), Catch::Matchers::Contains("X") && Catch::Matchers::Contains("invalid visitor"));
     REQUIRE(visitor.getTypeName(*d) == 'A');
     REQUIRE(visitor.getTypeName(*e) == 'A');
     REQUIRE(visitor.getTypeName(*f) == 'B');
@@ -233,21 +235,25 @@ TEST_CASE("Visitor") {
   
 }
 
-template <class T, class V> void testVisitorCast(V & v) {
-  if constexpr (std::is_base_of<T, V>::value) {
-    REQUIRE(visitor_cast<T>(&v) == &v);
-    REQUIRE(&visitor_cast<T>(v) == &v);
-    REQUIRE(visitor_cast<const T>(&v) == &v);
-    REQUIRE(&visitor_cast<const T>(v) == &v);
+template <class T, class V, class P> void testVisitorCastAs(V & v, P * p UNUSED) {
+  if constexpr (std::is_base_of<T, P>::value) {
+    REQUIRE(visitor_cast<T*>(&v) == p);
+    REQUIRE(&visitor_cast<T&>(v) == p);
+    REQUIRE(visitor_cast<const T *>(&v) == p);
+    REQUIRE(&visitor_cast<const T &>(v) == p);
   } else {
-    REQUIRE(visitor_cast<T>(&v) == nullptr);
-    REQUIRE_THROWS(visitor_cast<T>(v));
-    REQUIRE(visitor_cast<const T>(&v) == nullptr);
-    REQUIRE_THROWS(visitor_cast<const T>(v));
+    REQUIRE(visitor_cast<T*>(&v) == nullptr);
+    REQUIRE_THROWS(visitor_cast<T&>(v));
+    REQUIRE(visitor_cast<const T *>(&v) == nullptr);
+    REQUIRE_THROWS(visitor_cast<const T &>(v));
   }
 }
 
-TEMPLATE_TEST_CASE("VisitorCast", "", A, B, C, D, E ,F, BX, CX){
+template <class T, class P> void testVisitorCast(P & v) {
+  return testVisitorCastAs<T, P, P>(v, &v);
+}
+
+TEMPLATE_TEST_CASE("VisitorCast", "", A, B, C, D, E ,F, BX, CX, XC){
   TestType t;
   testVisitorCast<A>(t);
   testVisitorCast<B>(t);
@@ -257,3 +263,55 @@ TEMPLATE_TEST_CASE("VisitorCast", "", A, B, C, D, E ,F, BX, CX){
   testVisitorCast<F>(t);
 }
 
+TEST_CASE("SharedVisitorCast"){
+  auto t = std::make_shared<A>();
+  REQUIRE(visitor_pointer_cast<A>(t) == t);
+  REQUIRE(visitor_pointer_cast<B>(t) == std::shared_ptr<B>());
+}
+
+TEST_CASE("Empty Visitable"){
+  EmptyVisitable v;
+  REQUIRE_THROWS_AS(visitor_cast<int>(v), InvalidVisitorException);
+  REQUIRE(visitor_cast<int *>(&v) == nullptr);
+  REQUIRE_THROWS_AS(visitor_cast<int>(std::as_const(v)), InvalidVisitorException);
+  REQUIRE(visitor_cast<const  int *>(&std::as_const(v)) == nullptr);
+  
+  SECTION("Visitor"){
+    Visitor<> visitor;
+    REQUIRE_THROWS_AS(v.accept(visitor), InvalidVisitorException);
+  }
+  
+  SECTION("RecursiveVisitor"){
+    RecursiveVisitor<> visitor;
+    REQUIRE(v.accept(visitor) == false);
+  }
+
+}
+
+TEMPLATE_TEST_CASE("Data Visitable", "", char, int, float, double, unsigned , size_t, long){
+  using CastTypes = TypeList<TestType &>;
+  using ConstCastTypes = TypeList<const TestType &, char, int, float, double, unsigned , size_t, long>;
+  DataVisitable<TestType, CastTypes, ConstCastTypes> v(42);
+
+  SECTION("implicit value casting"){
+    REQUIRE(visitor_cast<char>(v) == 42);
+    REQUIRE(visitor_cast<int>(v) == 42);
+    REQUIRE(visitor_cast<float>(v) == 42);
+    REQUIRE(visitor_cast<double>(v) == 42);
+    REQUIRE(visitor_cast<unsigned>(v) == 42);
+    REQUIRE(visitor_cast<long>(v) == 42);
+    REQUIRE_THROWS_AS(visitor_cast<bool>(v), InvalidVisitorException);
+    REQUIRE_THROWS_AS(visitor_cast<std::string>(v), InvalidVisitorException);
+  }
+  
+  SECTION("reference casting"){
+    REQUIRE(visitor_cast<TestType &>(v) == 42);
+    REQUIRE(visitor_cast<const TestType &>(v) == 42);
+  }
+  
+  SECTION("accept visitor"){
+    Visitor<> visitor;
+    REQUIRE_THROWS_AS(v.accept(visitor), InvalidVisitorException);
+    REQUIRE_THROWS_AS(std::as_const(v).accept(visitor), InvalidVisitorException);
+  }
+}

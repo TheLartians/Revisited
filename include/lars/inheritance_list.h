@@ -136,6 +136,8 @@ namespace lars {
     
     using Types = TypeList<typename OrderedTypes::type ...>;
     using ConstTypes = TypeList<const typename OrderedTypes::type ...>;
+    using ReferenceTypes = TypeList<typename OrderedTypes::type &...>;
+    using ConstReferenceTypes = TypeList<const typename OrderedTypes::type &...>;
   };
   
   template <typename ... Types> std::ostream & operator<<(std::ostream &stream, const InheritanceList<Types...> &){
