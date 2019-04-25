@@ -9,7 +9,11 @@ namespace lars {
   template <class T> struct AnyVisitable;
   
   template <class T> struct AnyVisitable {
-    using type = DataVisitable<T, TypeList<T &>, TypeList<const T &, T>>;
+    using type = typename std::conditional<
+      std::is_base_of<VisitableBase, T>::value,
+      T,
+      DataVisitable<T, TypeList<T &>, TypeList<const T &, T>>
+    >::type;
   };
   
   class Any {
@@ -19,6 +23,7 @@ namespace lars {
   public:
     
     Any():data(std::make_unique<EmptyVisitable>()){}
+    template <class T> Any(T && v){ set<typename std::remove_reference<T>::type>(v); }
     Any(const Any &) = delete;
     Any(Any &&) = default;
     Any &operator=(const Any &) = delete;
@@ -32,8 +37,8 @@ namespace lars {
       data = std::make_unique<VisitableType>(std::forward<Args>(args)...);
     }
         
-    template <class T> Any & operator=(const T & o) {
-      set<T>(o);
+    template <class T> Any & operator=(T && o) {
+      set<typename std::remove_reference<T>::type>(o);
       return *this;
     }
     
@@ -61,7 +66,7 @@ template <> struct lars::AnyVisitable<Type>{\
 }
 
 #ifndef LARS_ANY_NUMERIC_TYPES
-#define LARS_ANY_NUMERIC_TYPES lars::TypeList<char, int, long, long long, unsigned char, unsigned int, unsigned long, unsigned long long, float, double>
+#define LARS_ANY_NUMERIC_TYPES ::lars::TypeList<char, int, long, long long, unsigned char, unsigned int, unsigned long, unsigned long long, float, double>
 #endif
 
 LARS_ANY_DEFINE_SCALAR_TYPE(char, LARS_ANY_NUMERIC_TYPES);

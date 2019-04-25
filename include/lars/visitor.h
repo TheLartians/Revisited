@@ -109,6 +109,7 @@ namespace lars {
   
   class VisitableBase {
   public:
+    virtual NamedTypeIndex namedTypeIndex()const = 0;
     virtual void accept(VisitorBase &visitor) = 0;
     virtual void accept(VisitorBase &visitor) const = 0;
     virtual bool accept(RecursiveVisitorBase &) = 0;
@@ -169,6 +170,7 @@ namespace lars {
     void accept(VisitorBase &v) const override { visit(this, TypeList<>(), v); }
     bool accept(RecursiveVisitorBase &) override { return false; }
     bool accept(RecursiveVisitorBase &) const override { return false; }
+    NamedTypeIndex namedTypeIndex() const override { return getNamedTypeIndex<EmptyVisitable>(); }
   };
   
   /**
@@ -194,6 +196,10 @@ namespace lars {
     
     bool accept(RecursiveVisitorBase &visitor) const override {
       return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
+    }
+    
+    NamedTypeIndex namedTypeIndex() const override {
+      return getNamedTypeIndex<Visitable>();
     }
     
   };
@@ -222,6 +228,10 @@ namespace lars {
     bool accept(RecursiveVisitorBase &visitor) const override {
       return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
     }
+    
+    NamedTypeIndex namedTypeIndex() const override {
+      return getNamedTypeIndex<DerivedVisitable>();
+    }
 
   };
   
@@ -248,6 +258,10 @@ namespace lars {
     
     bool accept(RecursiveVisitorBase &visitor) const override {
       return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
+    }
+    
+    NamedTypeIndex namedTypeIndex() const override {
+      return getNamedTypeIndex<JoinVisitable>();
     }
 
   };
@@ -277,6 +291,10 @@ namespace lars {
       return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
     }
     
+    NamedTypeIndex namedTypeIndex() const override {
+      return getNamedTypeIndex<VirtualJoinVisitable>();
+    }
+    
   };
 
   /**
@@ -304,6 +322,10 @@ namespace lars {
     bool accept(RecursiveVisitorBase &visitor) const override {
       return visit(this, ConstTypes(), visitor);
     }
+    
+    NamedTypeIndex namedTypeIndex() const override {
+      return getNamedTypeIndex<DataVisitable>();
+    }
 
     operator T & () {
       return data;
@@ -312,8 +334,13 @@ namespace lars {
     operator const T & () const {
       return data;
     }
-    
   };
+  
+  template <class T, typename ... Bases> using DataVisitableWithBases = DataVisitable<
+    T,
+    TypeList<T&, Bases &...>,
+    TypeList<const T &, const Bases &..., T, Bases...>
+  >;
   
   /**
    * Visitor cast
@@ -357,7 +384,7 @@ namespace lars {
     if (auto res = visitor_cast<typename std::remove_reference<T>::type *>(&v)) {
       return *res;
     } else {
-      throw InvalidVisitorException(getNamedTypeIndex<T>());
+      throw InvalidVisitorException(v.namedTypeIndex());
     }
   }
   
