@@ -100,7 +100,7 @@ template <> struct lars::AnyVisitable<Type>{\
 }
 
 #ifndef LARS_ANY_NUMERIC_TYPES
-#define LARS_ANY_NUMERIC_TYPES ::lars::TypeList<char, int, long, long long, unsigned char, unsigned int, unsigned long, unsigned long long, float, double>
+#define LARS_ANY_NUMERIC_TYPES ::lars::TypeList<char, int, long, long long, unsigned char, unsigned int, unsigned long, unsigned long long, float, double, long double>
 #endif
 
 LARS_ANY_DEFINE_SCALAR_TYPE(char, LARS_ANY_NUMERIC_TYPES);
