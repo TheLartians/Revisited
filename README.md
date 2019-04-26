@@ -4,7 +4,7 @@
 
 # lars::Visitor
 
-A C++17 visitor template and inheritance-aware any class. Using the acylclic visitor pattern greatly reduces the boilerplate code required for implementing the [visitor pattern](https://en.wikipedia.org/wiki/Visitor_pattern) in C++.
+A C++17 visitor template and inheritance-aware any class. Using lars::Visitor greatly reduces the boilerplate code required for implementing the [visitor pattern](https://en.wikipedia.org/wiki/Visitor_pattern) in C++.
 
 ## Examples
 
