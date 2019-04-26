@@ -44,7 +44,7 @@ SET_TARGET_PROPERTIES(LarsVisitor-headers PROPERTIES LINKER_LANGUAGE CXX)
 
 add_library(LarsVisitor INTERFACE)
 
-target_link_libraries(LarsVisitor INTERFACE LHC ctti)
+target_link_libraries(LarsVisitor INTERFACE ctti)
 
 target_include_directories(LarsVisitor
   INTERFACE
