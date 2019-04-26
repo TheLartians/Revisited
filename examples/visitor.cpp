@@ -1,7 +1,6 @@
-#include <lars/visitor.h>
-
 #include <memory>
 #include <iostream>
+#include <lars/visitor.h>
 
 struct Base: public virtual lars::VisitableBase{ };
 struct A: public Base, public lars::Visitable<A> { };

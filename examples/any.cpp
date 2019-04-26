@@ -10,20 +10,20 @@ int main(){
   v = "Hello Any!";
   std::cout << "stored a string: '" << v.get<std::string>() << "'" << std::endl;
 
-  struct A{ char name = 'A'; };
-  struct B:public A{ char name = 'B'; };
-  struct C:public B{ char name = 'C'; };
-  struct D{ char name = 'D'; };
-  struct E: public C, public D { char name = 'E'; };
+  struct A{ char a = 'A'; };
+  struct B:public A{ char b = 'B'; };
+  struct C:public B{ char c = 'C'; };
+  struct D{ char d = 'D'; };
+  struct E: public C, public D { char e = 'E'; };
   
   v.setWithBases<E,D,C,B,A>();
   
   std::cout << "stored a value with inheritance:" << std::endl;
-  std::cout << v.get<A>().name << std::endl;
-  std::cout << v.get<B &>().name << std::endl;
-  std::cout << v.get<const C &>().name << std::endl;
-  std::cout << v.get<D>().name << std::endl;
-  std::cout << v.get<E &>().name << std::endl;
+  std::cout << v.get<A>().a << std::endl;
+  std::cout << v.get<B &>().b << std::endl;
+  std::cout << v.get<const C &>().c << std::endl;
+  std::cout << v.get<D>().d << std::endl;
+  std::cout << v.get<E &>().e << std::endl;
   
   return 0;
 }
