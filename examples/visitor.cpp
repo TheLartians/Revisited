@@ -1,4 +1,5 @@
 #include <lars/visitor.h>
+#include <memory>
 #include <iostream>
 
 struct Base: public virtual lars::VisitableBase{ };
