@@ -33,6 +33,8 @@ matrix:
         # output coverage
         - lcov --gcov-tool $(which gcov-8) --list coverage.info
         - bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
+        # benchmark
+        - cmake -Hbenchmark -Bbuild/benchmark && cmake --build build/benchmark -j && ./build/benchmark/LarsVisitorBenchmark
 
     - os: linux
       compiler: clang
@@ -44,6 +46,8 @@ matrix:
                 - clang-6.0
       env:
         - MATRIX_EVAL="export CC=clang-6.0; export CXX=clang++-6.0;"
+      after_success:
+        - cmake -Hbenchmark -Bbuild/benchmark && cmake --build build/benchmark -j && ./build/benchmark/LarsVisitorBenchmark
 
 before_install:
   # Update compilers
@@ -67,7 +71,3 @@ script:
    # examples
   - cmake -Hexamples -Bbuild/examples  
   - cmake --build build/examples
-
-after_success:
-  # benchmark
-  - cmake -Hbenchmark -Bbuild/benchmark && cmake --build build/benchmark -j && ./build/benchmark/LarsVisitorBenchmark
