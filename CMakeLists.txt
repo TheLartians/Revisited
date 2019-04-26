@@ -27,8 +27,6 @@ endif()
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake)
 
-CPMRegisterPackage(LarsVisitor ${PROJECT_VERSION})
-
 CPMAddPackage(
   NAME ctti
   GIT_REPOSITORY https://github.com/hunter-packages/ctti.git
