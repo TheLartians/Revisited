@@ -7,7 +7,7 @@ project(Examples CXX)
 # ---- Dependencies ----
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-  set(CPM_USE_LOCAL_PACKAGES On CACHE "")
+  set(CPM_USE_LOCAL_PACKAGES On CACHE INTERNAL "")
   include(../cmake/CPM.cmake)
   CPMAddPackage(
     NAME LarsVisitor
