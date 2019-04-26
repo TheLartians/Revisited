@@ -28,12 +28,6 @@ endif()
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake)
 
 CPMAddPackage(
-  NAME LHC
-  GIT_REPOSITORY https://github.com/TheLartians/LHC.git
-  VERSION 0.7
-)
-
-CPMAddPackage(
   NAME ctti
   GIT_REPOSITORY https://github.com/hunter-packages/ctti.git
   VERSION 0.0.2

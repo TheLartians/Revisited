@@ -6,6 +6,7 @@
 #include <string>
 #include <type_traits>
 #include <optional>
+
 #include <lars/inheritance_list.h>
 #include <lars/type_index.h>
 

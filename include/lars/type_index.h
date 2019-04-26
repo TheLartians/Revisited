@@ -3,8 +3,6 @@
 #include <ctti/type_id.hpp>
 #include <functional>
 
-#include <iostream>
-
 namespace lars{
   
   class TypeIndex {
