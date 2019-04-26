@@ -4,14 +4,6 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 project(LarsVisitorTests CXX)
 
-# ---- CXX Flags ----
-
-if(NOT CMAKE_CXX_STANDARD GREATER 17)
-  set(CMAKE_CXX_STANDARD 17)
-endif()
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra -Werror")
-
 # ---- Requires ----
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
@@ -32,8 +24,8 @@ FetchContent_MakeAvailable(Catch2)
 
 file(GLOB tests_sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 add_executable(LarsVisitorTests ${tests_sources})
-
 target_link_libraries(LarsVisitorTests LarsVisitor Catch2)
+set_target_properties(LarsVisitorTests PROPERTIES CXX_STANDARD 17 COMPILE_FLAGS "-Wall -pedantic -Wextra -Werror")
 
 # ---- Add tests ----
 

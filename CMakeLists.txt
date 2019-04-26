@@ -4,12 +4,13 @@ cmake_minimum_required (VERSION 3.5)
 # ---- create project ----
 
 project(LarsVisitor 
-  VERSION 0.7
+  VERSION 0.8
   LANGUAGES CXX
 )
 
 # ---- Configuration variables ----
 
+option(LARS_VISITOR_BUILD_EXAMPLES "Builds exampels" OFF)
 option(LARS_VISITOR_ENABLE_TESTS "Enable tests" OFF)
 
 # ---- Include guards ----
@@ -103,9 +104,15 @@ install(
   DESTINATION include
 )
 
-# ---- Test ----
+# ---- Tests and examples ----
 
 if(${LARS_VISITOR_ENABLE_TESTS})
   ENABLE_TESTING()  
   add_subdirectory(tests)  
 endif()
+
+if(${LARS_VISITOR_BUILD_EXAMPLES})
+  add_subdirectory(examples)  
+endif()
+
+

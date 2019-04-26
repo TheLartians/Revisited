@@ -24,15 +24,15 @@ namespace {
     char name = 'C';
   };
   
-  struct D: public DerivedVisitable<D,VirtualJoinVisitable<A, B>> {
+  struct D: public DerivedVisitable<D,VirtualVisitable<A, B>> {
     char name = 'D';
   };
   
-  struct E: public DerivedVisitable<E,VirtualJoinVisitable<D, A, X>> {
+  struct E: public DerivedVisitable<E,VirtualVisitable<D, A, X>> {
     char name = 'E';
   };
   
-  struct F: public DerivedVisitable<F,VirtualJoinVisitable<B, E>> {
+  struct F: public DerivedVisitable<F,VirtualVisitable<B, E>> {
     char name = 'F';
   };
   
@@ -45,7 +45,7 @@ namespace {
   struct CX: public JoinVisitable<C, X> {
   };
   
-  struct XC: public VirtualJoinVisitable<X, C> {
+  struct XC: public VirtualVisitable<X, C> {
   };
 
   struct ABCVisitor: public lars::Visitor<const A &, const B &, const C &> {

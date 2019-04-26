@@ -75,7 +75,7 @@ TEST_CASE("Inheritance", "[any]"){
   
   SECTION("Inheritance"){
     Any v;
-    v.set<E, DataVisitableWithBases<E,D,C,B,A>>();
+    v.setWithBases<E,D,C,B,A>();
     REQUIRE(v.get<A &>().name == 'A');
     REQUIRE(v.get<const B &>().name == 'B');
     REQUIRE(v.get<C>().name == 'C');
@@ -88,8 +88,8 @@ TEST_CASE("Visitable inheritance","[any]"){
   struct A: Visitable<A> { char name = 'A'; };
   struct B: Visitable<B> { char name = 'B'; };
   struct C: public DerivedVisitable<C, A> { char name = 'C'; };
-  struct D: public DerivedVisitable<D,VirtualJoinVisitable<A, B>> { char name = 'D'; };
-  struct E: public DerivedVisitable<E,VirtualJoinVisitable<D, A>> { char name = 'E'; };
+  struct D: public DerivedVisitable<D,VirtualVisitable<A, B>> { char name = 'D'; };
+  struct E: public DerivedVisitable<E,VirtualVisitable<D, A>> { char name = 'E'; };
   Any v = E();
   REQUIRE(v.get<A &>().name == 'A');
   REQUIRE(v.get<const B &>().name == 'B');
