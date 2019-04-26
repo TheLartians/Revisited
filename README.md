@@ -68,7 +68,7 @@ With [CPM](https://github.com/TheLartians/CPM), lars::Visitor can be used in a C
 CPMAddPackage(
   NAME LarsVisitor
   GIT_REPOSITORY https://github.com/TheLartians/Visitor.git
-  VERSION 0.8
+  VERSION 0.9
 )
 
 target_link_libraries(myProject LarsVisitor)

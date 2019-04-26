@@ -1,10 +1,7 @@
 #pragma once
 
-#include <ostream>
 #include <type_traits>
-
 #include <lars/type_index.h>
-#include <lars/dummy.h>
 
 namespace lars {
   
@@ -152,10 +149,11 @@ namespace lars {
     using ConstReferenceTypes = TypeList<const typename OrderedTypes::type &...>;
   };
   
-  template <typename ... Types> std::ostream & operator<<(std::ostream &stream, const InheritanceList<Types...> &){
+  template <class OStream, typename ... Types> OStream & operator<<(OStream &stream, const InheritanceList<Types...> &){
     stream << '{';
+    auto forEach = [](auto...){};
     auto print = [&](auto t){ stream << t; return 0; };
-    lars::dummy_function(print(Types()) ...);
+    forEach(print(Types()) ...);
     stream << '}';
     return stream;
   }

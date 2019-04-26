@@ -11,7 +11,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/CPM.cmake)
 CPMAddPackage(
   NAME LarsVisitor
   GIT_REPOSITORY https://github.com/TheLartians/Visitor.git
-  VERSION 0.8
+  GIT_TAG master
 )
 
 CPMAddPackage(

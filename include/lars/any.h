@@ -28,7 +28,7 @@ namespace lars {
      * Sets the stored object to an object of type `T`, constructed with the arguments provided.
      * The `VisitableType` templated paramter defines the internal type used for storing and
      * casting the object. The default is `lars::AnyVisitable<T>::type` which can be specialized
-     * for user types.
+     * for usertypes.
      */
     template <
       class T,
@@ -75,20 +75,23 @@ namespace lars {
     
   };
   
+  /**
+   * Defines the default internal type for Any<T>.
+   * Specialize this class to support implicit conversions usertypes.
+   */
   template <class T> struct AnyVisitable {
     using type = typename std::conditional<
-    std::is_base_of<VisitableBase, T>::value,
-    T,
-    DataVisitable<T, TypeList<T &>, TypeList<const T &, T>>
+      std::is_base_of<VisitableBase, T>::value,
+      T,
+      DataVisitable<T, TypeList<T &>, TypeList<const T &, T>>
     >::type;
   };
 
 }
 
 /**
- * Any conversions
+ * Predefined any conversions.
  */
-
 #define LARS_ANY_DEFINE_SCALAR_TYPE(Type,Conversions) \
 template <> struct lars::AnyVisitable<Type>{\
   using Types = typename TypeList<Type &>::template Merge<Conversions>; \

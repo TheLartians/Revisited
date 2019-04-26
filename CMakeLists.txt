@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 3.5)
 # ---- create project ----
 
 project(LarsVisitor 
-  VERSION 0.8
+  VERSION 0.9
   LANGUAGES CXX
 )
 
@@ -28,12 +28,6 @@ endif()
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake)
 
 CPMAddPackage(
-  NAME LHC
-  GIT_REPOSITORY https://github.com/TheLartians/LHC.git
-  VERSION 0.7
-)
-
-CPMAddPackage(
   NAME ctti
   GIT_REPOSITORY https://github.com/hunter-packages/ctti.git
   VERSION 0.0.2
@@ -50,7 +44,7 @@ SET_TARGET_PROPERTIES(LarsVisitor-headers PROPERTIES LINKER_LANGUAGE CXX)
 
 add_library(LarsVisitor INTERFACE)
 
-target_link_libraries(LarsVisitor INTERFACE LHC ctti)
+target_link_libraries(LarsVisitor INTERFACE ctti)
 
 target_include_directories(LarsVisitor
   INTERFACE

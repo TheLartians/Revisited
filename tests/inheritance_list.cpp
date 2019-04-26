@@ -2,7 +2,6 @@
 #include <catch2/catch.hpp>
 #include <exception>
 
-#include <lars/to_string.h>
 #include <lars/inheritance_list.h>
 
 template <class T, unsigned V> using O = lars::OrderedType<T, V>;
