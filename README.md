@@ -48,7 +48,7 @@ struct C: public lars::DerivedVisitable<C, A> { };
 // D is inherited from A and B (A and B can be visited)
 struct D: public lars::JoinVisitable<A, B> { };
 // E is virtually inherited from  A and B (E, A and B can be visited)
-struct E: public lars::DerivedVisitable<D, lars::VirtualVisitable<A, B>> { };
+struct E: public lars::DerivedVisitable<E, lars::VirtualVisitable<A, B>> { };
 ```
 
 ### Any Examples
