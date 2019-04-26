@@ -21,6 +21,8 @@ CPMAddPackage(
   OPTIONS
    "BENCHMARK_ENABLE_TESTING Off"
    "BENCHMARK_USE_LIBCXX ON"
+   "RUN_HAVE_STD_REGEX 0"
+   "RUN_HAVE_POSIX_REGEX 0"
 )
 
 # fix google benchmark
