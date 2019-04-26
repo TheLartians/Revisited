@@ -4,7 +4,7 @@
 
 # lars::Visitor
 
-A C++17 visitor template and inheritance-aware any class.
+A C++17 visitor template and inheritance-aware any class. Using the acylclic visitor pattern drammatically reduces boilerplate code required for implementing the [visitor pattern](https://en.wikipedia.org/wiki/Visitor_pattern) in C++.
 
 ## Examples
 
@@ -36,7 +36,9 @@ int main() {
 }
 ```
 
-### Any Example
+### Any Examples
+
+#### Implicit casting
 
 ```cpp
 lars::Any v = 42;
@@ -44,6 +46,18 @@ std::cout << v.get<int>() << std::endl; // -> 42
 std::cout << v.get<double>() << std::endl; // -> 42
 v = "Hello Any!";
 std::cout << v.get<std::string>() << std::endl; // -> Hello Any!
+```
+
+#### Inheritance aware
+
+```cpp
+// inheritance aware
+struct MyClassBase{ int value; };
+struct MyClass: public MyClassBase{ MyClass(int value):MyClassBase{value}{ } };
+lars::Any v;
+v.setWithBases<MyClass, MyClassBase>(42);
+std::cout << v.get<MyClassBase &>().value << std::endl; // -> 42
+std::cout << v.get<MyClass &>().value << std::endl; // -> 42
 ```
 
 ## Installation and usage
@@ -61,3 +75,16 @@ target_link_libraries(myProject LarsVisitor)
 ```
 
 Alternatively, the repository can be cloned locally and included it via `add_subdirectory`. Installing lars::Visitor will make it findable in CMake's `find_package`.
+
+## Performance
+
+Compared to the traditional visitor pattern lars::Visitor requires additional virtual calls, causing a slight performance impact. With compiler optimizations enabled, this impact should be hardly noticable. Using the visitor pattern to replace `dynamic_cast<T>` with `visitor_cast<T>` should even slightly improve performance.
+
+The included benchmark suite compares the cost of the different approaches.
+
+```bash
+git clone https://github.com/TheLartians/Visitor.git
+cmake -HVisitor/benchmark -BVisitor/build/benchmark -DCMAKE_BUILD_TYPE=Release
+cmake --build Visitor/build/benchmark -j
+./Visitor/build/benchmark/LarsVisitorBenchmark
+```
