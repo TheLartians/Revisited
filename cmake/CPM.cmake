@@ -33,6 +33,8 @@ if(CPM_DIRECTORY)
   endif()
 endif()
 
+set(CPM_VERSION 0.7 CACHE INTERNAL "")
+
 set(CPM_DIRECTORY ${CMAKE_CURRENT_LIST_DIR} CACHE INTERNAL "")
 set(CPM_PACKAGES "" CACHE INTERNAL "")
 
@@ -47,12 +49,7 @@ if(NOT CPM_INDENT)
 endif()
 
 function(CPMRegisterPackage PACKAGE VERSION)
-  LIST(APPEND CPM_PACKAGES ${CPM_ARGS_NAME})
   set(CPM_PACKAGES ${CPM_PACKAGES} CACHE INTERNAL "")
-  CPM_SET_PACKAGE_VERSION(${PACKAGE} ${VERSION})
-endfunction()
-
-function(CPM_SET_PACKAGE_VERSION PACKAGE VERSION)
   set("CPM_PACKAGE_${PACKAGE}_VERSION" ${VERSION} CACHE INTERNAL "")
 endfunction()
 
@@ -70,7 +67,6 @@ function(CPM_PARSE_OPTION OPTION)
 endfunction()
 
 function(CPMAddPackage)
-    
   set(oneValueArgs
     NAME
     VERSION

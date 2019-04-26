@@ -8,8 +8,6 @@ project(LarsVisitor
   LANGUAGES CXX
 )
 
-CPMRegisterPackage(LarsVisitor ${PROJECT_VERSION})
-
 # ---- Configuration variables ----
 
 option(LARS_VISITOR_BUILD_EXAMPLES "Builds exampels" OFF)
@@ -28,6 +26,8 @@ endif()
 # ---- dependencies ----
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake)
+
+CPMRegisterPackage(LarsVisitor ${PROJECT_VERSION})
 
 CPMAddPackage(
   NAME ctti
