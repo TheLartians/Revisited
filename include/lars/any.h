@@ -86,9 +86,8 @@ namespace lars {
 }
 
 /**
- * Any conversions
+ * Predefined any conversions.
  */
-
 #define LARS_ANY_DEFINE_SCALAR_TYPE(Type,Conversions) \
 template <> struct lars::AnyVisitable<Type>{\
   using Types = typename TypeList<Type &>::template Merge<Conversions>; \
