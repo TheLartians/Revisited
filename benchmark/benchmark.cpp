@@ -1,10 +1,7 @@
 #include <lars/visitor.h>
-#include <lars/timeit.h>
 
 #include <memory>
 #include <benchmark/benchmark.h>
-
-#include <iostream>
 
 namespace classic {
   struct B;
