@@ -4,10 +4,16 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(Examples CXX)
 
-# ---- Requires ----
+# ---- Dependencies ----
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-  find_package(LarsVisitor 0.8 REQUIRED)
+  set(CPM_USE_LOCAL_PACKAGES On CACHE INTERNAL "")
+  include(../cmake/CPM.cmake)
+  CPMAddPackage(
+    NAME LarsVisitor
+    GIT_REPOSITORY https://github.com/TheLartians/Visitor.git
+    VERSION 0.9
+  )
 endif()
 
 # ---- Create binaries ----
