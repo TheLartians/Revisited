@@ -151,8 +151,9 @@ namespace lars {
   
   template <class OStream, typename ... Types> OStream & operator<<(OStream &stream, const InheritanceList<Types...> &){
     stream << '{';
+    auto forEach = [](auto...){};
     auto print = [&](auto t){ stream << t; return 0; };
-    void{print(Types()) ...};
+    forEach(print(Types()) ...);
     stream << '}';
     return stream;
   }
