@@ -6,15 +6,13 @@ project(Examples CXX)
 
 # ---- Dependencies ----
 
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-  set(CPM_USE_LOCAL_PACKAGES On CACHE INTERNAL "")
-  include(../cmake/CPM.cmake)
-  CPMAddPackage(
-    NAME LarsVisitor
-    GIT_REPOSITORY https://github.com/TheLartians/Visitor.git
-    VERSION 0.9
-  )
-endif()
+include(../cmake/CPM.cmake)
+
+CPMAddPackage(
+  NAME LarsVisitor
+  GIT_REPOSITORY https://github.com/TheLartians/Visitor.git
+  VERSION 0.9
+)
 
 # ---- Create binaries ----
 

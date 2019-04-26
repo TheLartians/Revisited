@@ -8,6 +8,8 @@ project(LarsVisitor
   LANGUAGES CXX
 )
 
+CPMRegisterPackage(LarsVisitor ${PROJECT_VERSION})
+
 # ---- Configuration variables ----
 
 option(LARS_VISITOR_BUILD_EXAMPLES "Builds exampels" OFF)
