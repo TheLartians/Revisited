@@ -34,7 +34,7 @@ matrix:
         - lcov --gcov-tool $(which gcov-8) --list coverage.info
         - bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
         # benchmark
-        - cmake -Hbenchmark -Bbuild/benchmark && cmake --build build/benchmark -j && ./build/benchmark/LarsVisitorBenchmark
+        - cmake -Hbenchmark -Bbuild/benchmark -DCMAKE_CXX_COMPILER=g++-8 && cmake --build build/benchmark -j && ./build/benchmark/LarsVisitorBenchmark
 
     - os: linux
       compiler: clang
