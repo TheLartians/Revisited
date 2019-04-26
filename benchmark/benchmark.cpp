@@ -91,9 +91,9 @@ static void ClassicVisitor(benchmark::State& state) {
   std::shared_ptr<A> e = std::make_shared<E>();
 
   for (auto _ : state) {
-    Assert(getValue(*b) == 'B');
-    Assert(getValue(*d) == 'D');
-    Assert(getValue(*e) == 'E');
+    benchmark::DoNotOptimize(Assert(getValue(*b) == 'B'));
+    benchmark::DoNotOptimize(Assert(getValue(*d) == 'D'));
+    benchmark::DoNotOptimize(Assert(getValue(*e) == 'E'));
   }
 }
 
@@ -104,9 +104,9 @@ static void LarsVisitor(benchmark::State& state) {
   std::shared_ptr<A> e = std::make_shared<E>();
 
   for (auto _ : state) {
-    Assert(getValue(*b) == 'B');
-    Assert(getValue(*d) == 'D');
-    Assert(getValue(*e) == 'E');
+    benchmark::DoNotOptimize(Assert(getValue(*b) == 'B'));
+    benchmark::DoNotOptimize(Assert(getValue(*d) == 'D'));
+    benchmark::DoNotOptimize(Assert(getValue(*e) == 'E'));
   }
 }
 
@@ -117,9 +117,9 @@ static void DynamicVisitor(benchmark::State& state) {
   std::shared_ptr<A> e = std::make_shared<E>();
 
   for (auto _ : state) {
-    Assert(dynamic::getValue(*b) == 'B');
-    Assert(dynamic::getValue(*d) == 'D');
-    Assert(dynamic::getValue(*e) == 'E');
+    benchmark::DoNotOptimize(Assert(dynamic::getValue(*b) == 'B'));
+    benchmark::DoNotOptimize(Assert(dynamic::getValue(*d) == 'D'));
+    benchmark::DoNotOptimize(Assert(dynamic::getValue(*e) == 'E'));
   }
 }
 

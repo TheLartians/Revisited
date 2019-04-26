@@ -28,4 +28,4 @@ set_target_properties(benchmark PROPERTIES CXX_STANDARD 17)
 
 add_executable(LarsVisitorBenchmark "benchmark.cpp")
 target_link_libraries(LarsVisitorBenchmark LarsVisitor benchmark)
-set_target_properties(LarsVisitorBenchmark PROPERTIES CXX_STANDARD 17)        
+set_target_properties(LarsVisitorBenchmark PROPERTIES CXX_STANDARD 17 COMPILE_FLAGS "-O3")        
