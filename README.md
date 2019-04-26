@@ -19,7 +19,7 @@ See the [examples directory](https://github.com/TheLartians/Visitor/tree/master/
 #include <iostream>
 #include <lars/visitor.h>
 
-struct Base: public virtual lars::VisitableBase{ };
+struct Base: public virtual lars::VisitableBase { };
 struct A: public Base, public lars::Visitable<A> { };
 struct B: public Base, public lars::Visitable<B> { };
 
