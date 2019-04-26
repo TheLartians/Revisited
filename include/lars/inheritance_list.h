@@ -24,7 +24,7 @@ namespace lars {
     const static unsigned value = O;
   };
   
-  template <class T, unsigned O> std::ostream & operator<<(std::ostream &stream, const OrderedType<T,O> &){
+  template <class OStream, class T, unsigned O> OStream & operator<<(OStream &stream, const OrderedType<T,O> &){
     stream << '[' << lars::get_type_name<T>() << ',' << O << ']';
     return stream;
   }
