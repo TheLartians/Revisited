@@ -2,12 +2,11 @@
 
 #include <lars/any.h>
 #include <lars/make_function.h>
-#include <lars/dummy.h>
 
 #include <functional>
-#include <tuple>
 #include <memory>
 #include <exception>
+#include <array>
 #include <vector>
 
 namespace lars {
@@ -15,9 +14,9 @@ namespace lars {
   /**
    * Is raised when a undefined any function is called
    */
-  struct AnyFunctionUndefinedCallException:public std::exception{
+  struct UndefinedAnyFunctionException:public std::exception{
     const char * what() const noexcept override {
-      return "called undefined AnyFunction";
+      return "use of undefined AnyFunction";
     }
   };
   
@@ -30,11 +29,15 @@ namespace lars {
     }
   };
 
-  
-  class AnyArguments:public std::vector<Any>{ using std::vector<Any>::vector; };
+  class AnyArguments:public std::vector<AnyReference>{ 
+    using std::vector<AnyReference>::vector; 
+  };
   
   struct SpecificAnyFunctionBase {
-    virtual Any call(AnyArguments & args) const = 0;
+    virtual AnyReference call(const AnyArguments & args) const = 0;
+    virtual NamedTypeIndex returnType()const = 0;
+    virtual NamedTypeIndex argumentType(size_t)const = 0;
+    virtual size_t argumentCount()const = 0;
     virtual ~SpecificAnyFunctionBase(){}
   };
   
@@ -44,13 +47,12 @@ namespace lars {
   private:
     std::function<R(Args...)> callback;
   
-    template <size_t ... Idx> Any callWithArgumentIndices(AnyArguments & args, std::index_sequence<Idx...>) const {
-      auto arguments = std::make_tuple(args[Idx].get<Args>()...);
+    template <size_t ... Idx> AnyReference callWithArgumentIndices(const AnyArguments & args, std::index_sequence<Idx...>) const {
       if constexpr (std::is_same<void, R>::value) {
-        std::apply(callback, arguments);
+        callback(args[Idx].get<Args>()...);
         return Any();
       } else {
-        return std::apply(callback, arguments);
+        return callback(args[Idx].get<Args>()...);
       }
     }
 
@@ -58,22 +60,57 @@ namespace lars {
     
     SpecificAnyFunction(std::function<R(Args...)> _callback):callback(_callback){}
     
-    Any call(AnyArguments & args) const override {
+    AnyReference call(const AnyArguments & args) const override {
       if (args.size() != sizeof...(Args)){ throw AnyFunctionInvalidArgumentCountException(); }
       using Indices = std::make_index_sequence<sizeof...(Args)>;
       return callWithArgumentIndices(args, Indices());
     }
+
+    NamedTypeIndex returnType()const override{
+      return getNamedTypeIndex<R>();
+    }
+    
+    size_t argumentCount()const override{
+      return sizeof...(Args);
+    }
+    
+    NamedTypeIndex argumentType(size_t i)const override{
+      if (i >= sizeof...(Args)) {
+        return getNamedTypeIndex<void>();
+      } else {
+        std::array<NamedTypeIndex,sizeof...(Args)> argumentTypes{
+          getNamedTypeIndex<typename std::remove_reference<typename std::remove_const<Args>::type>::type>()...
+        };
+        return argumentTypes[i];
+      }
+    }
     
   };
   
-  template <class R> class SpecificAnyFunction<R, AnyArguments &>: public SpecificAnyFunctionBase {
+  template <class R> class SpecificAnyFunction<R, const AnyArguments &>: public SpecificAnyFunctionBase {
   private:
-    std::function<R(AnyArguments &)> callback;
+    std::function<R(const AnyArguments &)> callback;
   public:
-    SpecificAnyFunction(std::function<R(AnyArguments &)> _callback):callback(_callback){}
+    SpecificAnyFunction(std::function<R(const AnyArguments &)> _callback):callback(_callback){}
     
-    Any call(AnyArguments & args) const override {
+    AnyReference call(const AnyArguments & args) const override {
       return callback(args);
+    }
+    
+    NamedTypeIndex returnType()const override{
+      return getNamedTypeIndex<R>();
+    }
+    
+    size_t argumentCount()const override{
+      return 1;
+    }
+    
+    NamedTypeIndex argumentType(size_t i)const override{
+      if (i >= 1) {
+        return getNamedTypeIndex<void>();
+      } else {
+        return getNamedTypeIndex<AnyArguments>();
+      }
     }
 
   };
@@ -108,21 +145,42 @@ namespace lars {
       _set(make_function(f));
     }
     
-    Any call(AnyArguments & args) const {
-      if (!specific) { throw AnyFunctionUndefinedCallException(); }
+    AnyReference call(const AnyArguments & args) const {
+      if (!specific) { throw UndefinedAnyFunctionException(); }
       return specific->call(args);
     }
     
-    template <typename ... Args> Any operator()(Args && ... args) const {
-      AnyArguments arguments;
-      arguments.reserve(sizeof...(Args));
-      dummy_function([&](){ arguments.emplace_back(args); return 0; }() ...);
+    template <typename ... Args> AnyReference operator()(Args && ... args) const {
+      AnyArguments arguments{{[&](){
+        using ArgType = typename std::remove_reference<Args>::type;
+        if constexpr (std::is_same<ArgType, Any>::value) {
+          return AnyReference(args);
+        } else {
+          return AnyReference(std::reference_wrapper<ArgType>(args));
+        }
+      }()} ...};
       return call(arguments);
     }
     
     operator bool()const{
       return bool(specific);
     }
+    
+    NamedTypeIndex returnType()const{
+      if (!specific) { throw UndefinedAnyFunctionException(); }
+      return specific->returnType();
+    }
+    
+    NamedTypeIndex argumentType(size_t i)const{
+      if (!specific) { throw UndefinedAnyFunctionException(); }
+      return specific->argumentType(i);
+    }
+    
+    size_t argumentCount()const{
+      if (!specific) { throw UndefinedAnyFunctionException(); }
+      return specific->argumentCount();
+    }
+
     
   };
   

@@ -23,6 +23,11 @@ namespace lars{
     std::string name() const { return type_index.name().cppstring(); }
   };
   
+  template <class Ostream> Ostream &operator<<(Ostream &stream, const NamedTypeIndex &idx) {
+    stream << idx.name();
+    return stream;
+  }
+  
   template <class T> struct GetTypeIndex {
     static constexpr TypeIndex value = TypeIndex(ctti::type_id<T>());
   };
