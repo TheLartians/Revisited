@@ -93,7 +93,7 @@ Alternatively, the repository can be cloned locally and included it via `add_sub
 
 ## Performance
 
-lars::Parser uses some template magic to determine the inheritance hierachy at compile-time for optimal performance. Compared to the traditional visitor pattern lars::Visitor requires an additional virtual calls (as the type of the visitor and the visitable object are unknown). With compiler optimizations enabled, these calls should not be noticable in real-world applications.
+lars::Visitor uses some template magic to determine the inheritance hierachy at compile-time for optimal performance. Compared to the traditional visitor pattern lars::Visitor requires an additional virtual calls (as the type of the visitor and the visitable object are unknown). With compiler optimizations enabled, these calls should not be noticable in real-world applications.
 
 There is an benchmark suite included in the repository that compares the pure cost of the different approaches.
 
