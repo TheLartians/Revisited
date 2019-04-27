@@ -4,7 +4,7 @@
 
 # lars::Visitor
 
-A C++17 visitor template and inheritance-aware any class. Using lars::Visitor greatly reduces the boilerplate code required for implementing the [visitor pattern](https://en.wikipedia.org/wiki/Visitor_pattern) in C++.
+A C++17 visitor template and inheritance-aware any class. Using lars::Visitor greatly reduces the boilerplate code required for implementing the [visitor pattern](https://en.wikipedia.org/wiki/Visitor_pattern) in C++. It uses only [compile time type information](https://github.com/Manu343726/ctti) and is therefore usually much faster than `dynamic_cast`.
 
 ## Examples
 
@@ -93,9 +93,9 @@ Alternatively, the repository can be cloned locally and included it via `add_sub
 
 ## Performance
 
-Compared to the traditional visitor pattern lars::Visitor requires additional virtual calls, causing a slight performance impact. With compiler optimizations enabled, this impact should be hardly noticable. Using the visitor pattern to replace `dynamic_cast<T>` with `visitor_cast<T>` should even slightly improve performance.
+lars::Parser uses some template magic to determine the inheritance hierachy at compile-time for optimal performance. Compared to the traditional visitor pattern lars::Visitor requires an additional virtual calls (as the type of the visitor and the visitable object are unknown). With compiler optimizations enabled, these calls should not be noticable in real-world applications.
 
-The included benchmark suite compares the cost of the different approaches.
+There is an benchmark suite included in the repository that compares the pure cost of the different approaches.
 
 ```bash
 git clone https://github.com/TheLartians/Visitor.git
