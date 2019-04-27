@@ -5,8 +5,11 @@ using namespace lars;
 
 TEST_CASE("Get", "[any]"){
   Any v;
-  REQUIRE_THROWS_AS(v.get<int>(), InvalidVisitorException);
+  REQUIRE(bool(v) == false);
+  REQUIRE_THROWS_AS(v.get<int>(), UndefinedAnyException);
+  REQUIRE_THROWS_WITH(v.get<int>(), Catch::Matchers::Contains("undefined Any"));
   v.set<int>(3);
+  REQUIRE(bool(v) == true);
   REQUIRE(v.get<int>() == 3);
   REQUIRE(std::as_const(v).get<int>() == 3);
   REQUIRE(v.get<int &>() == 3);
@@ -41,9 +44,16 @@ TEMPLATE_TEST_CASE("Numerics", "[any]", char, int, long, long long, unsigned cha
   REQUIRE_THROWS_AS(v.get<std::string>(), InvalidVisitorException);
 }
 
+TEST_CASE("floating point conversions","[any]"){
+  Any v = 42.42;
+  REQUIRE(v.get<double>() == 42.42);
+  REQUIRE(v.get<int>() == 42);
+}
+
+
 TEST_CASE("String", "[any]"){
   Any v;
-  REQUIRE_THROWS_AS(v.get<std::string>(), InvalidVisitorException);
+  REQUIRE_THROWS_AS(v.get<std::string>(), UndefinedAnyException);
 
   SECTION("string"){
     v = std::string("Hello Any!");

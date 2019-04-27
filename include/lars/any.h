@@ -3,8 +3,18 @@
 
 #include <string>
 #include <memory>
+#include <exception>
 
 namespace lars {
+  
+  /**
+   * Error raised when calling `get` on empty Any object.
+   */
+  struct UndefinedAnyException: public std::exception{
+    const char * what() const noexcept override {
+      return "called get() on undefined Any";
+    }
+  };
   
   template <class T> struct AnyVisitable;
   
@@ -17,7 +27,7 @@ namespace lars {
     
   public:
     
-    Any():data(std::make_unique<EmptyVisitable>()){}
+    Any(){}
     template <class T> Any(T && v){ set<typename std::remove_reference<T>::type>(v); }
     Any(const Any &) = delete;
     Any(Any &&) = default;
@@ -55,6 +65,7 @@ namespace lars {
      * A `InvalidVisitor` exception will be raised if the cast is unsuccessful.
      */
     template <class T> T get(){
+      if (!data) { throw UndefinedAnyException(); }
       return visitor_cast<T>(*data);
     }
     
@@ -62,6 +73,7 @@ namespace lars {
      * Same as above for a const any object.
      */
     template <class T> const T get()const{
+      if (!data) { throw UndefinedAnyException(); }
       return visitor_cast<T>(*data);
     }
 
@@ -70,9 +82,23 @@ namespace lars {
      * `nullptr` will be returned if the cast is unsuccessful.
      */
     template <class T> T * tryGet(){
+      if(!data) { return nullptr; }
       return visitor_cast<T*>(data.get());
     }
     
+    /**
+     * `true`, when contains value, `false` otherwise
+     */
+    operator bool()const{
+      return bool(data);
+    }
+    
+    /**
+     * resets the value
+     */
+    void reset(){
+      data.reset();
+    }
   };
   
   /**

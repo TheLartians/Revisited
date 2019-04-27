@@ -2,6 +2,7 @@
 
 include(CMakeFindDependencyMacro)
 
+find_dependency(LHC)
 find_dependency(ctti)
 
 include("${CMAKE_CURRENT_LIST_DIR}/LarsVisitorTargets.cmake")

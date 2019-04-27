@@ -34,6 +34,12 @@ CPMAddPackage(
   GIT_TAG 0.0.2
 )
 
+CPMAddPackage(
+  NAME LHC
+  GIT_REPOSITORY https://github.com/thelartians/LHC.git
+  VERSION 0.7
+)
+
 # ---- Header target ----
 
 FILE(GLOB_RECURSE headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/*.h")
@@ -44,7 +50,7 @@ SET_TARGET_PROPERTIES(LarsVisitor-headers PROPERTIES LINKER_LANGUAGE CXX)
 
 add_library(LarsVisitor INTERFACE)
 
-target_link_libraries(LarsVisitor INTERFACE ctti)
+target_link_libraries(LarsVisitor INTERFACE ctti LHC)
 
 target_include_directories(LarsVisitor
   INTERFACE
