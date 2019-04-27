@@ -1,3 +1,4 @@
+#pragma once
 
 #include <lars/visitor.h>
 
@@ -5,6 +6,7 @@
 #include <memory>
 #include <exception>
 #include <functional>
+#include <ostream>
 
 namespace lars {
   
@@ -126,6 +128,11 @@ namespace lars {
     Any v;
     v.set<T>(std::forward<Args>(args)...);
     return v;
+  }
+  
+  inline std::ostream &operator<<(std::ostream &stream, const Any &v){
+    stream << "Any<" << v.type() << ">";
+    return stream;
   }
   
   /**
