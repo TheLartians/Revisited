@@ -1,4 +1,6 @@
 #include <catch2/catch.hpp>
+#include <lars/to_string.h>
+
 #include <lars/any.h>
 
 using namespace lars;
@@ -12,6 +14,7 @@ TEST_CASE("Get", "[any]"){
   REQUIRE_THROWS_WITH(v.get<int>(), Catch::Matchers::Contains("undefined Any"));
   v.set<int>(3);
   REQUIRE(v.type() == getTypeIndex<int>());
+  REQUIRE(stream_to_string(v) == "Any<int>");
 
   REQUIRE(bool(v) == true);
   REQUIRE(v.get<int>() == 3);

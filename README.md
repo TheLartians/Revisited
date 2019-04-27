@@ -4,13 +4,13 @@
 
 # lars::Visitor
 
-A C++17 visitor template and inheritance-aware any class. Using lars::Visitor greatly reduces the boilerplate code required for implementing the [visitor pattern](https://en.wikipedia.org/wiki/Visitor_pattern) in C++. It uses only [compile time type information](https://github.com/Manu343726/ctti) and has better performance than solutions relying on run time type information such as `dynamic_cast`.
+A C++17 visitor template and inheritance-aware any and any-function class. Using lars::Visitor greatly reduces the boilerplate code required for implementing the [visitor pattern](https://en.wikipedia.org/wiki/Visitor_pattern) in C++. It uses only [compile time type information](https://github.com/Manu343726/ctti) and has better performance than solutions relying on run time type information such as `dynamic_cast`.
 
 ## Examples
 
 See the [examples directory](https://github.com/TheLartians/Visitor/tree/master/examples) for full examples.
 
-### Visitor Example
+### lars::Visitor Examples
 
 #### Simple Visitor
 
@@ -51,12 +51,13 @@ struct D: public lars::JoinVisitable<A, B> { };
 struct E: public lars::DerivedVisitable<E, lars::VirtualVisitable<A, B>> { };
 ```
 
-### Any Examples
+### lars::Any Examples
 
 #### Implicit casting
 
 ```cpp
-lars::Any v = 42;
+lars::Any v;
+v = 42;
 std::cout << v.get<int>() << std::endl; // -> 42
 std::cout << v.get<double>() << std::endl; // -> 42
 v = "Hello Any!";
@@ -73,6 +74,14 @@ lars::Any v;
 v.setWithBases<MyClass, MyClassBase>(42);
 std::cout << v.get<MyClassBase &>().value << std::endl; // -> 42
 std::cout << v.get<MyClass &>().value << std::endl; // -> 42
+```
+
+### lars::AnyFunction Examples
+
+```cpp
+lars::AnyFunction f;
+f = [](int x, double y){ return x + y; };
+std::cout << f(2,3).get<int>() << std::endl; // -> 5
 ```
 
 ## Installation and usage
