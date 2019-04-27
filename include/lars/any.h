@@ -3,8 +3,19 @@
 
 #include <string>
 #include <memory>
+#include <exception>
+#include <functional>
 
 namespace lars {
+  
+  /**
+   * Error raised when calling `get` on empty Any object.
+   */
+  struct UndefinedAnyException: public std::exception{
+    const char * what() const noexcept override {
+      return "called get() on undefined Any";
+    }
+  };
   
   template <class T> struct AnyVisitable;
   
@@ -12,18 +23,23 @@ namespace lars {
    * A class that can hold an arbitrary value of any type.
    */
   class Any {
-  private:
-    std::unique_ptr<VisitableBase> data;
+  protected:
+    std::shared_ptr<VisitableBase> data;
     
   public:
     
-    Any():data(std::make_unique<EmptyVisitable>()){}
+    Any(){}
     template <class T> Any(T && v){ set<typename std::remove_reference<T>::type>(v); }
     Any(const Any &) = delete;
     Any(Any &&) = default;
     Any &operator=(const Any &) = delete;
     Any &operator=(Any &&) = default;
-
+    
+    template <class T> Any & operator=(T && o) {
+      set<typename std::remove_reference<T>::type>(o);
+      return *this;
+    }
+    
     /**
      * Sets the stored object to an object of type `T`, constructed with the arguments provided.
      * The `VisitableType` templated paramter defines the internal type used for storing and
@@ -35,7 +51,7 @@ namespace lars {
       class VisitableType = typename AnyVisitable<T>::type,
       typename ... Args
     > void set(Args && ... args) {
-      data = std::make_unique<VisitableType>(std::forward<Args>(args)...);
+      data = std::make_shared<VisitableType>(std::forward<Args>(args)...);
     }
     
     /**
@@ -44,24 +60,20 @@ namespace lars {
     template <class T, typename ... Bases, typename ... Args> void setWithBases(Args && ... args){
       set<T, DataVisitableWithBases<T,Bases...>>(std::forward<Args>(args)...);
     }
-        
-    template <class T> Any & operator=(T && o) {
-      set<typename std::remove_reference<T>::type>(o);
-      return *this;
+    
+    /**
+     * Captures the value from another any object
+     */
+    void setReference(const Any & other){
+      data = other.data;
     }
     
     /**
      * Casts the internal data to `T` using `visitor_cast`.
      * A `InvalidVisitor` exception will be raised if the cast is unsuccessful.
      */
-    template <class T> T get(){
-      return visitor_cast<T>(*data);
-    }
-    
-    /**
-     * Same as above for a const any object.
-     */
-    template <class T> const T get()const{
+    template <class T> T get() const {
+      if (!data) { throw UndefinedAnyException(); }
       return visitor_cast<T>(*data);
     }
 
@@ -69,8 +81,31 @@ namespace lars {
      * Casts the internal data to `T *` using `visitor_cast`.
      * `nullptr` will be returned if the cast is unsuccessful.
      */
-    template <class T> T * tryGet(){
+    template <class T> T * tryGet() const {
+      if(!data) { return nullptr; }
       return visitor_cast<T*>(data.get());
+    }
+    
+    /**
+     * `true`, when contains value, `false` otherwise
+     */
+    operator bool()const{
+      return bool(data);
+    }
+    
+    /**
+     * resets the value
+     */
+    void reset(){
+      data.reset();
+    }
+    
+    /**
+     * the type of the stored value
+     */
+    NamedTypeIndex type()const{
+      if (!data) { return lars::getNamedTypeIndex<void>(); }
+      return data->typeIndex();
     }
     
   };
@@ -87,16 +122,46 @@ namespace lars {
     >::type;
   };
 
+  template <class T, typename ... Args> Any make_any(Args && ... args){
+    Any v;
+    v.set<T>(std::forward<Args>(args)...);
+    return v;
+  }
+  
+  /**
+   * An Any object that can implicitly capture another Any by reference.
+   */
+  struct AnyReference: public Any {
+    using Any::Any;
+    AnyReference(const Any &other){ setReference(other); }
+    AnyReference(const AnyReference &other):Any(){ setReference(other); }
+    
+    AnyReference &operator=(const Any &other){
+      setReference(other);
+      return *this;
+    }
+    
+    template <class T> typename std::enable_if<std::is_same<const Any &, T>::value, T>::type get() const {
+      return *this;
+    }
+    
+    template <class T> typename std::enable_if<!std::is_same<const Any &, T>::value, T>::type get() const {
+      if (!data) { throw UndefinedAnyException(); }
+      return visitor_cast<T>(*data);
+    }
+    
+  };
+  
 }
 
 /**
- * Predefined any conversions.
+ * Numeric any conversions.
  */
 #define LARS_ANY_DEFINE_SCALAR_TYPE(Type,Conversions) \
 template <> struct lars::AnyVisitable<Type>{\
-  using Types = typename TypeList<Type &>::template Merge<Conversions>; \
-  using ConstTypes = typename TypeList<const Type &>::template Merge<Conversions>; \
-  using type = DataVisitable<Type, Types, ConstTypes>; \
+  using Types = typename lars::TypeList<Type &>::template Merge<Conversions>; \
+  using ConstTypes = typename lars::TypeList<const Type &>::template Merge<Conversions>; \
+  using type = lars::DataVisitable<Type, Types, ConstTypes>; \
 }
 
 #ifndef LARS_ANY_NUMERIC_TYPES
@@ -115,10 +180,26 @@ LARS_ANY_DEFINE_SCALAR_TYPE(float, LARS_ANY_NUMERIC_TYPES);
 LARS_ANY_DEFINE_SCALAR_TYPE(double, LARS_ANY_NUMERIC_TYPES);
 LARS_ANY_DEFINE_SCALAR_TYPE(long double, LARS_ANY_NUMERIC_TYPES);
 
+/**
+ * Char arrays are captured as strings.
+ */
 template <size_t N> struct lars::AnyVisitable<char[N]> {
-  using type = AnyVisitable<std::string>::type;
+  using type = lars::AnyVisitable<std::string>::type;
 };
 
 template <size_t N> struct lars::AnyVisitable<const char[N]> {
-  using type = AnyVisitable<std::string>::type;
+  using type = lars::AnyVisitable<std::string>::type;
 };
+
+/**
+ * Capture values as reference through `std::reference_wrapper`.
+ */
+template <class T> struct lars::AnyVisitable<std::reference_wrapper<T>> {
+  using type = lars::DataVisitable<
+    std::reference_wrapper<T>,
+    typename AnyVisitable<T>::type::Types,
+    typename AnyVisitable<T>::type::ConstTypes,
+    T
+  >;
+};
+

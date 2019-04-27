@@ -5,8 +5,15 @@ using namespace lars;
 
 TEST_CASE("Get", "[any]"){
   Any v;
-  REQUIRE_THROWS_AS(v.get<int>(), InvalidVisitorException);
+  REQUIRE(v.type() == getTypeIndex<void>());
+
+  REQUIRE(bool(v) == false);
+  REQUIRE_THROWS_AS(v.get<int>(), UndefinedAnyException);
+  REQUIRE_THROWS_WITH(v.get<int>(), Catch::Matchers::Contains("undefined Any"));
   v.set<int>(3);
+  REQUIRE(v.type() == getTypeIndex<int>());
+
+  REQUIRE(bool(v) == true);
   REQUIRE(v.get<int>() == 3);
   REQUIRE(std::as_const(v).get<int>() == 3);
   REQUIRE(v.get<int &>() == 3);
@@ -29,6 +36,8 @@ TEMPLATE_TEST_CASE("Numerics", "[any]", char, int, long, long long, unsigned cha
 
   v.set<TestType>(42);
 
+  REQUIRE(v.type() == getTypeIndex<TestType>());
+  
   REQUIRE(v.get<TestType &>() == 42);
   REQUIRE(v.get<const TestType &>() == 42);
   REQUIRE(v.get<char>() == 42);
@@ -41,9 +50,17 @@ TEMPLATE_TEST_CASE("Numerics", "[any]", char, int, long, long long, unsigned cha
   REQUIRE_THROWS_AS(v.get<std::string>(), InvalidVisitorException);
 }
 
+TEST_CASE("floating point conversions","[any]"){
+  Any v = 1.5;
+  REQUIRE(v.get<double>() == 1.5);
+  REQUIRE(v.get<int>() == 1);
+  v = 3.141;
+  REQUIRE(v.get<float>() == Approx(3.141));
+}
+
 TEST_CASE("String", "[any]"){
   Any v;
-  REQUIRE_THROWS_AS(v.get<std::string>(), InvalidVisitorException);
+  REQUIRE_THROWS_AS(v.get<std::string>(), UndefinedAnyException);
 
   SECTION("string"){
     v = std::string("Hello Any!");
@@ -67,6 +84,7 @@ TEST_CASE("Inheritance", "[any]"){
   
   SECTION("Custom class"){
     Any v = A();
+    REQUIRE(v.type() == getTypeIndex<A>());
     REQUIRE(v.get<A>().name == 'A');
     REQUIRE(v.get<A &>().name == 'A');
     REQUIRE(v.get<const A &>().name == 'A');
@@ -90,10 +108,26 @@ TEST_CASE("Visitable inheritance","[any]"){
   struct C: public DerivedVisitable<C, A> { char name = 'C'; };
   struct D: public DerivedVisitable<D,VirtualVisitable<A, B>> { char name = 'D'; };
   struct E: public DerivedVisitable<E,VirtualVisitable<D, A>> { char name = 'E'; };
-  Any v = E();
+  auto v = make_any<E>();
   REQUIRE(v.get<A &>().name == 'A');
   REQUIRE(v.get<const B &>().name == 'B');
   REQUIRE_THROWS_AS(v.get<C &>(), InvalidVisitorException);
   REQUIRE(v.get<D &>().name == 'D');
   REQUIRE(v.get<const E &>().name == 'E');
+}
+
+TEST_CASE("capture reference","[any]"){
+  int x = 1;
+  Any y = std::reference_wrapper<int>(x);
+  REQUIRE(&y.get<int &>() == &x);
+  REQUIRE(&y.get<const int &>() == &x);
+  y.get<int &>() = 2;
+  REQUIRE(x == 2);
+}
+
+TEST_CASE("AnyReference","[any]"){
+  Any x = 1;
+  AnyReference y = x;
+  y.get<int &>() = 2;
+  REQUIRE(x.get<int>() == 2);
 }
