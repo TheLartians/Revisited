@@ -1,5 +1,8 @@
 #include <catch2/catch.hpp>
+#include <lars/to_string.h>
+
 #include <lars/type_index.h>
+
 
 TEST_CASE("Type Index") {
 
@@ -17,5 +20,10 @@ TEST_CASE("Type Index") {
   REQUIRE(getTypeIndex<A>() != getTypeIndex<B>());
   REQUIRE(getTypeIndex<A>() != getTypeIndex<float>());
   REQUIRE(getTypeIndex<B>() != getTypeIndex<int>());
+
+  REQUIRE(getTypeIndex<B>() != getTypeIndex<int>());
   
+  REQUIRE(lars::stream_to_string(getNamedTypeIndex<A>()) == "int");
+  REQUIRE(lars::stream_to_string(getNamedTypeIndex<B>()) == "float");
+
 }
