@@ -9,11 +9,7 @@ project(Examples CXX)
 include(../cmake/CPM.cmake)
 
 if (NOT TARGET LarsVisitor)
-  CPMAddPackage(
-    NAME LarsVisitor
-    GIT_REPOSITORY https://github.com/TheLartians/Visitor.git
-    VERSION 0.9
-  )
+  find_package(LarsVisitor)
 endif()
 
 # ---- Create binaries ----
