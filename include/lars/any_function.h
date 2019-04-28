@@ -35,8 +35,8 @@ namespace lars {
   
   struct SpecificAnyFunctionBase {
     virtual AnyReference call(const AnyArguments & args) const = 0;
-    virtual NamedTypeIndex returnType()const = 0;
-    virtual NamedTypeIndex argumentType(size_t)const = 0;
+    virtual TypeIndex returnType()const = 0;
+    virtual TypeIndex argumentType(size_t)const = 0;
     virtual size_t argumentCount()const = 0;
     virtual ~SpecificAnyFunctionBase(){}
   };
@@ -66,20 +66,20 @@ namespace lars {
       return callWithArgumentIndices(args, Indices());
     }
 
-    NamedTypeIndex returnType()const override{
-      return getNamedTypeIndex<R>();
+    TypeIndex returnType()const override{
+      return getTypeIndex<R>();
     }
     
     size_t argumentCount()const override{
       return sizeof...(Args);
     }
     
-    NamedTypeIndex argumentType(size_t i)const override{
+    TypeIndex argumentType(size_t i)const override{
       if (i >= sizeof...(Args)) {
-        return getNamedTypeIndex<void>();
+        return getTypeIndex<void>();
       } else {
-        std::array<NamedTypeIndex,sizeof...(Args)> argumentTypes{
-          getNamedTypeIndex<typename std::remove_reference<typename std::remove_const<Args>::type>::type>()...
+        std::array<TypeIndex,sizeof...(Args)> argumentTypes{
+          getTypeIndex<typename std::remove_reference<typename std::remove_const<Args>::type>::type>()...
         };
         return argumentTypes[i];
       }
@@ -97,19 +97,19 @@ namespace lars {
       return callback(args);
     }
     
-    NamedTypeIndex returnType()const override{
-      return getNamedTypeIndex<R>();
+    TypeIndex returnType()const override{
+      return getTypeIndex<R>();
     }
     
     size_t argumentCount()const override{
       return 1;
     }
     
-    NamedTypeIndex argumentType(size_t i)const override{
+    TypeIndex argumentType(size_t i)const override{
       if (i >= 1) {
-        return getNamedTypeIndex<void>();
+        return getTypeIndex<void>();
       } else {
-        return getNamedTypeIndex<AnyArguments>();
+        return getTypeIndex<AnyArguments>();
       }
     }
 
@@ -166,12 +166,12 @@ namespace lars {
       return bool(specific);
     }
     
-    NamedTypeIndex returnType()const{
+    TypeIndex returnType()const{
       if (!specific) { throw UndefinedAnyFunctionException(); }
       return specific->returnType();
     }
     
-    NamedTypeIndex argumentType(size_t i)const{
+    TypeIndex argumentType(size_t i)const{
       if (!specific) { throw UndefinedAnyFunctionException(); }
       return specific->argumentType(i);
     }

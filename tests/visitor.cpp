@@ -275,7 +275,7 @@ TEST_CASE("Empty Visitable", "[visitor]"){
   REQUIRE(visitor_cast<int *>(&v) == nullptr);
   REQUIRE_THROWS_AS(visitor_cast<int>(std::as_const(v)), InvalidVisitorException);
   REQUIRE(visitor_cast<const  int *>(&std::as_const(v)) == nullptr);
-  REQUIRE(v.typeIndex() == getNamedTypeIndex<void>());
+  REQUIRE(v.StaticTypeIndex() == getTypeIndex<void>());
   
   SECTION("Visitor"){
     Visitor<> visitor;
@@ -295,7 +295,7 @@ TEMPLATE_TEST_CASE("Data Visitable", "[visitor]", char, int, float, double, unsi
   using DVisitable = DataVisitable<TestType, CastTypes, ConstCastTypes> ;
   
   DVisitable v(42);
-  REQUIRE(v.typeIndex() == getNamedTypeIndex<TestType>());
+  REQUIRE(v.StaticTypeIndex() == getTypeIndex<TestType>());
 
   SECTION("implicit value casting"){
     REQUIRE(visitor_cast<char>(v) == 42);

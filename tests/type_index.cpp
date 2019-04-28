@@ -8,22 +8,22 @@ TEST_CASE("Type Index") {
 
   using namespace lars;
 
-  REQUIRE(getTypeIndex<int>() == getTypeIndex<int>());
-  REQUIRE(getTypeIndex<float>() == getTypeIndex<float>());
-  REQUIRE(getTypeIndex<int>() != getTypeIndex<float>());
+  REQUIRE(getStaticTypeIndex<int>() == getStaticTypeIndex<int>());
+  REQUIRE(getStaticTypeIndex<float>() == getStaticTypeIndex<float>());
+  REQUIRE(getStaticTypeIndex<int>() != getStaticTypeIndex<float>());
 
   using A = int;
   using B = float;
 
-  REQUIRE(getTypeIndex<A>() == getTypeIndex<int>());
-  REQUIRE(getTypeIndex<B>() == getTypeIndex<float>());
-  REQUIRE(getTypeIndex<A>() != getTypeIndex<B>());
-  REQUIRE(getTypeIndex<A>() != getTypeIndex<float>());
-  REQUIRE(getTypeIndex<B>() != getTypeIndex<int>());
+  REQUIRE(getStaticTypeIndex<A>() == getStaticTypeIndex<int>());
+  REQUIRE(getStaticTypeIndex<B>() == getStaticTypeIndex<float>());
+  REQUIRE(getStaticTypeIndex<A>() != getStaticTypeIndex<B>());
+  REQUIRE(getStaticTypeIndex<A>() != getStaticTypeIndex<float>());
+  REQUIRE(getStaticTypeIndex<B>() != getStaticTypeIndex<int>());
 
-  REQUIRE(getTypeIndex<B>() != getTypeIndex<int>());
+  REQUIRE(getStaticTypeIndex<B>() != getStaticTypeIndex<int>());
   
-  REQUIRE(lars::stream_to_string(getNamedTypeIndex<A>()) == "int");
-  REQUIRE(lars::stream_to_string(getNamedTypeIndex<B>()) == "float");
+  REQUIRE(lars::stream_to_string(getTypeIndex<A>()) == "int");
+  REQUIRE(lars::stream_to_string(getTypeIndex<B>()) == "float");
 
 }

@@ -7,13 +7,13 @@ using namespace lars;
 
 TEST_CASE("Get", "[any]"){
   Any v;
-  REQUIRE(v.type() == getTypeIndex<void>());
+  REQUIRE(v.type() == getStaticTypeIndex<void>());
 
   REQUIRE(bool(v) == false);
   REQUIRE_THROWS_AS(v.get<int>(), UndefinedAnyException);
   REQUIRE_THROWS_WITH(v.get<int>(), Catch::Matchers::Contains("undefined Any"));
   v.set<int>(3);
-  REQUIRE(v.type() == getTypeIndex<int>());
+  REQUIRE(v.type() == getStaticTypeIndex<int>());
   REQUIRE(stream_to_string(v) == "Any<int>");
 
   REQUIRE(bool(v) == true);
@@ -39,7 +39,7 @@ TEMPLATE_TEST_CASE("Numerics", "[any]", char, int, long, long long, unsigned cha
 
   v.set<TestType>(42);
 
-  REQUIRE(v.type() == getTypeIndex<TestType>());
+  REQUIRE(v.type() == getStaticTypeIndex<TestType>());
   
   REQUIRE(v.get<TestType &>() == 42);
   REQUIRE(v.get<const TestType &>() == 42);
@@ -87,7 +87,7 @@ TEST_CASE("Inheritance", "[any]"){
   
   SECTION("Custom class"){
     Any v = A();
-    REQUIRE(v.type() == getTypeIndex<A>());
+    REQUIRE(v.type() == getStaticTypeIndex<A>());
     REQUIRE(v.get<A>().name == 'A');
     REQUIRE(v.get<A &>().name == 'A');
     REQUIRE(v.get<const A &>().name == 'A');

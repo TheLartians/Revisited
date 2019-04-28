@@ -105,9 +105,9 @@ namespace lars {
     /**
      * the type of the stored value
      */
-    NamedTypeIndex type()const{
-      if (!data) { return lars::getNamedTypeIndex<void>(); }
-      return data->typeIndex();
+    TypeIndex type()const{
+      if (!data) { return lars::getTypeIndex<void>(); }
+      return data->StaticTypeIndex();
     }
     
   };
