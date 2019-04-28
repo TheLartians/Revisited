@@ -10,7 +10,6 @@
 #include <ostream>
 
 namespace lars {
-  
   /**
    * Error raised when calling `get` on empty Any object.
    */
@@ -21,7 +20,8 @@ namespace lars {
   };
   
   template <class T> struct AnyVisitable;
-  
+  struct AnyReference;
+
   /**
    * A class that can hold an arbitrary value of any type.
    */
@@ -32,13 +32,19 @@ namespace lars {
   public:
     
     Any(){}
-    template <class T> Any(T && v){ set<typename std::remove_reference<T>::type>(v); }
+    template <
+      class T,
+      typename = typename std::enable_if<!std::is_base_of<Any,typename std::remove_reference<T>::type>::value>::type
+    > Any(T && v){ set<typename std::remove_reference<T>::type>(v); }
     Any(const Any &) = delete;
     Any(Any &&) = default;
     Any &operator=(const Any &) = delete;
     Any &operator=(Any &&) = default;
     
-    template <class T> Any & operator=(T && o) {
+    template <
+      class T,
+      typename = typename std::enable_if<!std::is_base_of<Any,typename std::remove_reference<T>::type>::value>::type
+    > Any & operator=(T && o) {
       set<typename std::remove_reference<T>::type>(o);
       return *this;
     }
@@ -54,6 +60,7 @@ namespace lars {
       class VisitableType = typename AnyVisitable<T>::type,
       typename ... Args
     > void set(Args && ... args) {
+      static_assert(!std::is_base_of<Any,T>::value);
       data = std::make_shared<VisitableType>(std::forward<Args>(args)...);
     }
     
@@ -136,7 +143,7 @@ namespace lars {
     
   };
 
-  template <class T, typename ... Args> Any make_any(Args && ... args){
+  template <class T, typename ... Args> Any makeAny(Args && ... args){
     Any v;
     v.set<T>(std::forward<Args>(args)...);
     return v;
@@ -233,4 +240,3 @@ template <class T> struct lars::AnyVisitable<std::reference_wrapper<T>> {
     T
   >;
 };
-

@@ -7,6 +7,7 @@ using namespace lars;
 TEST_CASE("call without arguments","[any_function]"){
   AnyFunction f;
   REQUIRE(bool(f) == false);
+
   REQUIRE_THROWS_AS(f(), UndefinedAnyFunctionException);
   REQUIRE_THROWS_AS(f.returnType(), UndefinedAnyFunctionException);
   REQUIRE_THROWS_AS(f.argumentCount(), UndefinedAnyFunctionException);
@@ -20,7 +21,8 @@ TEST_CASE("call without arguments","[any_function]"){
     REQUIRE(f.returnType() == getStaticTypeIndex<void>());
     REQUIRE(f.argumentCount() == 0);
     REQUIRE(f.argumentType(0) == getStaticTypeIndex<void>());
-    
+    REQUIRE(!f.isVariadic());
+
     REQUIRE_NOTHROW(f());
     REQUIRE(value == 42);
   }
@@ -31,6 +33,7 @@ TEST_CASE("call without arguments","[any_function]"){
     REQUIRE(f.returnType() == getStaticTypeIndex<int>());
     REQUIRE(f.argumentCount() == 0);
     REQUIRE(f.argumentType(0) == getStaticTypeIndex<void>());
+    REQUIRE(!f.isVariadic());
 
     REQUIRE(f().get<int>() == 42);
   }
@@ -46,7 +49,8 @@ TEST_CASE("call with arguments","[any_function]"){
   REQUIRE(f.argumentCount() == 2);
   REQUIRE(f.argumentType(0) == getStaticTypeIndex<int>());
   REQUIRE(f.argumentType(1) == getStaticTypeIndex<double>());
-  
+  REQUIRE(!f.isVariadic());
+
   REQUIRE(f(1,2).type() == getStaticTypeIndex<double>());
   REQUIRE(f(1,2).get<int>() == -1);
   REQUIRE(f(2,1).get<int>() == 1);
@@ -89,12 +93,27 @@ TEST_CASE("call with any arguments","[any_function]"){
   };
 
   REQUIRE(f.returnType() == getStaticTypeIndex<double>());
-  REQUIRE(f.argumentCount() == 1);
-  REQUIRE(f.argumentType(0) == getStaticTypeIndex<AnyArguments>());
-  REQUIRE(f.argumentType(1) == getStaticTypeIndex<void>());
+  REQUIRE(f.isVariadic());
+  REQUIRE(f.argumentCount() == 0);
+  REQUIRE(f.argumentType(42) == getStaticTypeIndex<Any>());
 
-  REQUIRE(f().get<double>() == 0);
-  REQUIRE(f(1, 2).get<double>() == 3);
-  REQUIRE(f(1, 2, 3, 4, 5).get<double>() == 15);
+  REQUIRE(f().get<int>() == 0);
+  REQUIRE(f(1, 2).get<float>() == 3);
+  REQUIRE(f(1, 2, 3, 4, 5).get<unsigned>() == 15);
 }
 
+TEST_CASE("implicit_string_conversion","[any_function]"){
+  AnyFunction f = [](std::string v)->std::string{ return "Hello " + v + "!"; };
+  REQUIRE(f("AnyFunction").get<std::string>() == "Hello AnyFunction!");
+}
+
+TEST_CASE("any_function_with_std_function","[any_function][any]"){
+  AnyFunction f = std::function<int()>([](){ return 42; });
+  REQUIRE(f().get<int>() == 42);
+}
+
+TEST_CASE("any_with_any_function","[any_function][any]"){
+  AnyFunction f = [](){ return 42; };
+  Any af = f;
+  REQUIRE(af.get<const AnyFunction &>()().get<int>() == 42);
+}

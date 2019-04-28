@@ -34,10 +34,11 @@ namespace lars {
   };
   
   struct SpecificAnyFunctionBase {
-    virtual AnyReference call(const AnyArguments & args) const = 0;
+    virtual Any call(const AnyArguments & args) const = 0;
     virtual TypeIndex returnType()const = 0;
     virtual TypeIndex argumentType(size_t)const = 0;
     virtual size_t argumentCount()const = 0;
+    virtual bool isVariadic()const = 0;
     virtual ~SpecificAnyFunctionBase(){}
   };
   
@@ -47,7 +48,7 @@ namespace lars {
   private:
     std::function<R(Args...)> callback;
   
-    template <size_t ... Idx> AnyReference callWithArgumentIndices(const AnyArguments & args, std::index_sequence<Idx...>) const {
+    template <size_t ... Idx> Any callWithArgumentIndices(const AnyArguments & args, std::index_sequence<Idx...>) const {
       if constexpr (std::is_same<void, R>::value) {
         callback(args[Idx].get<Args>()...);
         return Any();
@@ -60,7 +61,7 @@ namespace lars {
     
     SpecificAnyFunction(std::function<R(Args...)> _callback):callback(_callback){}
     
-    AnyReference call(const AnyArguments & args) const override {
+    Any call(const AnyArguments & args) const override {
       if (args.size() != sizeof...(Args)){ throw AnyFunctionInvalidArgumentCountException(); }
       using Indices = std::make_index_sequence<sizeof...(Args)>;
       return callWithArgumentIndices(args, Indices());
@@ -85,6 +86,10 @@ namespace lars {
       }
     }
     
+    bool isVariadic() const override {
+      return false;
+    }
+
   };
   
   template <class R> class SpecificAnyFunction<R, const AnyArguments &>: public SpecificAnyFunctionBase {
@@ -93,7 +98,7 @@ namespace lars {
   public:
     SpecificAnyFunction(std::function<R(const AnyArguments &)> _callback):callback(_callback){}
     
-    AnyReference call(const AnyArguments & args) const override {
+    Any call(const AnyArguments & args) const override {
       return callback(args);
     }
     
@@ -102,15 +107,15 @@ namespace lars {
     }
     
     size_t argumentCount()const override{
-      return 1;
+      return 0;
     }
     
-    TypeIndex argumentType(size_t i)const override{
-      if (i >= 1) {
-        return getTypeIndex<void>();
-      } else {
-        return getTypeIndex<AnyArguments>();
-      }
+    TypeIndex argumentType(size_t)const override{
+      return getTypeIndex<Any>();
+    }
+
+    bool isVariadic() const override {
+      return true;
     }
 
   };
@@ -134,29 +139,38 @@ namespace lars {
     AnyFunction &operator=(const AnyFunction &) = default;
     AnyFunction &operator=(AnyFunction &&) = default;
 
-    template <typename F> AnyFunction(const F &f) { set(f); }
+    template <
+      typename F,
+      typename = typename std::enable_if<!std::is_convertible<F, AnyFunction>::value>::type
+    > AnyFunction(const F &f) { set(f); }
     
-    template <typename F> AnyFunction & operator=(const F & f){
+    template <
+      typename F,
+      typename = typename std::enable_if<!std::is_convertible<F, AnyFunction>::value>::type
+    > AnyFunction & operator=(const F & f){
       set(f);
       return *this;
     }
    
     template <typename F> void set(const F &f){
+      static_assert(!std::is_convertible<F, AnyFunction>::value);
       _set(make_function(f));
     }
     
-    AnyReference call(const AnyArguments & args) const {
+    Any call(const AnyArguments & args) const {
       if (!specific) { throw UndefinedAnyFunctionException(); }
       return specific->call(args);
     }
     
-    template <typename ... Args> AnyReference operator()(Args && ... args) const {
+    template <typename ... Args> Any operator()(Args && ... args) const {
       AnyArguments arguments{{[&](){
         using ArgType = typename std::remove_reference<Args>::type;
         if constexpr (std::is_same<ArgType, Any>::value) {
           return AnyReference(args);
-        } else {
+        } else if constexpr (std::is_same<typename AnyVisitable<ArgType>::type::Type, ArgType>::value) {
           return AnyReference(std::reference_wrapper<ArgType>(args));
+        } else {
+          return AnyReference(args);
         }
       }()} ...};
       return call(arguments);
@@ -181,6 +195,9 @@ namespace lars {
       return specific->argumentCount();
     }
 
+    bool isVariadic() const {
+      return specific->isVariadic();
+    }
     
   };
   

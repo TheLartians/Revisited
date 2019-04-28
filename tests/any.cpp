@@ -53,9 +53,28 @@ TEST_CASE("Reassign", "[any]"){
   Any v = 1;
   REQUIRE_NOTHROW(v.get<int>());
   REQUIRE_THROWS(v.get<std::string>());
-  v = std::string("");
-  REQUIRE_THROWS(v.get<int>());
-  REQUIRE_NOTHROW(v.get<std::string>());
+
+  SECTION("to value"){
+    v = std::string("");
+    REQUIRE_THROWS(v.get<int>());
+    REQUIRE_NOTHROW(v.get<std::string>());
+  }
+
+  SECTION("to moved any"){
+    Any o = 2;
+    v = std::move(o);
+    REQUIRE(v.get<int>() == 2);
+  }
+
+  SECTION("to temporary any"){
+    v = Any(3);
+    REQUIRE(v.get<int>() == 3);
+  }
+
+  SECTION("to temporary any reference"){
+    v = AnyReference(4);
+    REQUIRE(v.get<int>() == 4);
+  }
 }
 
 TEST_CASE("Any string conversions", "[any]"){
@@ -145,7 +164,7 @@ TEST_CASE("Visitable inheritance","[any]"){
   struct C: public DerivedVisitable<C, A> { char name = 'C'; };
   struct D: public DerivedVisitable<D,VirtualVisitable<A, B>> { char name = 'D'; };
   struct E: public DerivedVisitable<E,VirtualVisitable<D, A>> { char name = 'E'; };
-  auto v = make_any<E>();
+  auto v = makeAny<E>();
   REQUIRE(v.get<A &>().name == 'A');
   REQUIRE(v.get<const B &>().name == 'B');
   REQUIRE_THROWS_AS(v.get<C &>(), InvalidVisitorException);
