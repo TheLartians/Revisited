@@ -20,7 +20,8 @@ TEST_CASE("call without arguments","[any_function]"){
     REQUIRE(f.returnType() == getStaticTypeIndex<void>());
     REQUIRE(f.argumentCount() == 0);
     REQUIRE(f.argumentType(0) == getStaticTypeIndex<void>());
-    
+    REQUIRE(!f.isVariadic());
+
     REQUIRE_NOTHROW(f());
     REQUIRE(value == 42);
   }
@@ -31,6 +32,7 @@ TEST_CASE("call without arguments","[any_function]"){
     REQUIRE(f.returnType() == getStaticTypeIndex<int>());
     REQUIRE(f.argumentCount() == 0);
     REQUIRE(f.argumentType(0) == getStaticTypeIndex<void>());
+    REQUIRE(!f.isVariadic());
 
     REQUIRE(f().get<int>() == 42);
   }
@@ -46,7 +48,8 @@ TEST_CASE("call with arguments","[any_function]"){
   REQUIRE(f.argumentCount() == 2);
   REQUIRE(f.argumentType(0) == getStaticTypeIndex<int>());
   REQUIRE(f.argumentType(1) == getStaticTypeIndex<double>());
-  
+  REQUIRE(!f.isVariadic());
+
   REQUIRE(f(1,2).type() == getStaticTypeIndex<double>());
   REQUIRE(f(1,2).get<int>() == -1);
   REQUIRE(f(2,1).get<int>() == 1);
@@ -89,7 +92,8 @@ TEST_CASE("call with any arguments","[any_function]"){
   };
 
   REQUIRE(f.returnType() == getStaticTypeIndex<double>());
-  REQUIRE(f.isVariadic() == 1);
+  REQUIRE(f.isVariadic());
+  REQUIRE(f.argumentCount() == 0);
   REQUIRE(f.argumentType(42) == getStaticTypeIndex<Any>());
 
   REQUIRE(f().get<double>() == 0);
