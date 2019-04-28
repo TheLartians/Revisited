@@ -136,7 +136,7 @@ namespace lars {
     using ReferenceTypes = TypeList<typename OrderedTypes::type &...>;
     using ConstReferenceTypes = TypeList<const typename OrderedTypes::type &...>;
     
-    using ConvertibleTypes = TypeList<>::template Merge<ReferenceTypes,ConstReferenceTypes>;
+    using ConvertibleTypes = TypeList<>::Merge<ReferenceTypes, ConstReferenceTypes>;
     using ConstConvertibleTypes = ConstReferenceTypes;
   };
   
