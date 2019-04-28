@@ -92,7 +92,7 @@ With [CPM](https://github.com/TheLartians/CPM), lars::Visitor can be used in a C
 CPMAddPackage(
   NAME LarsVisitor
   GIT_REPOSITORY https://github.com/TheLartians/Visitor.git
-  VERSION 1.1
+  VERSION 1.2
 )
 
 target_link_libraries(myProject LarsVisitor)
