@@ -96,8 +96,12 @@ TEST_CASE("call with any arguments","[any_function]"){
   REQUIRE(f.argumentCount() == 0);
   REQUIRE(f.argumentType(42) == getStaticTypeIndex<Any>());
 
-  REQUIRE(f().get<double>() == 0);
-  REQUIRE(f(1, 2).get<double>() == 3);
-  REQUIRE(f(1, 2, 3, 4, 5).get<double>() == 15);
+  REQUIRE(f().get<int>() == 0);
+  REQUIRE(f(1, 2).get<float>() == 3);
+  REQUIRE(f(1, 2, 3, 4, 5).get<unsigned>() == 15);
 }
 
+TEST_CASE("implicit_string_conversion","[any_function]"){
+  AnyFunction f = [](std::string v)->std::string{ return "Hello " + v + "!"; };
+  REQUIRE(f("AnyFunction").get<std::string>() == "Hello AnyFunction!");
+}

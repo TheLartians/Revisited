@@ -233,4 +233,3 @@ template <class T> struct lars::AnyVisitable<std::reference_wrapper<T>> {
     T
   >;
 };
-
