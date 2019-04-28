@@ -89,9 +89,8 @@ TEST_CASE("call with any arguments","[any_function]"){
   };
 
   REQUIRE(f.returnType() == getStaticTypeIndex<double>());
-  REQUIRE(f.argumentCount() == 1);
-  REQUIRE(f.argumentType(0) == getStaticTypeIndex<AnyArguments>());
-  REQUIRE(f.argumentType(1) == getStaticTypeIndex<void>());
+  REQUIRE(f.isVariadic() == 1);
+  REQUIRE(f.argumentType(42) == getStaticTypeIndex<Any>());
 
   REQUIRE(f().get<double>() == 0);
   REQUIRE(f(1, 2).get<double>() == 3);

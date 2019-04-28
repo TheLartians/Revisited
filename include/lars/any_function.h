@@ -38,6 +38,7 @@ namespace lars {
     virtual TypeIndex returnType()const = 0;
     virtual TypeIndex argumentType(size_t)const = 0;
     virtual size_t argumentCount()const = 0;
+    virtual bool isVariadic()const = 0;
     virtual ~SpecificAnyFunctionBase(){}
   };
   
@@ -85,6 +86,10 @@ namespace lars {
       }
     }
     
+    bool isVariadic() const override {
+      return false;
+    }
+
   };
   
   template <class R> class SpecificAnyFunction<R, const AnyArguments &>: public SpecificAnyFunctionBase {
@@ -102,15 +107,15 @@ namespace lars {
     }
     
     size_t argumentCount()const override{
-      return 1;
+      return 0;
     }
     
-    TypeIndex argumentType(size_t i)const override{
-      if (i >= 1) {
-        return getTypeIndex<void>();
-      } else {
-        return getTypeIndex<AnyArguments>();
-      }
+    TypeIndex argumentType(size_t)const override{
+      return getTypeIndex<Any>();
+    }
+
+    bool isVariadic() const override {
+      return true;
     }
 
   };
@@ -181,6 +186,9 @@ namespace lars {
       return specific->argumentCount();
     }
 
+    bool isVariadic() const {
+      return specific->isVariadic();
+    }
     
   };
   
