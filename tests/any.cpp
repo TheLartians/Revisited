@@ -113,29 +113,29 @@ TEST_CASE("String", "[any]"){
 }
 
 TEST_CASE("Inheritance", "[any]"){
-  struct A{ char name = 'A'; };
-  struct B:public A{ char name = 'B'; };
-  struct C:public B{ char name = 'C'; };
-  struct D{ char name = 'D'; };
-  struct E: public C, public D{ char name = 'E'; };
+  struct A{ char a = 'A'; };
+  struct B:public A{ char b = 'B'; };
+  struct C:public B{ C(const C &) = delete; C() = default; char c = 'C'; };
+  struct D{ char d = 'D'; };
+  struct E: public C, public D{ char e = 'E'; };
   
   SECTION("Custom class"){
     Any v = A();
     REQUIRE(v.type() == getStaticTypeIndex<A>());
-    REQUIRE(v.get<A>().name == 'A');
-    REQUIRE(v.get<A &>().name == 'A');
-    REQUIRE(v.get<const A &>().name == 'A');
+    REQUIRE(v.get<A>().a == 'A');
+    REQUIRE(v.get<A &>().a == 'A');
+    REQUIRE(v.get<const A &>().a == 'A');
     REQUIRE_THROWS_AS(v.get<B>(), InvalidVisitorException);
   }
   
   SECTION("Inheritance"){
     Any v;
     v.setWithBases<E,D,C,B,A>();
-    REQUIRE(v.get<A &>().name == 'A');
-    REQUIRE(v.get<const B &>().name == 'B');
-    REQUIRE(v.get<C>().name == 'C');
-    REQUIRE(v.get<D &>().name == 'D');
-    REQUIRE(v.get<const E &>().name == 'E');
+    REQUIRE(v.get<A>().a == 'A');
+    REQUIRE(v.get<B &>().b == 'B');
+    REQUIRE(v.get<const C &>().c == 'C');
+    REQUIRE(v.get<D>().d == 'D');
+    REQUIRE(v.get<const E &>().e == 'E');
   }
 }
 
