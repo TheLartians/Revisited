@@ -7,9 +7,9 @@ struct A: public Base, public lars::Visitable<A> { };
 struct B: public Base, public lars::Visitable<B> { };
 struct C: public lars::DerivedVisitable<C, A> { };
 
-struct ABVisitor: public lars::Visitor<A &,B &> {
-  void visit(A &){ std::cout << "[AB ]: Visiting A" << std::endl; }
-  void visit(B &){ std::cout << "[AB ]: Visiting B" << std::endl; }
+struct ABVisitor: public lars::Visitor<const A &,const B &> {
+  void visit(const A &){ std::cout << "[AB ]: Visiting A" << std::endl; }
+  void visit(const B &){ std::cout << "[AB ]: Visiting B" << std::endl; }
 };
 
 struct ABCVisitor: public lars::Visitor<A &,B &, C &> {
