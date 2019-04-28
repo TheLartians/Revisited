@@ -7,6 +7,7 @@ using namespace lars;
 TEST_CASE("call without arguments","[any_function]"){
   AnyFunction f;
   REQUIRE(bool(f) == false);
+
   REQUIRE_THROWS_AS(f(), UndefinedAnyFunctionException);
   REQUIRE_THROWS_AS(f.returnType(), UndefinedAnyFunctionException);
   REQUIRE_THROWS_AS(f.argumentCount(), UndefinedAnyFunctionException);
