@@ -17,9 +17,9 @@ TEST_CASE("call without arguments","[any_function]"){
     auto value = 0;
     f = [&](){ value = 42; };
     
-    REQUIRE(f.returnType() == getTypeIndex<void>());
+    REQUIRE(f.returnType() == getStaticTypeIndex<void>());
     REQUIRE(f.argumentCount() == 0);
-    REQUIRE(f.argumentType(0) == getTypeIndex<void>());
+    REQUIRE(f.argumentType(0) == getStaticTypeIndex<void>());
     
     REQUIRE_NOTHROW(f());
     REQUIRE(value == 42);
@@ -28,9 +28,9 @@ TEST_CASE("call without arguments","[any_function]"){
   SECTION("return value"){
     f = []()->int{ return 42; };
     
-    REQUIRE(f.returnType() == getTypeIndex<int>());
+    REQUIRE(f.returnType() == getStaticTypeIndex<int>());
     REQUIRE(f.argumentCount() == 0);
-    REQUIRE(f.argumentType(0) == getTypeIndex<void>());
+    REQUIRE(f.argumentType(0) == getStaticTypeIndex<void>());
 
     REQUIRE(f().get<int>() == 42);
   }
@@ -42,12 +42,12 @@ TEST_CASE("call without arguments","[any_function]"){
 
 TEST_CASE("call with arguments","[any_function]"){
   AnyFunction f = [](int a, double b){ return a - b; };
-  REQUIRE(f.returnType() == getTypeIndex<double>());
+  REQUIRE(f.returnType() == getStaticTypeIndex<double>());
   REQUIRE(f.argumentCount() == 2);
-  REQUIRE(f.argumentType(0) == getTypeIndex<int>());
-  REQUIRE(f.argumentType(1) == getTypeIndex<double>());
+  REQUIRE(f.argumentType(0) == getStaticTypeIndex<int>());
+  REQUIRE(f.argumentType(1) == getStaticTypeIndex<double>());
   
-  REQUIRE(f(1,2).type() == getTypeIndex<double>());
+  REQUIRE(f(1,2).type() == getStaticTypeIndex<double>());
   REQUIRE(f(1,2).get<int>() == -1);
   REQUIRE(f(2,1).get<int>() == 1);
   REQUIRE(f(1.5,1).get<double>() == 0);
@@ -88,10 +88,10 @@ TEST_CASE("call with any arguments","[any_function]"){
     return result;
   };
 
-  REQUIRE(f.returnType() == getTypeIndex<double>());
+  REQUIRE(f.returnType() == getStaticTypeIndex<double>());
   REQUIRE(f.argumentCount() == 1);
-  REQUIRE(f.argumentType(0) == getTypeIndex<AnyArguments>());
-  REQUIRE(f.argumentType(1) == getTypeIndex<void>());
+  REQUIRE(f.argumentType(0) == getStaticTypeIndex<AnyArguments>());
+  REQUIRE(f.argumentType(1) == getStaticTypeIndex<void>());
 
   REQUIRE(f().get<double>() == 0);
   REQUIRE(f(1, 2).get<double>() == 3);

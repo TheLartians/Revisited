@@ -16,12 +16,12 @@ namespace lars {
   
   template <class SingleBase, template <class T> class Single> class VisitorBasePrototype {
   protected:
-    virtual SingleBase * getVisitorFor(const lars::TypeIndex &) = 0;
+    virtual SingleBase * getVisitorFor(const lars::StaticTypeIndex &) = 0;
     
   public:
     
     template <class T> Single<T> * asVisitorFor(){
-      return static_cast<Single<T>*>(getVisitorFor(getTypeIndex<T>()));
+      return static_cast<Single<T>*>(getVisitorFor(getStaticTypeIndex<T>()));
     }
     
     virtual ~VisitorBasePrototype(){}
@@ -37,8 +37,8 @@ namespace lars {
    */
   template <class SingleBase, template <class T> class Single,typename ... Args> class VisitorPrototype: public virtual VisitorBasePrototype<SingleBase, Single>, public Single<Args> ... {
     
-    template <class First, typename ... Rest> inline SingleBase * getVisitorForWorker(const lars::TypeIndex &idx){
-      if (idx == getTypeIndex<First>()) {
+    template <class First, typename ... Rest> inline SingleBase * getVisitorForWorker(const lars::StaticTypeIndex &idx){
+      if (idx == getStaticTypeIndex<First>()) {
         return static_cast<Single<First>*>(this);
       }
       if constexpr (sizeof...(Rest) > 0){
@@ -49,7 +49,7 @@ namespace lars {
     
   public:
     
-    SingleBase * getVisitorFor(const lars::TypeIndex &idx) override {
+    SingleBase * getVisitorFor(const lars::StaticTypeIndex &idx) override {
       if constexpr (sizeof...(Args  ) > 0) {
         return getVisitorForWorker<Args...>(idx);
       } else {
@@ -114,12 +114,12 @@ namespace lars {
     mutable std::string buffer;
     
   public:
-    NamedTypeIndex typeIndex;
-    InvalidVisitorException(NamedTypeIndex t): typeIndex(t){}
+    TypeIndex StaticTypeIndex;
+    InvalidVisitorException(TypeIndex t): StaticTypeIndex(t){}
     
     const char * what() const noexcept override {
       if (buffer.size() == 0){
-        buffer = "invalid visitor for " + typeIndex.name();
+        buffer = "invalid visitor for " + StaticTypeIndex.name();
       }
       return buffer.c_str();
     }
@@ -131,7 +131,7 @@ namespace lars {
    */
   class VisitableBase {
   public:
-    virtual NamedTypeIndex typeIndex()const = 0;
+    virtual TypeIndex StaticTypeIndex()const = 0;
     virtual void accept(VisitorBase &visitor) = 0;
     virtual void accept(VisitorBase &visitor) const = 0;
     virtual bool accept(RecursiveVisitorBase &) = 0;
@@ -152,12 +152,12 @@ namespace lars {
     } else if constexpr (sizeof...(Rest) > 0) {
       visit(visitable, TypeList<Rest...>(), visitor);
     } else {
-      throw InvalidVisitorException(getNamedTypeIndex<V>());
+      throw InvalidVisitorException(getTypeIndex<V>());
     }
   }
   
   template <class V> static bool visit(V *, TypeList<>, VisitorBase &) {
-    throw InvalidVisitorException(getNamedTypeIndex<V>());
+    throw InvalidVisitorException(getTypeIndex<V>());
   }
   
   /**
@@ -193,7 +193,7 @@ namespace lars {
     void accept(VisitorBase &v) const override { visit(this, TypeList<>(), v); }
     bool accept(RecursiveVisitorBase &) override { return false; }
     bool accept(RecursiveVisitorBase &) const override { return false; }
-    NamedTypeIndex typeIndex() const override { return getNamedTypeIndex<void>(); }
+    TypeIndex StaticTypeIndex() const override { return getTypeIndex<void>(); }
   };
   
   /**
@@ -221,8 +221,8 @@ namespace lars {
       return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
     }
     
-    NamedTypeIndex typeIndex() const override {
-      return getNamedTypeIndex<T>();
+    TypeIndex StaticTypeIndex() const override {
+      return getTypeIndex<T>();
     }
     
   };
@@ -254,8 +254,8 @@ namespace lars {
       return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
     }
     
-    NamedTypeIndex typeIndex() const override {
-      return getNamedTypeIndex<T>();
+    TypeIndex StaticTypeIndex() const override {
+      return getTypeIndex<T>();
     }
 
   };
@@ -285,8 +285,8 @@ namespace lars {
       return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
     }
     
-    NamedTypeIndex typeIndex() const override {
-      return getNamedTypeIndex<JoinVisitable>();
+    TypeIndex StaticTypeIndex() const override {
+      return getTypeIndex<JoinVisitable>();
     }
 
   };
@@ -317,8 +317,8 @@ namespace lars {
       return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
     }
     
-    NamedTypeIndex typeIndex() const override {
-      return getNamedTypeIndex<VirtualVisitable>();
+    TypeIndex StaticTypeIndex() const override {
+      return getTypeIndex<VirtualVisitable>();
     }
     
   };
@@ -361,8 +361,8 @@ namespace lars {
       return visit(this, ConstTypes(), visitor);
     }
     
-    NamedTypeIndex typeIndex() const override {
-      return getNamedTypeIndex<T>();
+    TypeIndex StaticTypeIndex() const override {
+      return getTypeIndex<T>();
     }
     
     operator BaseCast &() {
@@ -457,7 +457,7 @@ namespace lars {
     if (auto res = visitor_cast<typename std::remove_reference<T>::type *>(&v)) {
       return *res;
     } else {
-      throw InvalidVisitorException(v.typeIndex());
+      throw InvalidVisitorException(v.StaticTypeIndex());
     }
   }
   
