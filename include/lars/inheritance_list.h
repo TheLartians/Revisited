@@ -1,24 +1,12 @@
 #pragma once
 
 #include <type_traits>
+
+#include <lars/type_list.h>
 #include <lars/type_index.h>
 
 namespace lars {
   
-  template <typename ... Args> struct TypeListMerger;
-
-  template <typename ... Args> struct TypeList{
-    template <typename ... Types> using Push = TypeList<Args..., Types...>;
-    template <typename ... Other> using Merge = typename TypeListMerger<TypeList, Other...>::type;
-  };
-
-  template <typename ... ATypes, typename ... BTypes> struct TypeListMerger <TypeList<ATypes...>, TypeList<BTypes...>> {
-    using type = TypeList<ATypes..., BTypes...>;
-  };
-  template <class A, class B, typename ... Rest> struct TypeListMerger <A, B, Rest...> {
-    using type = TypeListMerger<typename TypeListMerger<A,B>::type, Rest...>;
-  };
-
   template <class T, unsigned O> struct OrderedType {
     using type = T;
     const static unsigned value = O;
@@ -147,6 +135,9 @@ namespace lars {
     using ConstTypes = TypeList<const typename OrderedTypes::type ...>;
     using ReferenceTypes = TypeList<typename OrderedTypes::type &...>;
     using ConstReferenceTypes = TypeList<const typename OrderedTypes::type &...>;
+    
+    using ConvertibleTypes = TypeList<>::Merge<ReferenceTypes, ConstReferenceTypes>;
+    using ConstConvertibleTypes = ConstReferenceTypes;
   };
   
   template <class OStream, typename ... Types> OStream & operator<<(OStream &stream, const InheritanceList<Types...> &){

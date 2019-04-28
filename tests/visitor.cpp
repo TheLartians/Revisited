@@ -148,7 +148,50 @@ namespace {
 
 }
 
-TEST_CASE("visiting objects", "[visitor]") {
+TEST_CASE("visitor_basics", "[visitor]"){
+  A a;
+  B b;
+
+  SECTION("by reference"){
+    struct Visitor: public lars::Visitor <A &>{
+      void visit(A &)override{}
+    } visitor;
+    REQUIRE_NOTHROW(a.accept(visitor));
+    REQUIRE_THROWS_AS(std::as_const(a).accept(visitor), InvalidVisitorException);
+    REQUIRE_THROWS_AS(b.accept(visitor), InvalidVisitorException);
+  }
+
+  SECTION("by const reference"){
+    struct Visitor: public lars::Visitor <const A &>{
+      void visit(const A &)override{}
+    } visitor;
+    REQUIRE_NOTHROW(a.accept(visitor));
+    REQUIRE_NOTHROW(std::as_const(a).accept(visitor));
+    REQUIRE_THROWS_AS(b.accept(visitor), InvalidVisitorException);
+  }
+
+  SECTION("recursive by reference"){
+    struct Visitor: public lars::RecursiveVisitor <A &>{
+      bool visit(A &)override{ return true; }
+    } visitor;
+    REQUIRE(a.accept(visitor));
+    REQUIRE(!std::as_const(a).accept(visitor));
+    REQUIRE(!b.accept(visitor));
+  }
+
+  SECTION("recursive by const reference"){
+    struct Visitor: public lars::RecursiveVisitor <const A &>{
+      bool visit(const A &)override{ return true; }
+    } visitor;
+    REQUIRE(a.accept(visitor));
+    REQUIRE(std::as_const(a).accept(visitor));
+    REQUIRE(!b.accept(visitor));
+  }
+
+}
+
+
+TEST_CASE("visitor_inheritance", "[visitor]") {
   using namespace lars;
   
   std::shared_ptr<VisitableBase> a = std::make_shared<A>();
@@ -292,7 +335,7 @@ TEST_CASE("Empty Visitable", "[visitor]"){
 TEMPLATE_TEST_CASE("Data Visitable", "[visitor]", char, int, float, double, unsigned , size_t, long){
   using CastTypes = TypeList<TestType &>;
   using ConstCastTypes = TypeList<const TestType &, char, int, float, double, unsigned , size_t, long>;
-  using DVisitable = DataVisitable<TestType, CastTypes, ConstCastTypes> ;
+  using DVisitable = DataVisitablePrototype<TestType, CastTypes, ConstCastTypes> ;
   
   DVisitable v(42);
   REQUIRE(v.StaticTypeIndex() == getTypeIndex<TestType>());

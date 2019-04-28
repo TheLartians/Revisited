@@ -206,19 +206,19 @@ namespace lars {
     using InheritanceList = lars::InheritanceList<OrderedType<T, 0>>;
 
     void accept(VisitorBase &visitor) override {
-      visit(this, typename InheritanceList::ReferenceTypes(), visitor);
+      visit(this, typename InheritanceList::ConvertibleTypes(), visitor);
     }
     
     void accept(VisitorBase &visitor) const override {
-      visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
+      visit(this, typename InheritanceList::ConstConvertibleTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::ReferenceTypes(), visitor);
+      return visit(this, typename InheritanceList::ConvertibleTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
+      return visit(this, typename InheritanceList::ConstConvertibleTypes(), visitor);
     }
     
     TypeIndex StaticTypeIndex() const override {
@@ -239,19 +239,19 @@ namespace lars {
     using InheritanceList = typename B::InheritanceList::template Push<T>;
 
     void accept(VisitorBase &visitor) override {
-      visit(this, typename InheritanceList::ReferenceTypes(), visitor);
+      visit(this, typename InheritanceList::ConvertibleTypes(), visitor);
     }
     
     void accept(VisitorBase &visitor) const override {
-      visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
+      visit(this, typename InheritanceList::ConstConvertibleTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::ReferenceTypes(), visitor);
+      return visit(this, typename InheritanceList::ConvertibleTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
+      return visit(this, typename InheritanceList::ConstConvertibleTypes(), visitor);
     }
     
     TypeIndex StaticTypeIndex() const override {
@@ -270,19 +270,19 @@ namespace lars {
     using InheritanceList = lars::InheritanceList<>::Merge<typename Bases::InheritanceList ...>;
 
     void accept(VisitorBase &visitor) override {
-      visit(this, typename InheritanceList::ReferenceTypes(), visitor);
+      visit(this, typename InheritanceList::ConvertibleTypes(), visitor);
     }
     
     void accept(VisitorBase &visitor) const override {
-      visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
+      visit(this, typename InheritanceList::ConstConvertibleTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::ReferenceTypes(), visitor);
+      return visit(this, typename InheritanceList::ConvertibleTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
+      return visit(this, typename InheritanceList::ConstConvertibleTypes(), visitor);
     }
     
     TypeIndex StaticTypeIndex() const override {
@@ -302,19 +302,19 @@ namespace lars {
     using InheritanceList = lars::InheritanceList<>::Merge<typename Bases::InheritanceList ...>;
     
     void accept(VisitorBase &visitor) override {
-      visit(this, typename InheritanceList::ReferenceTypes(), visitor);
+      visit(this, typename InheritanceList::ConvertibleTypes(), visitor);
     }
     
     void accept(VisitorBase &visitor) const override {
-      visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
+      visit(this, typename InheritanceList::ConstConvertibleTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::ReferenceTypes(), visitor);
+      return visit(this, typename InheritanceList::ConvertibleTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstReferenceTypes(), visitor);
+      return visit(this, typename InheritanceList::ConstConvertibleTypes(), visitor);
     }
     
     TypeIndex StaticTypeIndex() const override {
@@ -335,7 +335,7 @@ namespace lars {
     class _Types,
     class _ConstTypes,
     class BaseCast = T
-  > class DataVisitable: public virtual VisitableBase {
+  > class DataVisitablePrototype: public virtual VisitableBase {
   public:
     using Type = T;
     using Types = _Types;
@@ -343,7 +343,7 @@ namespace lars {
     
     Type data;
 
-    template <typename ... Args> DataVisitable(Args && ... args):data(std::forward<Args>(args)...){}
+    template <typename ... Args> DataVisitablePrototype(Args && ... args):data(std::forward<Args>(args)...){}
     
     void accept(VisitorBase &visitor) override {
       visit(this, Types(), visitor);
@@ -375,12 +375,43 @@ namespace lars {
     
   };
   
-  template <class T, typename ... Bases> using DataVisitableWithBases = DataVisitable<
-    T,
-    TypeList<T&, Bases &...>,
-    TypeList<const T &, const Bases &..., T, Bases...>
+  template <class T, class B, class C, class CastType> class DataVisitableWithBasesAndConversionsDefinition;
+
+  template <class T, typename ... Bases, typename ... Conversions, class CastType> class DataVisitableWithBasesAndConversionsDefinition<
+    T, 
+    TypeList<Bases...>, 
+    TypeList<Conversions...>, 
+    CastType
+  >{
+  private:
+    using ConstTypes = typename TypeList<const T &, const Bases &...,Conversions...>::template Merge<
+      typename TypeList<T,Bases...>::template Filter<std::is_copy_constructible>
+    >;
+
+  public:
+    using type = DataVisitablePrototype<
+      T,
+      typename TypeList<T&, Bases &...>::template Merge<ConstTypes>,
+      ConstTypes,
+      CastType
+    >;
+  };
+
+  template <class T, class B, class C, class CastType = T> using DataVisitableWithBasesAndConversions = typename DataVisitableWithBasesAndConversionsDefinition<
+    T, 
+    B, 
+    C,
+    CastType
+  >::type;
+
+  template <class T, typename ... Bases> using DataVisitableWithBases = DataVisitableWithBasesAndConversions<
+    T, 
+    TypeList<Bases...>, 
+    TypeList<>
   >;
   
+  template <class T> using DataVisitable = DataVisitableWithBases<T>;
+
   template <class T> struct PointerCastVisitor: public RecursiveVisitor<typename std::remove_pointer<T>::type &> {
     T result;
     bool visit(typename std::remove_pointer<T>::type & t) { result = &t; return true; }
