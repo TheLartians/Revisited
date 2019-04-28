@@ -292,7 +292,7 @@ TEST_CASE("Empty Visitable", "[visitor]"){
 TEMPLATE_TEST_CASE("Data Visitable", "[visitor]", char, int, float, double, unsigned , size_t, long){
   using CastTypes = TypeList<TestType &>;
   using ConstCastTypes = TypeList<const TestType &, char, int, float, double, unsigned , size_t, long>;
-  using DVisitable = DataVisitable<TestType, CastTypes, ConstCastTypes> ;
+  using DVisitable = DataVisitablePrototype<TestType, CastTypes, ConstCastTypes> ;
   
   DVisitable v(42);
   REQUIRE(v.StaticTypeIndex() == getTypeIndex<TestType>());

@@ -6,6 +6,7 @@
 #include <memory>
 #include <exception>
 #include <functional>
+#include <utility>
 #include <ostream>
 
 namespace lars {
@@ -109,19 +110,30 @@ namespace lars {
       if (!data) { return lars::getTypeIndex<void>(); }
       return data->StaticTypeIndex();
     }
+
+    /**
+     * Accept visitor
+     */
+    void accept(VisitorBase &visitor){
+      if (!data) { throw UndefinedAnyException(); }
+      data->accept(visitor);
+    }
+
+    void accept(VisitorBase &visitor) const {
+      if (!data) { throw UndefinedAnyException(); }
+      std::as_const(*data).accept(visitor);
+    }
     
-  };
-  
-  /**
-   * Defines the default internal type for Any<T>.
-   * Specialize this class to support implicit conversions usertypes.
-   */
-  template <class T> struct AnyVisitable {
-    using type = typename std::conditional<
-      std::is_base_of<VisitableBase, T>::value,
-      T,
-      DataVisitable<T, TypeList<T &>, TypeList<const T &, T>>
-    >::type;
+    bool accept(RecursiveVisitorBase &visitor){
+      if (!data) { throw UndefinedAnyException(); }
+      return data->accept(visitor);
+    }
+    
+    bool accept(RecursiveVisitorBase &visitor) const {
+      if (!data) { throw UndefinedAnyException(); }
+      return std::as_const(*data).accept(visitor);
+    }
+    
   };
 
   template <class T, typename ... Args> Any make_any(Args && ... args){
@@ -158,7 +170,19 @@ namespace lars {
     }
     
   };
-  
+    
+  /**
+   * Defines the default internal type for Any<T>.
+   * Specialize this class to support implicit conversions usertypes.
+   */
+  template <class T> struct AnyVisitable {
+    using type = typename std::conditional<
+      std::is_base_of<VisitableBase, T>::value,
+      T,
+      DataVisitable<T>
+    >::type;
+  };
+
 }
 
 /**
@@ -166,9 +190,9 @@ namespace lars {
  */
 #define LARS_ANY_DEFINE_SCALAR_TYPE(Type,Conversions) \
 template <> struct lars::AnyVisitable<Type>{\
-  using Types = typename lars::TypeList<Type &>::template Merge<Conversions>; \
+  using Types = typename lars::TypeList<Type &, const Type &>::template Merge<Conversions>; \
   using ConstTypes = typename lars::TypeList<const Type &>::template Merge<Conversions>; \
-  using type = lars::DataVisitable<Type, Types, ConstTypes>; \
+  using type = lars::DataVisitablePrototype<Type, Types, ConstTypes>; \
 }
 
 #ifndef LARS_ANY_NUMERIC_TYPES
@@ -202,7 +226,7 @@ template <size_t N> struct lars::AnyVisitable<const char[N]> {
  * Capture values as reference through `std::reference_wrapper`.
  */
 template <class T> struct lars::AnyVisitable<std::reference_wrapper<T>> {
-  using type = lars::DataVisitable<
+  using type = lars::DataVisitablePrototype<
     std::reference_wrapper<T>,
     typename AnyVisitable<T>::type::Types,
     typename AnyVisitable<T>::type::ConstTypes,

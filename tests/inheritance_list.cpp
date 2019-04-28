@@ -4,11 +4,23 @@
 
 #include <lars/inheritance_list.h>
 
-template <class T, unsigned V> using O = lars::OrderedType<T, V>;
-template <typename ... Args> using T = lars::InheritanceList<Args...>;
+using namespace lars;
 
-TEST_CASE("InheritanceList") {
-  
+TEST_CASE("TypeList", "[TypeList]") {
+  struct A { A & operator=(const A &) = delete; };
+  struct B { B(const B &) = delete; B & operator=(const B &) = default; };
+
+  REQUIRE(std::is_same<TypeList<A,B>::Filter<std::is_copy_constructible>, TypeList<A>>::value);
+  REQUIRE(std::is_same<TypeList<A,B>::Filter<std::is_copy_assignable>, TypeList<B>>::value);
+  REQUIRE(std::is_same<TypeList<std::string>::Filter<std::is_copy_assignable>, TypeList<std::string>>::value);
+}
+
+template <class T, unsigned V> using O = OrderedType<T, V>;
+template <typename ... Args> using T = InheritanceList<Args...>;
+
+TEST_CASE("InheritanceList", "[InheritanceList]") {
+
+    
   struct A{};
   struct B{};
   struct C{};
@@ -57,7 +69,7 @@ TEST_CASE("InheritanceList") {
     REQUIRE(std::is_same<LAB11, T<O<A,5>,O<D,4>,O<C,3>,O<B,2>,O<E,1>>>::value);
   }
   
-  SECTION("Push"){
+  SECTION("Push", "[InheritanceList]"){
     using LABC = lars::InheritanceList<>::Push<A>::Push<B>::Push<C>;
     REQUIRE(std::is_same<LABC, T<O<C,2>,O<B,1>,O<A,0>>>::value);
   }

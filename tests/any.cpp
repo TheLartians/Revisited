@@ -5,30 +5,64 @@
 
 using namespace lars;
 
-TEST_CASE("Get", "[any]"){
+TEST_CASE("AnyBasics", "[any]"){
   Any v;
-  REQUIRE(v.type() == getStaticTypeIndex<void>());
 
-  REQUIRE(bool(v) == false);
-  REQUIRE_THROWS_AS(v.get<int>(), UndefinedAnyException);
-  REQUIRE_THROWS_WITH(v.get<int>(), Catch::Matchers::Contains("undefined Any"));
-  v.set<int>(3);
-  REQUIRE(v.type() == getStaticTypeIndex<int>());
-  REQUIRE(stream_to_string(v) == "Any<int>");
+  SECTION("undefined"){
+    REQUIRE(v.type() == getStaticTypeIndex<void>());
+    REQUIRE(bool(v) == false);
+    REQUIRE_THROWS_AS(v.get<int>(), UndefinedAnyException);
+    REQUIRE_THROWS_WITH(v.get<int>(), Catch::Matchers::Contains("undefined Any"));
+  }
 
-  REQUIRE(bool(v) == true);
-  REQUIRE(v.get<int>() == 3);
-  REQUIRE(std::as_const(v).get<int>() == 3);
-  REQUIRE(v.get<int &>() == 3);
-  REQUIRE(v.get<const int &>() == 3);
-  REQUIRE(v.tryGet<int>()== &v.get<int &>());
-  REQUIRE_THROWS_AS(v.get<std::string>(), InvalidVisitorException);
-  REQUIRE(v.tryGet<std::string>() == nullptr);
-  
-  v = "Hello any!";
-  REQUIRE(v.get<std::string>() == "Hello any!");
+  SECTION("with value"){
+    struct MyClass { 
+      int value; 
+      MyClass(int v):value(v){} 
+      MyClass(const MyClass &) = default; 
+    };
+
+    v.set<MyClass>(3);
+
+    SECTION("traits"){
+      REQUIRE(v.type() == getStaticTypeIndex<MyClass>());
+      REQUIRE_THAT(stream_to_string(v), Catch::Matchers::Contains("Any") && Catch::Matchers::Contains("MyClass"));
+      REQUIRE(bool(v) == true);
+    }
+
+    SECTION("get"){
+      REQUIRE(v.get<MyClass>().value == 3);
+      REQUIRE(v.get<MyClass &>().value == 3);
+      REQUIRE(v.get<const MyClass &>().value == 3);
+    }
+
+    SECTION("invalid get"){
+      REQUIRE_THROWS_AS(v.get<int>(), InvalidVisitorException);
+    }
+
+    SECTION("try get"){
+      REQUIRE(v.tryGet<MyClass>() == &v.get<MyClass &>());
+      REQUIRE(v.tryGet<const MyClass>() == &v.get<MyClass &>());
+      REQUIRE(v.tryGet<int>() == nullptr);
+    }
+  }
+
+}
+
+TEST_CASE("Reassign", "[any]"){
+  Any v = 1;
+  REQUIRE_NOTHROW(v.get<int>());
+  REQUIRE_THROWS(v.get<std::string>());
+  v = std::string("");
+  REQUIRE_THROWS(v.get<int>());
+  REQUIRE_NOTHROW(v.get<std::string>());
+}
+
+TEST_CASE("Any string conversions", "[any]"){
+  Any v = "Hello any!";
   REQUIRE(v.get<std::string &>() == "Hello any!");
   REQUIRE(v.get<const std::string &>() == "Hello any!");
+  REQUIRE(v.get<std::string>() == "Hello any!");
   REQUIRE(v.tryGet<std::string>()== &v.get<std::string &>());
   REQUIRE_THROWS_AS(v.get<int>(), InvalidVisitorException);
   REQUIRE(v.tryGet<int>() == nullptr);
@@ -124,7 +158,9 @@ TEST_CASE("capture reference","[any]"){
   Any y = std::reference_wrapper<int>(x);
   REQUIRE(&y.get<int &>() == &x);
   REQUIRE(&y.get<const int &>() == &x);
+  REQUIRE(y.get<double>() == 1);
   y.get<int &>() = 2;
+  REQUIRE(y.get<int>() == 2);
   REQUIRE(x == 2);
 }
 
@@ -133,4 +169,37 @@ TEST_CASE("AnyReference","[any]"){
   AnyReference y = x;
   y.get<int &>() = 2;
   REQUIRE(x.get<int>() == 2);
+}
+
+TEST_CASE("Accept visitors","[any]"){
+  Any x = 1;
+  
+  SECTION("Visitor"){
+    struct Visitor: lars::Visitor<int &>{
+      void visit(int &)override{ }
+    } visitor;
+    REQUIRE_NOTHROW(x.accept(visitor));
+  }
+
+  SECTION("ConstVisitor"){
+    struct Visitor: lars::Visitor<const int &>{
+      void visit(const int &)override{ }
+    } visitor;
+    REQUIRE_NOTHROW(std::as_const(x).accept(visitor));
+  }
+
+  SECTION("RecursiveVisitor"){
+    struct Visitor: lars::RecursiveVisitor<int &>{
+      bool visit(int &)override{ return true; }
+    } visitor;
+    REQUIRE(x.accept(visitor));
+  }
+
+  SECTION("ConstRecursiveVisitor"){
+    struct Visitor: lars::RecursiveVisitor<const int &>{
+      bool visit(const int &)override{ return true; }
+    } visitor;
+    REQUIRE(std::as_const(x).accept(visitor));
+  }
+
 }
