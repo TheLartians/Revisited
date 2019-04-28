@@ -106,3 +106,14 @@ TEST_CASE("implicit_string_conversion","[any_function]"){
   AnyFunction f = [](std::string v)->std::string{ return "Hello " + v + "!"; };
   REQUIRE(f("AnyFunction").get<std::string>() == "Hello AnyFunction!");
 }
+
+TEST_CASE("any_function_with_std_function","[any_function][any]"){
+  AnyFunction f = std::function<int()>([](){ return 42; });
+  REQUIRE(f().get<int>() == 42);
+}
+
+TEST_CASE("any_with_any_function","[any_function][any]"){
+  AnyFunction f = [](){ return 42; };
+  Any af = f;
+  REQUIRE(af.get<const AnyFunction &>()().get<int>() == 42);
+}

@@ -164,7 +164,7 @@ TEST_CASE("Visitable inheritance","[any]"){
   struct C: public DerivedVisitable<C, A> { char name = 'C'; };
   struct D: public DerivedVisitable<D,VirtualVisitable<A, B>> { char name = 'D'; };
   struct E: public DerivedVisitable<E,VirtualVisitable<D, A>> { char name = 'E'; };
-  auto v = make_any<E>();
+  auto v = makeAny<E>();
   REQUIRE(v.get<A &>().name == 'A');
   REQUIRE(v.get<const B &>().name == 'B');
   REQUIRE_THROWS_AS(v.get<C &>(), InvalidVisitorException);

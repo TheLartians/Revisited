@@ -139,14 +139,21 @@ namespace lars {
     AnyFunction &operator=(const AnyFunction &) = default;
     AnyFunction &operator=(AnyFunction &&) = default;
 
-    template <typename F> AnyFunction(const F &f) { set(f); }
+    template <
+      typename F,
+      typename = typename std::enable_if<!std::is_convertible<F, AnyFunction>::value>::type
+    > AnyFunction(const F &f) { set(f); }
     
-    template <typename F> AnyFunction & operator=(const F & f){
+    template <
+      typename F,
+      typename = typename std::enable_if<!std::is_convertible<F, AnyFunction>::value>::type
+    > AnyFunction & operator=(const F & f){
       set(f);
       return *this;
     }
    
     template <typename F> void set(const F &f){
+      static_assert(!std::is_convertible<F, AnyFunction>::value);
       _set(make_function(f));
     }
     
