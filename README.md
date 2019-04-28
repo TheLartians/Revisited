@@ -80,8 +80,8 @@ std::cout << v.get<MyClass &>().value << std::endl; // -> 42
 
 ```cpp
 lars::AnyFunction f;
-f = [](int x, double y){ return x + y; };
-std::cout << f(2,3).get<int>() << std::endl; // -> 5
+f = [](int x, float y){ return x + y; };
+std::cout << f(40,2).get<int>() << std::endl; // -> 42
 ```
 
 ## Installation and usage
