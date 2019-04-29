@@ -15,28 +15,24 @@ namespace lars {
   template <class T> class SingleVisitor;
   
   template <class SingleBase, template <class T> class Single> class VisitorBasePrototype {
-  protected:
-    virtual SingleBase * getVisitorFor(const lars::StaticTypeIndex &) = 0;
-    
   public:
+    virtual SingleBase * getVisitorFor(const lars::StaticTypeIndex &) = 0;
     
     template <class T> Single<T> * asVisitorFor(){
       return static_cast<Single<T>*>(getVisitorFor(getStaticTypeIndex<T>()));
     }
     
+    virtual size_t acceptableTypesCount() const = 0;
+    virtual StaticTypeIndex getAcceptableType(size_t idx) const = 0;
+
     virtual ~VisitorBasePrototype(){}
   };
-  
-  class SingleVisitorBase{
-  public:
-    virtual ~SingleVisitorBase(){}
-  };
-  
+    
   /**
    * The Visitor Prototype class. Visitors defined below are specializations of this class.
    */
   template <class SingleBase, template <class T> class Single,typename ... Args> class VisitorPrototype: public virtual VisitorBasePrototype<SingleBase, Single>, public Single<Args> ... {
-    
+  private:
     template <class First, typename ... Rest> inline SingleBase * getVisitorForWorker(const lars::StaticTypeIndex &idx){
       if (idx == getStaticTypeIndex<First>()) {
         return static_cast<Single<First>*>(this);
@@ -46,9 +42,7 @@ namespace lars {
       }
       return nullptr;
     }
-    
-  public:
-    
+
     SingleBase * getVisitorFor(const lars::StaticTypeIndex &idx) override {
       if constexpr (sizeof...(Args  ) > 0) {
         return getVisitorForWorker<Args...>(idx);
@@ -57,6 +51,27 @@ namespace lars {
       }
     }
     
+  public:
+
+    static constexpr std::array<
+      StaticTypeIndex,
+      sizeof...(Args)
+    > acceptableTypes = std::array<StaticTypeIndex, sizeof...(Args)>{{getStaticTypeIndex<Args>()...}};
+    
+    size_t acceptableTypesCount() const override {
+      return acceptableTypes.size();
+    }
+
+    StaticTypeIndex getAcceptableType(size_t idx) const override {
+      return acceptableTypes[idx];
+    }
+
+  };
+
+  class SingleVisitorBase{
+  public:
+    virtual void acceptPtr(void *) = 0;
+    virtual ~SingleVisitorBase(){}
   };
   
   template <class T> class SingleVisitor: public SingleVisitorBase {
@@ -66,6 +81,10 @@ namespace lars {
      * @param - The object beeing visited
      */
     virtual void visit(T) = 0;
+    
+    void acceptPtr(void * ptr) override {
+      visit(*static_cast<typename std::remove_reference<T>::type *>(ptr));
+    }
   };
   
   using VisitorBase = VisitorBasePrototype<SingleVisitorBase, SingleVisitor>;
@@ -83,7 +102,13 @@ namespace lars {
     Args...
   >;
   
-  template <class T> class SingleRecursiveVisitor: public SingleVisitorBase {
+  class SingleRecursiveVisitorBase{
+  public:
+    virtual bool acceptPtr(void *) = 0;
+    virtual ~SingleRecursiveVisitorBase(){}
+  };
+  
+  template <class T> class SingleRecursiveVisitor: public SingleRecursiveVisitorBase {
   public:
     /**
      * The visit method of a recursive visitor.
@@ -92,6 +117,11 @@ namespace lars {
      * methods should be called. `false`, otherwise.
      */
     virtual bool visit(T) = 0;
+
+    bool acceptPtr(void * ptr) override {
+      return visit(*static_cast<typename std::remove_reference<T>::type *>(ptr));
+    }
+
   };
   
   /**
@@ -101,8 +131,8 @@ namespace lars {
    * When accepted, all first matching visit methods will be called until the return
    * value of a visit method is `true`.
    */
-  using RecursiveVisitorBase = VisitorBasePrototype<SingleVisitorBase, SingleRecursiveVisitor>;
-  template <typename ... Args> using RecursiveVisitor = VisitorPrototype<SingleVisitorBase, SingleRecursiveVisitor, Args...>;
+  using RecursiveVisitorBase = VisitorBasePrototype<SingleRecursiveVisitorBase, SingleRecursiveVisitor>;
+  template <typename ... Args> using RecursiveVisitor = VisitorPrototype<SingleRecursiveVisitorBase, SingleRecursiveVisitor, Args...>;
 
   /**
    * InvalidVisitorException.
@@ -336,7 +366,7 @@ namespace lars {
   };
 
   /**
-   * A visitable object holding data of type `T`.
+   * Prototype for a visitable object holding data of type `T`.
    * The template paramters `Types` and `ConstTypes` are TypeLists defining the
    * types that are visitable. `ConstTypes` is used when the accepting object is
    * const, otherwise `Types`. When accepting a visitor, `data` will be statically
@@ -409,20 +439,96 @@ namespace lars {
     >;
   };
 
-  template <class T, class B, class C, class CastType = T> using DataVisitableWithBasesAndConversions = typename DataVisitableWithBasesAndConversionsDefinition<
+  /**
+   * A visitable object holding data of type `T` with bases defined by the `Bases` typelist that can also be converted to `Conversions`.
+   * By default it is castable to all reference and const reference types as well as value types that are copy-constructable.
+   */
+  template <class T, class Bases, class Conversions, class CastType = T> using DataVisitableWithBasesAndConversions = typename DataVisitableWithBasesAndConversionsDefinition<
     T, 
-    B, 
-    C,
+    Bases, 
+    Conversions,
     CastType
   >::type;
 
+  /**
+   * Same as DataVisitableWithBasesAndConversions, without conversions.
+   */
   template <class T, typename ... Bases> using DataVisitableWithBases = DataVisitableWithBasesAndConversions<
     T, 
     TypeList<Bases...>, 
     TypeList<>
   >;
   
+  /**
+   * Same as DataVisitableWithBases, without base types.
+   */
   template <class T> using DataVisitable = DataVisitableWithBases<T>;
+
+  /**
+   * A visitable type that can decides its type at runtime.
+   * When overriding, the virtual function `getAs` must be overloaded to return 
+   * a statically castes `void*` pointer to the requested type and `nullptr` otherwise. 
+   */
+  class RuntimeVisitable: public virtual VisitableBase {
+    protected:
+
+    virtual void * getAs(const class StaticTypeIndex &idx) const = 0;
+    virtual void * getAs(const class StaticTypeIndex &idx) { 
+      return static_cast<const RuntimeVisitable &>(*this).getAs(idx);
+    };
+
+    template <class V> static void accept(V visitable, VisitorBase &visitor){
+      auto N = visitor.acceptableTypesCount();
+      for (size_t i = 0; i < N; ++i) {
+        auto t = visitor.getAcceptableType(i);
+        if(auto value = visitable->getAs(t)){
+          visitor.getVisitorFor(t)->acceptPtr(value);
+          return;
+        }
+      }
+      throw InvalidVisitorException(getTypeIndex<RuntimeVisitable>());
+    }
+
+    template <class V> static bool accept(V visitable, RecursiveVisitorBase &visitor){
+      auto N = visitor.acceptableTypesCount();
+      for (size_t i = 0; i < N; ++i) {
+        auto t = visitor.getAcceptableType(i);
+        if(auto value = visitable->getAs(t)){
+          if(visitor.getVisitorFor(t)->acceptPtr(value)){
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+  public:
+
+    using Type = RuntimeVisitable;
+    using Types = TypeList<>;
+    using ConstTypes = TypeList<>;
+    
+    void accept(VisitorBase &visitor) override {
+      accept(this, visitor);
+    }
+    
+    void accept(VisitorBase &visitor) const override {
+      accept(this, visitor);
+    }
+    
+    bool accept(RecursiveVisitorBase &visitor) override {
+      return accept(this, visitor);
+    }
+    
+    bool accept(RecursiveVisitorBase &visitor) const override {
+      return accept(this, visitor);
+    }
+    
+    TypeIndex StaticTypeIndex() const override {
+      return getTypeIndex<RuntimeVisitable>();
+    }
+
+  };
 
   template <class T> struct PointerCastVisitor: public RecursiveVisitor<typename std::remove_pointer<T>::type &> {
     T result;
