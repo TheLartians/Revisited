@@ -190,7 +190,6 @@ TEST_CASE("visitor_basics", "[visitor]"){
 
 }
 
-
 TEST_CASE("visitor_inheritance", "[visitor]") {
   using namespace lars;
   

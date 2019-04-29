@@ -9,11 +9,12 @@ namespace lars{
     template <class L, template <class> typename F > struct Filter;
   }
 
-  template <typename ... Args> struct TypeList {
-    template <typename ... Types> using Push = TypeList<Args..., Types...>;
+  template <typename ... Types> struct TypeList {
+    template <typename ... Other> using Push = TypeList<Types..., Other...>;
     template <typename ... Other> using Merge = typename typelist::Merge<TypeList, Other...>::type;
     template <template <class> typename Filter> using Filter = typename typelist::Filter<TypeList, Filter>::type;
-    template <template <class> typename T> using Transform = TypeList<typename T<Args>::type ...>;
+    template <template <class> typename T> using Transform = TypeList<typename T<Types>::type ...>;
+    template <class F, template <class> typename T> static constexpr auto transform(F && f){ return f(T<Types>()...); } 
   };
 
   namespace typelist {
