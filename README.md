@@ -98,7 +98,7 @@ CPMAddPackage(
 target_link_libraries(myProject LarsVisitor)
 ```
 
-Alternatively, the repository can be cloned locally and included it via `add_subdirectory`. Installing lars::Visitor will make it findable in CMake's `find_package`. Beeing a header-only library, adding the include directory to your header search path or copying the files will work as well.
+Alternatively, the repository can be cloned locally and included it via `add_subdirectory`. Installing lars::Visitor will make it findable in CMake's `find_package`.
 
 ## Performance
 
