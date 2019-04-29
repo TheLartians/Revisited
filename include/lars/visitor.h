@@ -54,7 +54,6 @@ namespace lars {
 
   class SingleVisitorBase{
   public:
-    virtual void acceptPtr(void *) = 0;
     virtual ~SingleVisitorBase(){}
   };
   
@@ -65,10 +64,6 @@ namespace lars {
      * @param - The object beeing visited
      */
     virtual void visit(T) = 0;
-    
-    void acceptPtr(void * ptr) override {
-      visit(*static_cast<typename std::remove_reference<T>::type *>(ptr));
-    }
   };
   
   using VisitorBase = VisitorBasePrototype<SingleVisitorBase, SingleVisitor>;
@@ -88,7 +83,6 @@ namespace lars {
   
   class SingleRecursiveVisitorBase{
   public:
-    virtual bool acceptPtr(void *) = 0;
     virtual ~SingleRecursiveVisitorBase(){}
   };
   
@@ -101,11 +95,6 @@ namespace lars {
      * methods should be called. `false`, otherwise.
      */
     virtual bool visit(T) = 0;
-
-    bool acceptPtr(void * ptr) override {
-      return visit(*static_cast<typename std::remove_reference<T>::type *>(ptr));
-    }
-
   };
   
   /**
