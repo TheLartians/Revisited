@@ -189,8 +189,12 @@ namespace lars {
    */
   class EmptyVisitable: public VisitableBase {
   public:
-    void accept(VisitorBase &v) override { visit(this, TypeList<>(), v); }
-    void accept(VisitorBase &v) const override { visit(this, TypeList<>(), v); }
+    using Type = EmptyVisitable;
+    using Types = TypeList<>;
+    using ConstTypes = TypeList<>;
+
+    void accept(VisitorBase &v) override { visit(this, Types(), v); }
+    void accept(VisitorBase &v) const override { visit(this, ConstTypes(), v); }
     bool accept(RecursiveVisitorBase &) override { return false; }
     bool accept(RecursiveVisitorBase &) const override { return false; }
     TypeIndex StaticTypeIndex() const override { return getTypeIndex<void>(); }
@@ -202,23 +206,25 @@ namespace lars {
    */
   template <class T> class Visitable: public virtual VisitableBase {
   public:
-    
     using InheritanceList = lars::InheritanceList<OrderedType<T, 0>>;
+    using Type = T;
+    using Types = typename InheritanceList::ConvertibleTypes;
+    using ConstTypes = typename InheritanceList::ConstConvertibleTypes;
 
     void accept(VisitorBase &visitor) override {
-      visit(this, typename InheritanceList::ConvertibleTypes(), visitor);
+      visit(this, Types(), visitor);
     }
     
     void accept(VisitorBase &visitor) const override {
-      visit(this, typename InheritanceList::ConstConvertibleTypes(), visitor);
+      visit(this, ConstTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::ConvertibleTypes(), visitor);
+      return visit(this, Types(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstConvertibleTypes(), visitor);
+      return visit(this, ConstTypes(), visitor);
     }
     
     TypeIndex StaticTypeIndex() const override {
@@ -235,23 +241,25 @@ namespace lars {
    */
   template <class T, class B> class DerivedVisitable: public B {
   public:
-    
     using InheritanceList = typename B::InheritanceList::template Push<T>;
+    using Type = T;
+    using Types = typename InheritanceList::ConvertibleTypes;
+    using ConstTypes = typename InheritanceList::ConstConvertibleTypes;
 
     void accept(VisitorBase &visitor) override {
-      visit(this, typename InheritanceList::ConvertibleTypes(), visitor);
+      visit(this, Types(), visitor);
     }
     
     void accept(VisitorBase &visitor) const override {
-      visit(this, typename InheritanceList::ConstConvertibleTypes(), visitor);
+      visit(this, ConstTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::ConvertibleTypes(), visitor);
+      return visit(this, Types(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstConvertibleTypes(), visitor);
+      return visit(this, ConstTypes(), visitor);
     }
     
     TypeIndex StaticTypeIndex() const override {
@@ -266,23 +274,25 @@ namespace lars {
    */
   template <typename ... Bases> class JoinVisitable: public Bases ... {
   public:
-    
     using InheritanceList = lars::InheritanceList<>::Merge<typename Bases::InheritanceList ...>;
+    using Type = JoinVisitable;
+    using Types = typename InheritanceList::ConvertibleTypes;
+    using ConstTypes = typename InheritanceList::ConstConvertibleTypes;
 
     void accept(VisitorBase &visitor) override {
-      visit(this, typename InheritanceList::ConvertibleTypes(), visitor);
+      visit(this, Types(), visitor);
     }
     
     void accept(VisitorBase &visitor) const override {
-      visit(this, typename InheritanceList::ConstConvertibleTypes(), visitor);
+      visit(this, ConstTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::ConvertibleTypes(), visitor);
+      return visit(this, Types(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstConvertibleTypes(), visitor);
+      return visit(this, ConstTypes(), visitor);
     }
     
     TypeIndex StaticTypeIndex() const override {
@@ -298,23 +308,25 @@ namespace lars {
    */
   template <typename ... Bases> class VirtualVisitable: public virtual Bases ... {
   public:
-    
     using InheritanceList = lars::InheritanceList<>::Merge<typename Bases::InheritanceList ...>;
-    
+    using Type = VirtualVisitable;
+    using Types = typename InheritanceList::ConvertibleTypes;
+    using ConstTypes = typename InheritanceList::ConstConvertibleTypes;
+
     void accept(VisitorBase &visitor) override {
-      visit(this, typename InheritanceList::ConvertibleTypes(), visitor);
+      visit(this, Types(), visitor);
     }
     
     void accept(VisitorBase &visitor) const override {
-      visit(this, typename InheritanceList::ConstConvertibleTypes(), visitor);
+      visit(this, ConstTypes(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) override {
-      return visit(this, typename InheritanceList::ConvertibleTypes(), visitor);
+      return visit(this, Types(), visitor);
     }
     
     bool accept(RecursiveVisitorBase &visitor) const override {
-      return visit(this, typename InheritanceList::ConstConvertibleTypes(), visitor);
+      return visit(this, ConstTypes(), visitor);
     }
     
     TypeIndex StaticTypeIndex() const override {

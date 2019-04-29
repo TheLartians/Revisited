@@ -117,3 +117,12 @@ TEST_CASE("any_with_any_function","[any_function][any]"){
   Any af = f;
   REQUIRE(af.get<const AnyFunction &>()().get<int>() == 42);
 }
+
+TEST_CASE("Automatic Casting"){
+  struct A: public lars::Visitable<A> { int value = 0; };
+  struct B: public lars::DerivedVisitable<B, A> { B(){ value = 1; } };
+  struct C: public lars::DerivedVisitable<C, B> { C(){ value = 2; } };
+
+  AnyFunction f  = [](A & x,A & y){ A a; a.value = x.value+y.value; return a; };
+  REQUIRE(f(B(),C()).get<A>().value == 3);
+}
