@@ -222,3 +222,14 @@ TEST_CASE("Accept visitors","[any]"){
   }
 
 }
+
+TEST_CASE("non cdefault-constructable class", "[any]"){
+  struct A {
+    int value;
+    A(int v):value(v){}
+    A(const A &) = delete;
+  };
+  lars::Any v;
+  REQUIRE_NOTHROW(v.set<A>(3));
+  REQUIRE_NOTHROW(v.get<A&>().value == 3);
+}

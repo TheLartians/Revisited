@@ -123,8 +123,19 @@ TEST_CASE("Automatic Casting"){
   struct B: public lars::DerivedVisitable<B, A> { B(){ value = 1; } };
   struct C: public lars::DerivedVisitable<C, B> { C(){ value = 2; } };
 
-  AnyFunction f  = [](A & x,A & y){ A a; a.value = x.value+y.value; return a; };
+  AnyFunction f = [](A & x,A & y){ A a; a.value = x.value+y.value; return a; };
   REQUIRE_THROWS(f(B(),C()).get<A>().value);  // drawback with visitable types: cannot be captured by value
   REQUIRE(f(B(),C()).get<A &>().value == 3);
   REQUIRE(f(B(),C()).get<const A &>().value == 3);
+}
+
+TEST_CASE("non copy-constructable class", "[any]"){
+  struct A {
+    int value;
+    A(int v):value(v){}
+    A(const A &) = delete;
+    A(A &&) = default; // required to be std::function return value
+  };
+  lars::AnyFunction f = [](){ return A(3); };
+  REQUIRE(f().get<A&>().value == 3);
 }

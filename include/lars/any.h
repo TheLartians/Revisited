@@ -35,7 +35,7 @@ namespace lars {
     template <
       class T,
       typename = typename std::enable_if<!std::is_base_of<Any,typename std::remove_reference<T>::type>::value>::type
-    > Any(T && v){ set<typename std::remove_reference<T>::type>(v); }
+    > Any(T && v){ set<typename std::remove_reference<T>::type>(std::forward<T>(v)); }
     Any(const Any &) = delete;
     Any(Any &&) = default;
     Any &operator=(const Any &) = delete;
