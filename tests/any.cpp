@@ -136,7 +136,7 @@ TEST_CASE("Inheritance", "[any]"){
   struct B:public A{ char b = 'B'; };
   struct C:public B{ C(const C &) = delete; C() = default; char c = 'C'; };
   struct D{ char d = 'D'; };
-  struct E: public C, public D{ char e = 'E'; };
+  struct E: public C, public D{ char e; E(char v):e(v){ } };
   
   SECTION("Custom class"){
     Any v = A();
@@ -148,13 +148,26 @@ TEST_CASE("Inheritance", "[any]"){
   }
   
   SECTION("Inheritance"){
-    Any v;
-    v.setWithBases<E,D,C,B,A>();
-    REQUIRE(v.get<A>().a == 'A');
-    REQUIRE(v.get<B &>().b == 'B');
-    REQUIRE(v.get<const C &>().c == 'C');
-    REQUIRE(v.get<D>().d == 'D');
-    REQUIRE(v.get<const E &>().e == 'E');
+
+    SECTION("set with bases"){
+      Any v;
+      v.setWithBases<E,D,C,B,A>('E');
+      REQUIRE(v.get<A>().a == 'A');
+      REQUIRE(v.get<B &>().b == 'B');
+      REQUIRE(v.get<const C &>().c == 'C');
+      REQUIRE(v.get<D>().d == 'D');
+      REQUIRE(v.get<const E &>().e == 'E');
+    }
+
+    SECTION("create with bases"){
+      auto v = Any::withBases<E,D,C,B,A>('E');
+      REQUIRE(v.get<A>().a == 'A');
+      REQUIRE(v.get<B &>().b == 'B');
+      REQUIRE(v.get<const C &>().c == 'C');
+      REQUIRE(v.get<D>().d == 'D');
+      REQUIRE(v.get<const E &>().e == 'E');
+    }
+
   }
 }
 

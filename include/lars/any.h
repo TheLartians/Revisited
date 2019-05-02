@@ -140,7 +140,16 @@ namespace lars {
       if (!data) { throw UndefinedAnyException(); }
       return std::as_const(*data).accept(visitor);
     }
-    
+
+    /**
+     * creation methods
+     */
+    template <typename ... Bases, typename ... Args> static Any withBases(Args && ... args){
+      Any a;
+      a.setWithBases<Bases...>(std::forward<Args>(args) ...);
+      return a;
+    }
+
   };
 
   template <class T, typename ... Args> Any makeAny(Args && ... args){
