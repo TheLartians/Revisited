@@ -45,7 +45,7 @@ namespace lars {
       class T,
       typename = typename std::enable_if<!std::is_base_of<Any,typename std::remove_reference<T>::type>::value>::type
     > Any & operator=(T && o) {
-      set<typename std::remove_reference<T>::type>(o);
+      set<typename std::remove_reference<T>::type>(std::forward<T>(o));
       return *this;
     }
     
