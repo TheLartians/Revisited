@@ -22,7 +22,7 @@ TEST_CASE("AnyBasics", "[any]"){
       MyClass(const MyClass &) = default; 
     };
 
-    v.set<MyClass>(3);
+    REQUIRE(v.set<MyClass>(3).value == 3);
 
     SECTION("traits"){
       REQUIRE(v.type() == getStaticTypeIndex<MyClass>());

@@ -59,16 +59,18 @@ namespace lars {
       class T,
       class VisitableType = typename AnyVisitable<T>::type,
       typename ... Args
-    > void set(Args && ... args) {
+    > typename VisitableType::Type & set(Args && ... args) {
       static_assert(!std::is_base_of<Any,T>::value);
-      data = std::make_shared<VisitableType>(std::forward<Args>(args)...);
+      auto value = std::make_shared<VisitableType>(std::forward<Args>(args)...);
+      data = value;
+      return *value;
     }
     
     /**
      * Same as `Any::set`, but uses an internal type that can be visitor_casted to the base types.
      */
-    template <class T, typename ... Bases, typename ... Args> void setWithBases(Args && ... args){
-      set<T, DataVisitableWithBases<T,Bases...>>(std::forward<Args>(args)...);
+    template <class T, typename ... Bases, typename ... Args> T & setWithBases(Args && ... args){
+      return set<T, DataVisitableWithBases<T,Bases...>>(std::forward<Args>(args)...);
     }
     
     /**
