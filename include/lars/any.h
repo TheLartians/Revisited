@@ -28,13 +28,14 @@ namespace lars {
   class Any {
   protected:
     std::shared_ptr<VisitableBase> data;
+    template <class T> constexpr static bool CanConstructFrom = !std::is_base_of<Any,typename std::remove_reference<T>::type>::value;
     
   public:
     
     Any(){}
     template <
       class T,
-      typename = typename std::enable_if<!std::is_base_of<Any,typename std::remove_reference<T>::type>::value>::type
+      typename = typename std::enable_if<CanConstructFrom<T>>::type
     > Any(T && v){ set<typename std::remove_reference<T>::type>(std::forward<T>(v)); }
     Any(const Any &) = delete;
     Any(Any &&) = default;
@@ -169,9 +170,18 @@ namespace lars {
    * An Any object that can implicitly capture another Any by reference.
    */
   struct AnyReference: public Any {
-    using Any::Any;
+    AnyReference(){ }
     AnyReference(const Any &other){ setReference(other); }
-    AnyReference(const AnyReference &other):Any(){ setReference(other); }
+    AnyReference(const AnyReference &other){ setReference(other); }
+    template <
+      class T,
+      typename = typename std::enable_if<CanConstructFrom<T>>::type
+    > AnyReference(T && v):Any(std::forward<T>(v)){}
+    
+    AnyReference &operator=(const AnyReference &other){
+      setReference(other);
+      return *this;
+    }
     
     AnyReference &operator=(const Any &other){
       setReference(other);
