@@ -268,6 +268,8 @@ TEST_CASE("set shared pointers", "[any]"){
   Any v = s;
   REQUIRE(v.get<int>() == 3);
   REQUIRE(v.get<std::shared_ptr<int>>());
+  REQUIRE_THROWS(v.get<std::shared_ptr<double>>());
+  REQUIRE(!v.getShared<double>());
   REQUIRE(*v.get<std::shared_ptr<int>>() == 3);
   REQUIRE(v.get<double>() == 3);
 }

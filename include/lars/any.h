@@ -105,7 +105,8 @@ namespace lars {
     template <class T> T get() const {
       if (!data) { throw UndefinedAnyException(); }
       if constexpr (any_detail::is_shared_ptr<T>::value) {
-        return getShared<typename any_detail::is_shared_ptr<T>::value_type>();
+        using Value = typename any_detail::is_shared_ptr<T>::value_type;
+        return std::shared_ptr<Value>(data, &get<Value&>());
       } else {
         return visitor_cast<T>(*data);
       }
@@ -121,7 +122,8 @@ namespace lars {
     }
     
     /**
-     * Returns a shared pointer containing the result of `Visitor.tryGet<T>()`
+     * Returns a shared pointer containing the result of `Visitor.tryGet<T>()`.
+     * Will return an empty `shared_ptr` if unsuccessful.
      */
     template <class T> std::shared_ptr<T> getShared() const {
       if (auto ptr = tryGet<T>()) {
