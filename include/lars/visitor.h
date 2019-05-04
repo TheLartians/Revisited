@@ -238,6 +238,9 @@ namespace lars {
     
     using InheritanceList = typename B::InheritanceList::template Push<T>;
 
+    template <typename ... Args> DerivedVisitable(Args && ... args):B(std::forward<Args>(args)...) {}
+    using B::accept;
+
     void accept(VisitorBase &visitor) override {
       visit(this, typename InheritanceList::ReferenceTypes(), visitor);
     }
