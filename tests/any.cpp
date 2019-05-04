@@ -198,9 +198,16 @@ TEST_CASE("capture reference","[any]"){
 
 TEST_CASE("AnyReference","[any]"){
   Any x = 1;
-  AnyReference y = x;
+  AnyReference y;
+  y = x;
   y.get<int &>() = 2;
   REQUIRE(x.get<int>() == 2);
+  AnyReference z(Any(1));
+  REQUIRE(z.get<int>() == 1);
+  z = y;
+  REQUIRE(z.get<int>() == 2);
+  AnyReference a(z);
+  REQUIRE(a.get<int>() == 2);
 }
 
 TEST_CASE("Accept visitors","[any]"){
