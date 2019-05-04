@@ -164,7 +164,7 @@ namespace lars {
     
     template <typename ... Args> Any operator()(Args && ... args) const {
       AnyArguments arguments{{[&](){
-        using ArgType = typename std::decay<Args>::type;
+        using ArgType = typename any_detail::remove_cvref<Args>::type;
         if constexpr (std::is_base_of<Any, ArgType>::value) {
           return AnyReference(args);
         } else if constexpr (std::is_same<typename AnyVisitable<ArgType>::type::Type, ArgType>::value) {
