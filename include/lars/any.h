@@ -32,13 +32,17 @@ namespace lars {
     Any(const Any &) = default;
     Any &operator=(const Any &) = default;
 
+    template< class T > struct remove_cvref {
+      typedef std::remove_cv_t<std::remove_reference_t<T>> type;
+    };
+
   public:
     
     Any(){}
     template <
       class T,
       typename = typename std::enable_if<CanConstructFrom<T>>::type
-    > Any(T && v){ set<typename std::decay<T>::type>(std::forward<T>(v)); }
+    > Any(T && v){ set<typename remove_cvref<T>::type>(std::forward<T>(v)); }
     Any(Any &&) = default;
     Any &operator=(Any &&) = default;
     
@@ -46,7 +50,7 @@ namespace lars {
       class T,
       typename = typename std::enable_if<!std::is_base_of<Any,typename std::decay<T>::type>::value>::type
     > Any & operator=(T && o) {
-      set<typename std::decay<T>::type>(std::forward<T>(o));
+      set<typename remove_cvref<T>::type>(std::forward<T>(o));
       return *this;
     }
     
