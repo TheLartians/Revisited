@@ -28,7 +28,7 @@ namespace lars {
   class Any {
   protected:
     std::shared_ptr<VisitableBase> data;
-    template <class T> constexpr static bool CanConstructFrom = !std::is_base_of<Any,typename std::remove_reference<T>::type>::value;
+    template <class T> constexpr static bool CanConstructFrom = !std::is_base_of<Any,typename std::decay<T>::type>::value;
     Any(const Any &) = default;
     Any &operator=(const Any &) = default;
 
@@ -38,15 +38,15 @@ namespace lars {
     template <
       class T,
       typename = typename std::enable_if<CanConstructFrom<T>>::type
-    > Any(T && v){ set<typename std::remove_reference<T>::type>(std::forward<T>(v)); }
+    > Any(T && v){ set<typename std::decay<T>::type>(std::forward<T>(v)); }
     Any(Any &&) = default;
     Any &operator=(Any &&) = default;
     
     template <
       class T,
-      typename = typename std::enable_if<!std::is_base_of<Any,typename std::remove_reference<T>::type>::value>::type
+      typename = typename std::enable_if<!std::is_base_of<Any,typename std::decay<T>::type>::value>::type
     > Any & operator=(T && o) {
-      set<typename std::remove_reference<T>::type>(std::forward<T>(o));
+      set<typename std::decay<T>::type>(std::forward<T>(o));
       return *this;
     }
     
@@ -147,6 +147,17 @@ namespace lars {
     /**
      * creation methods
      */
+    
+    template <
+      class T,
+      class VisitableType = typename AnyVisitable<T>::type,
+      typename ... Args
+    > static Any create(Args && ... args){
+      Any a;
+      a.set<T,VisitableType>(std::forward<Args>(args) ...);
+      return a;
+    }
+    
     template <typename ... Bases, typename ... Args> static Any withBases(Args && ... args){
       Any a;
       a.setWithBases<Bases...>(std::forward<Args>(args) ...);
