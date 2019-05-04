@@ -253,3 +253,21 @@ TEST_CASE("non cdefault-constructable class", "[any]"){
   REQUIRE_NOTHROW(v.set<A>(3));
   REQUIRE_NOTHROW(v.get<A&>().value == 3);
 }
+
+TEST_CASE("get shared pointers", "[any]"){
+  auto v = Any::create<int>(5);
+  REQUIRE(v.getShared<int>());
+  REQUIRE(*v.getShared<int>() == 5);
+  REQUIRE(v.get<std::shared_ptr<int>>());
+  REQUIRE(*v.get<std::shared_ptr<int>>() == 5);
+  REQUIRE(v.get<double>() == 5);
+}
+
+TEST_CASE("set shared pointers", "[any]"){
+  auto s = std::make_shared<int>(3);
+  Any v = s;
+  REQUIRE(v.get<int>() == 3);
+  REQUIRE(v.get<std::shared_ptr<int>>());
+  REQUIRE(*v.get<std::shared_ptr<int>>() == 3);
+  REQUIRE(v.get<double>() == 3);
+}

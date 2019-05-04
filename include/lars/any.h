@@ -22,6 +22,19 @@ namespace lars {
   template <class T> struct AnyVisitable;
   struct AnyReference;
 
+  namespace any_detail {
+    template<typename T> struct is_shared_ptr : std::false_type {};
+    template<typename T> struct is_shared_ptr<std::shared_ptr<T>> : std::true_type { using value_type = T; };
+    template< class T > struct remove_cvref { typedef std::remove_cv_t<std::remove_reference_t<T>> type; };
+
+    template <class T> struct CapturedSharedPtr{
+      std::shared_ptr<T> data;
+      CapturedSharedPtr(const std::shared_ptr<T> &d):data(d){ }
+      operator T & () { return *data; }
+      operator const T & () const { return *data; }
+    };
+  }
+
   /**
    * A class that can hold an arbitrary value of any type.
    */
@@ -32,9 +45,6 @@ namespace lars {
     Any(const Any &) = default;
     Any &operator=(const Any &) = default;
 
-    template< class T > struct remove_cvref {
-      typedef std::remove_cv_t<std::remove_reference_t<T>> type;
-    };
 
   public:
     
@@ -42,7 +52,7 @@ namespace lars {
     template <
       class T,
       typename = typename std::enable_if<CanConstructFrom<T>>::type
-    > Any(T && v){ set<typename remove_cvref<T>::type>(std::forward<T>(v)); }
+    > Any(T && v){ set<typename any_detail::remove_cvref<T>::type>(std::forward<T>(v)); }
     Any(Any &&) = default;
     Any &operator=(Any &&) = default;
     
@@ -50,7 +60,7 @@ namespace lars {
       class T,
       typename = typename std::enable_if<!std::is_base_of<Any,typename std::decay<T>::type>::value>::type
     > Any & operator=(T && o) {
-      set<typename remove_cvref<T>::type>(std::forward<T>(o));
+      set<typename any_detail::remove_cvref<T>::type>(std::forward<T>(o));
       return *this;
     }
     
@@ -70,7 +80,7 @@ namespace lars {
       data = value;
       return *value;
     }
-    
+
     /**
      * Same as `Any::set`, but uses an internal type that can be visitor_casted to the base types.
      */
@@ -91,7 +101,11 @@ namespace lars {
      */
     template <class T> T get() const {
       if (!data) { throw UndefinedAnyException(); }
-      return visitor_cast<T>(*data);
+      if constexpr (any_detail::is_shared_ptr<T>::value) {
+        return getShared<typename any_detail::is_shared_ptr<T>::value_type>();
+      } else {
+        return visitor_cast<T>(*data);
+      }
     }
 
     /**
@@ -103,6 +117,17 @@ namespace lars {
       return visitor_cast<T*>(data.get());
     }
     
+    /**
+     * Returns a shared pointer containing the result of `Visitor.tryGet<T>()`
+     */
+    template <class T> std::shared_ptr<T> getShared() const {
+      if (auto ptr = tryGet<T>()) {
+        return std::shared_ptr<T>(data, ptr);
+      } else {
+        return std::shared_ptr<T>();
+      }
+    }
+
     /**
      * `true`, when contains value, `false` otherwise
      */
@@ -274,6 +299,18 @@ template <class T> struct lars::AnyVisitable<std::reference_wrapper<T>> {
     std::reference_wrapper<T>,
     typename AnyVisitable<T>::type::Types,
     typename AnyVisitable<T>::type::ConstTypes,
-    T
+    typename AnyVisitable<T>::type::Type
+  >;
+};
+
+/**
+ * Allow casts of `shared_ptr` to value references.
+ */    
+template <class T> struct lars::AnyVisitable<std::shared_ptr<T>> {
+  using type = lars::DataVisitablePrototype<
+    lars::any_detail::CapturedSharedPtr<T>,
+    typename AnyVisitable<T>::type::Types,
+    typename AnyVisitable<T>::type::ConstTypes,
+    typename AnyVisitable<T>::type::Type
   >;
 };
