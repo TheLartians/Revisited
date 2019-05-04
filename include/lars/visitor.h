@@ -352,11 +352,11 @@ namespace lars {
     class BaseCast = T
   > class DataVisitablePrototype: public virtual VisitableBase {
   public:
-    using Type = T;
+    using Type = BaseCast;
     using Types = _Types;
     using ConstTypes = _ConstTypes;
     
-    Type data;
+    T data;
 
     template <typename ... Args> DataVisitablePrototype(Args && ... args):data(std::forward<Args>(args)...){}
     
@@ -387,7 +387,7 @@ namespace lars {
     operator const BaseCast &() const {
       return data;
     }
-    
+
   };
   
   template <class T, class B, class C, class CastType> class DataVisitableWithBasesAndConversionsDefinition;

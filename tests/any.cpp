@@ -22,7 +22,7 @@ TEST_CASE("AnyBasics", "[any]"){
       MyClass(const MyClass &) = default; 
     };
 
-    v.set<MyClass>(3);
+    REQUIRE(v.set<MyClass>(3).value == 3);
 
     SECTION("traits"){
       REQUIRE(v.type() == getStaticTypeIndex<MyClass>());
@@ -136,7 +136,7 @@ TEST_CASE("Inheritance", "[any]"){
   struct B:public A{ char b = 'B'; };
   struct C:public B{ C(const C &) = delete; C() = default; char c = 'C'; };
   struct D{ char d = 'D'; };
-  struct E: public C, public D{ char e = 'E'; };
+  struct E: public C, public D{ char e; E(char v):e(v){ } };
   
   SECTION("Custom class"){
     Any v = A();
@@ -148,13 +148,26 @@ TEST_CASE("Inheritance", "[any]"){
   }
   
   SECTION("Inheritance"){
-    Any v;
-    v.setWithBases<E,D,C,B,A>();
-    REQUIRE(v.get<A>().a == 'A');
-    REQUIRE(v.get<B &>().b == 'B');
-    REQUIRE(v.get<const C &>().c == 'C');
-    REQUIRE(v.get<D>().d == 'D');
-    REQUIRE(v.get<const E &>().e == 'E');
+
+    SECTION("set with bases"){
+      Any v;
+      v.setWithBases<E,D,C,B,A>('E');
+      REQUIRE(v.get<A>().a == 'A');
+      REQUIRE(v.get<B &>().b == 'B');
+      REQUIRE(v.get<const C &>().c == 'C');
+      REQUIRE(v.get<D>().d == 'D');
+      REQUIRE(v.get<const E &>().e == 'E');
+    }
+
+    SECTION("create with bases"){
+      auto v = Any::withBases<E,D,C,B,A>('E');
+      REQUIRE(v.get<A>().a == 'A');
+      REQUIRE(v.get<B &>().b == 'B');
+      REQUIRE(v.get<const C &>().c == 'C');
+      REQUIRE(v.get<D>().d == 'D');
+      REQUIRE(v.get<const E &>().e == 'E');
+    }
+
   }
 }
 
@@ -185,9 +198,16 @@ TEST_CASE("capture reference","[any]"){
 
 TEST_CASE("AnyReference","[any]"){
   Any x = 1;
-  AnyReference y = x;
+  AnyReference y;
+  y = x;
   y.get<int &>() = 2;
   REQUIRE(x.get<int>() == 2);
+  AnyReference z(Any(1));
+  REQUIRE(z.get<int>() == 1);
+  z = y;
+  REQUIRE(z.get<int>() == 2);
+  AnyReference a(z);
+  REQUIRE(a.get<int>() == 2);
 }
 
 TEST_CASE("Accept visitors","[any]"){
@@ -232,4 +252,24 @@ TEST_CASE("non cdefault-constructable class", "[any]"){
   lars::Any v;
   REQUIRE_NOTHROW(v.set<A>(3));
   REQUIRE_NOTHROW(v.get<A&>().value == 3);
+}
+
+TEST_CASE("get shared pointers", "[any]"){
+  auto v = Any::create<int>(5);
+  REQUIRE(v.getShared<int>());
+  REQUIRE(*v.getShared<int>() == 5);
+  REQUIRE(v.get<std::shared_ptr<int>>());
+  REQUIRE(*v.get<std::shared_ptr<int>>() == 5);
+  REQUIRE(v.get<double>() == 5);
+  REQUIRE_THROWS(v.get<std::shared_ptr<double>>());
+  REQUIRE(!v.getShared<double>());
+}
+
+TEST_CASE("set shared pointers", "[any]"){
+  auto s = std::make_shared<int>(3);
+  Any v = s;
+  REQUIRE(v.get<int>() == 3);
+  REQUIRE(v.get<std::shared_ptr<int>>());
+  REQUIRE(*v.get<std::shared_ptr<int>>() == 3);
+  REQUIRE(v.get<double>() == 3);
 }
