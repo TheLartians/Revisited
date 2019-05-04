@@ -20,12 +20,16 @@ namespace lars {
   };
   
   template <class T> struct AnyVisitable;
+  
+  class Any;
   struct AnyReference;
-
+  
   namespace any_detail {
     template<typename T> struct is_shared_ptr : std::false_type {};
     template<typename T> struct is_shared_ptr<std::shared_ptr<T>> : std::true_type { using value_type = T; };
     template< class T > struct remove_cvref { typedef std::remove_cv_t<std::remove_reference_t<T>> type; };
+    
+    template <class T> constexpr static bool NotDerivedFromAny = !std::is_base_of<Any,typename std::decay<T>::type>::value;
 
     template <class T> struct CapturedSharedPtr{
       std::shared_ptr<T> data;
@@ -41,17 +45,16 @@ namespace lars {
   class Any {
   protected:
     std::shared_ptr<VisitableBase> data;
-    template <class T> constexpr static bool CanConstructFrom = !std::is_base_of<Any,typename std::decay<T>::type>::value;
+
     Any(const Any &) = default;
     Any &operator=(const Any &) = default;
-
 
   public:
     
     Any(){}
     template <
       class T,
-      typename = typename std::enable_if<CanConstructFrom<T>>::type
+      typename = typename std::enable_if<any_detail::NotDerivedFromAny<T>>::type
     > Any(T && v){ set<typename any_detail::remove_cvref<T>::type>(std::forward<T>(v)); }
     Any(Any &&) = default;
     Any &operator=(Any &&) = default;
@@ -216,7 +219,7 @@ namespace lars {
 
     template <
       class T,
-      typename = typename std::enable_if<CanConstructFrom<T>>::type
+      typename = typename std::enable_if<any_detail::NotDerivedFromAny<T>>::type
     > AnyReference(T && v):Any(std::forward<T>(v)){}
     
     AnyReference &operator=(const AnyReference &other){
@@ -305,6 +308,8 @@ template <class T> struct lars::AnyVisitable<std::reference_wrapper<T>> {
 
 /**
  * Allow casts of `shared_ptr` to value references.
+ * Note: the origin `shared_ptr` cannot be reconstructed from the value.
+ * Instead new `shared_ptr`s will be created for every call to `Any::get<std::shared_ptr<T>>()`.
  */    
 template <class T> struct lars::AnyVisitable<std::shared_ptr<T>> {
   using type = lars::DataVisitablePrototype<

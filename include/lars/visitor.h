@@ -387,7 +387,7 @@ namespace lars {
     operator const BaseCast &() const {
       return data;
     }
-    
+
   };
   
   template <class T, class B, class C, class CastType> class DataVisitableWithBasesAndConversionsDefinition;
