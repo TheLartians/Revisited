@@ -24,7 +24,7 @@ namespace lars {
   struct AnyReference;
   
   namespace any_detail {
-    template<typename T> struct is_shared_ptr : std::false_type {};
+    template<typename T> struct is_shared_ptr : std::false_type { using value_type = void; };
     template<typename T> struct is_shared_ptr<std::shared_ptr<T>> : std::true_type { using value_type = T; };
     template< class T > struct remove_cvref { typedef std::remove_cv_t<std::remove_reference_t<T>> type; };
     
@@ -75,11 +75,17 @@ namespace lars {
       class T,
       class VisitableType = typename AnyVisitable<T>::type,
       typename ... Args
-    > typename VisitableType::Type & set(Args && ... args) {
+    > auto & set(Args && ... args) {
       static_assert(!std::is_base_of<Any,T>::value);
-      auto value = std::make_shared<VisitableType>(std::forward<Args>(args)...);
-      data = value;
-      return *value;
+      if constexpr (std::is_base_of<VisitableBase,typename any_detail::is_shared_ptr<T>::value_type>::value) {
+        auto value = T(args...);
+        data = value;
+        return *value;
+      } else {
+        auto value = std::make_shared<VisitableType>(std::forward<Args>(args)...);
+        data = value;
+        return static_cast<typename VisitableType::Type &>(*value);
+      }
     }
 
     /**

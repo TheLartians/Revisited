@@ -176,12 +176,19 @@ TEST_CASE("Visitable inheritance","[any]"){
   struct C: public DerivedVisitable<C, A> { char name = 'C'; };
   struct D: public DerivedVisitable<D,VirtualVisitable<A, B>> { char name = 'D'; };
   struct E: public DerivedVisitable<E,VirtualVisitable<D, A>> { char name = 'E'; };
-  auto v = makeAny<E>();
+  Any v;
+  SECTION("value"){
+    v = makeAny<E>();
+  } 
+  SECTION("shared_ptr"){
+    v = std::make_shared<E>();
+  }
   REQUIRE(v.get<A &>().name == 'A');
   REQUIRE(v.get<const B &>().name == 'B');
   REQUIRE_THROWS_AS(v.get<C &>(), InvalidVisitorException);
   REQUIRE(v.get<D &>().name == 'D');
   REQUIRE(v.get<const E &>().name == 'E');
+  REQUIRE(v.get<std::shared_ptr<E>>()->name == 'E');
 }
 
 TEST_CASE("capture reference","[any]"){
