@@ -308,6 +308,16 @@ template <class T> struct lars::AnyVisitable<std::reference_wrapper<T>> {
   >;
 };
 
+template <class T> struct lars::AnyVisitable<std::reference_wrapper<const T>> {
+  using type = lars::DataVisitablePrototype<
+    std::reference_wrapper<const T>,
+    typename AnyVisitable<T>::type::ConstTypes,
+    typename AnyVisitable<T>::type::ConstTypes,
+    const typename AnyVisitable<T>::type::Type
+  >;
+};
+
+
 /**
  * Allow casts of `shared_ptr` to value references.
  * Note: the origin `shared_ptr` cannot be reconstructed from the value.

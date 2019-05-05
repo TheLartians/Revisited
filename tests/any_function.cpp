@@ -62,7 +62,7 @@ TEST_CASE("call with arguments","[any_function]"){
   REQUIRE_THROWS_AS(f(1,2,3), AnyFunctionInvalidArgumentCountException);
 }
 
-TEST_CASE("call with reference arguments","[any_function]"){
+TEST_CASE("call and modify reference arguments","[any_function]"){
   AnyFunction f = [](int &x){ x++; };
   int x = 41;
   f(x);
@@ -138,4 +138,22 @@ TEST_CASE("non copy-constructable class", "[any]"){
   };
   lars::AnyFunction f = [](){ return A(3); };
   REQUIRE(f().get<A&>().value == 3);
+}
+
+TEST_CASE("call with references","[any_function]"){
+  AnyFunction f = [](const std::string &str){ 
+    REQUIRE(str == "420");
+  };
+  std::string s = "420";
+  SECTION("call with value"){ 
+    f(s);
+  }
+  SECTION("call with reference"){ 
+    std::string & ref = s; 
+    f(ref);
+  }
+  SECTION("call with const reference"){ 
+    const std::string & ref = s; 
+    f(ref);
+  }
 }
