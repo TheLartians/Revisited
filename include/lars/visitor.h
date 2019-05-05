@@ -249,6 +249,9 @@ namespace lars {
     using Types = typename InheritanceList::ConvertibleTypes;
     using ConstTypes = typename InheritanceList::ConstConvertibleTypes;
 
+    template <typename ... Args> DerivedVisitable(Args && ... args):B(std::forward<Args>(args)...) {}
+    using B::accept;
+
     void accept(VisitorBase &visitor) override {
       visit(this, Types(), visitor);
     }
