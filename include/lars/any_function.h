@@ -168,7 +168,7 @@ namespace lars {
         if constexpr (std::is_base_of<Any, ArgType>::value) {
           return AnyReference(args);
         } else if constexpr (std::is_same<typename AnyVisitable<ArgType>::type::Type, ArgType>::value) {
-          return AnyReference(std::reference_wrapper<ArgType>(args));
+          return AnyReference(std::reference_wrapper<typename std::remove_reference<Args>::type>(args));
         } else {
           return AnyReference(args);
         }

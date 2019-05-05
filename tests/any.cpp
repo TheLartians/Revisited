@@ -196,6 +196,14 @@ TEST_CASE("capture reference","[any]"){
   REQUIRE(x == 2);
 }
 
+TEST_CASE("capture const reference","[any]"){
+  int x = 1;
+  Any y = std::reference_wrapper<const int>(x);
+  REQUIRE_THROWS(&y.get<int &>() == &x);
+  REQUIRE(&y.get<const int &>() == &x);
+  REQUIRE(y.get<double>() == 1);
+}
+
 TEST_CASE("AnyReference","[any]"){
   Any x = 1;
   AnyReference y;
@@ -272,4 +280,23 @@ TEST_CASE("set shared pointers", "[any]"){
   REQUIRE(v.get<std::shared_ptr<int>>());
   REQUIRE(*v.get<std::shared_ptr<int>>() == 3);
   REQUIRE(v.get<double>() == 3);
+}
+
+TEST_CASE("set by reference", "[any]"){
+  Any v;
+  SECTION("reference"){
+    std::string s = "420";
+    std::string &ref = s;
+    v = ref;
+    s = "";
+  }
+  SECTION("const reference"){
+    std::string s = "420";
+    const std::string &ref = s;
+    v = ref;
+    s = "";
+  }
+  REQUIRE(v.get<std::string>() == "420");
+  REQUIRE(v.get<std::string &>() == "420");
+  REQUIRE(v.get<const std::string &>() == "420");
 }
