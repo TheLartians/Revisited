@@ -520,5 +520,19 @@ namespace lars {
     }
   }
   
-  
 }
+
+/**
+ * Macro for removing visitable methods for a class inheriting from multiple visitable classes.
+ */
+#define LARS_VISITOR_REMOVE_VISITABLE_METHODS \
+using InheritanceList = ::lars::InheritanceList<>;\
+using Type = ::lars::EmptyVisitable;\
+using Types = ::lars::TypeList<>;\
+using ConstTypes = ::lars::TypeList<>;\
+void accept(::lars::VisitorBase &visitor)override{ throw InvalidVisitorException(StaticTypeIndex()); }\
+void accept(::lars::VisitorBase &visitor) const override { throw InvalidVisitorException(StaticTypeIndex()); }\
+bool accept(::lars::RecursiveVisitorBase &visitor) override { return false; }\
+bool accept(::lars::RecursiveVisitorBase &visitor) const override { return false; }\
+::lars::TypeIndex StaticTypeIndex() const override { return ::lars::getTypeIndex<::lars::EmptyVisitable>(); }
+
