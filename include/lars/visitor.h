@@ -285,6 +285,8 @@ namespace lars {
     using Types = typename InheritanceList::ConvertibleTypes;
     using ConstTypes = typename InheritanceList::ConstConvertibleTypes;
 
+    using Bases::accept ...;
+    
     void accept(VisitorBase &visitor) override {
       visit(this, Types(), visitor);
     }
@@ -319,6 +321,8 @@ namespace lars {
     using Types = typename InheritanceList::ConvertibleTypes;
     using ConstTypes = typename InheritanceList::ConstConvertibleTypes;
 
+    using Bases::accept ...;
+    
     void accept(VisitorBase &visitor) override {
       visit(this, Types(), visitor);
     }
