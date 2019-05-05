@@ -26,7 +26,6 @@ TEST_CASE("AnyBasics", "[any]"){
 
     SECTION("traits"){
       REQUIRE(v.type() == getStaticTypeIndex<MyClass>());
-      REQUIRE_THAT(stream_to_string(v), Catch::Matchers::Contains("Any") && Catch::Matchers::Contains("MyClass"));
       REQUIRE(bool(v) == true);
     }
 
@@ -279,6 +278,7 @@ TEST_CASE("set shared pointers", "[any]"){
   REQUIRE(v.get<int>() == 3);
   REQUIRE(v.get<std::shared_ptr<int>>());
   REQUIRE(*v.get<std::shared_ptr<int>>() == 3);
+  REQUIRE(*v.get<const std::shared_ptr<int> &>() == 3);
   REQUIRE(v.get<double>() == 3);
 }
 

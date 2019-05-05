@@ -30,11 +30,10 @@ namespace lars {
     
     template <class T> constexpr static bool NotDerivedFromAny = !std::is_base_of<Any,typename std::decay<T>::type>::value;
 
-    template <class T> struct CapturedSharedPtr{
-      std::shared_ptr<T> data;
-      CapturedSharedPtr(const std::shared_ptr<T> &d):data(d){ }
-      operator T & () { return *data; }
-      operator const T & () const { return *data; }
+    template <class T> struct CapturedSharedPtr: public std::shared_ptr<T>{
+      CapturedSharedPtr(const std::shared_ptr<T> &d):std::shared_ptr<T>(d){ }
+      operator T & () { return **this; }
+      operator const T & () const { return **this; }
     };
   }
 
@@ -311,7 +310,6 @@ template <class T> struct lars::AnyVisitable<std::reference_wrapper<const T>> {
   >;
 };
 
-
 /**
  * Allow casts of `shared_ptr` to value references.
  * Note: the origin `shared_ptr` cannot be reconstructed from the value.
@@ -320,8 +318,8 @@ template <class T> struct lars::AnyVisitable<std::reference_wrapper<const T>> {
 template <class T> struct lars::AnyVisitable<std::shared_ptr<T>> {
   using type = lars::DataVisitablePrototype<
     lars::any_detail::CapturedSharedPtr<T>,
-    typename AnyVisitable<T>::type::Types,
-    typename AnyVisitable<T>::type::ConstTypes,
-    typename AnyVisitable<T>::type::Type
+    typename TypeList<std::shared_ptr<T> &>::template Merge<typename AnyVisitable<T>::type::Types>,
+    typename TypeList<const std::shared_ptr<T> &, std::shared_ptr<T>>::template Merge<typename AnyVisitable<T>::type::ConstTypes>,
+    lars::any_detail::CapturedSharedPtr<T>
   >;
 };

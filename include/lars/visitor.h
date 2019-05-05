@@ -143,6 +143,12 @@ namespace lars {
   };
   
   /**
+   * Base class for indirect visitable objects.
+   * Must implement a `cast<T>()` method.
+   */
+  struct IndirectVisitableBase { };
+
+  /**
    * The regular visitor algorithm.
    */
   template <class V, class T, typename ... Rest> static void visit(
@@ -151,7 +157,11 @@ namespace lars {
     VisitorBase &visitor
   ) {
     if (auto *v = visitor.asVisitorFor<T>()) {
-      v->visit(static_cast<T>(*visitable));
+      if constexpr (std::is_base_of<IndirectVisitableBase, typename std::decay<V>::type>::value){
+        v->visit(visitable->template cast<T>());
+      } else {
+        v->visit(static_cast<T>(*visitable));
+      }
     } else if constexpr (sizeof...(Rest) > 0) {
       visit(visitable, TypeList<Rest...>(), visitor);
     } else {
@@ -172,8 +182,14 @@ namespace lars {
     RecursiveVisitorBase &visitor
   ) {
     if (auto *v = visitor.asVisitorFor<T>()) {
-      if (v->visit(static_cast<T>(*visitable))) {
-        return true;
+      if constexpr (std::is_base_of<IndirectVisitableBase, typename std::decay<V>::type>::value){
+        if (v->visit(visitable->template cast<T>())) {
+          return true;
+        }
+      } else {
+        if (v->visit(static_cast<T>(*visitable))) {
+          return true;
+        }
       }
     }
     if constexpr (sizeof...(Rest) > 0) {
@@ -357,7 +373,7 @@ namespace lars {
     class _Types,
     class _ConstTypes,
     class BaseCast = T
-  > class DataVisitablePrototype: public virtual VisitableBase {
+  > class DataVisitablePrototype: public virtual VisitableBase, public IndirectVisitableBase {
   public:
     using Type = BaseCast;
     using Types = _Types;
@@ -387,10 +403,18 @@ namespace lars {
       return getTypeIndex<T>();
     }
     
+    template <typename O> O cast(){
+      return static_cast<O>(data);
+    }
+    
+    template <typename O> O cast() const {
+      return static_cast<O>(data);
+    }
+    
     operator BaseCast &() {
       return data;
     }
-    
+
     operator const BaseCast &() const {
       return data;
     }
