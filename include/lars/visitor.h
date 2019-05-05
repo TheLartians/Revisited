@@ -21,6 +21,8 @@ namespace lars {
     template <class T> Single<T> * asVisitorFor(){
       return static_cast<Single<T>*>(getVisitorFor(getStaticTypeIndex<T>()));
     }
+
+    virtual TypeIndex visitorType() const = 0;
     
     virtual ~VisitorBasePrototype(){}
   };
@@ -50,6 +52,10 @@ namespace lars {
       }
     }
   
+    TypeIndex visitorType() const override {
+      return getTypeIndex<TypeList<Args...>>();
+    }
+
   };
 
   class SingleVisitorBase{
@@ -117,12 +123,13 @@ namespace lars {
     mutable std::string buffer;
     
   public:
-    TypeIndex StaticTypeIndex;
-    InvalidVisitorException(TypeIndex t): StaticTypeIndex(t){}
+    TypeIndex visitableType;
+    TypeIndex visitorType;
+    InvalidVisitorException(TypeIndex t, TypeIndex v = getTypeIndex<TypeList<>>()): visitableType(t), visitorType(v){}
     
     const char * what() const noexcept override {
       if (buffer.size() == 0){
-        buffer = "invalid visitor for " + StaticTypeIndex.name();
+        buffer = "invalid visitor for " + visitableType.name() + ". Expected types: " + visitorType.name();
       }
       return buffer.c_str();
     }
@@ -165,12 +172,12 @@ namespace lars {
     } else if constexpr (sizeof...(Rest) > 0) {
       visit(visitable, TypeList<Rest...>(), visitor);
     } else {
-      throw InvalidVisitorException(getTypeIndex<V>());
+      throw InvalidVisitorException(getTypeIndex<V>(), visitor.visitorType());
     }
   }
   
-  template <class V> static bool visit(V *, TypeList<>, VisitorBase &) {
-    throw InvalidVisitorException(getTypeIndex<V>());
+  template <class V> static bool visit(V *, TypeList<>, VisitorBase &visitor) {
+    throw InvalidVisitorException(getTypeIndex<V>(), visitor.visitorType());
   }
   
   /**
@@ -548,7 +555,7 @@ namespace lars {
     if (auto res = visitor_cast<typename std::remove_reference<T>::type *>(&v)) {
       return *res;
     } else {
-      throw InvalidVisitorException(v.visitableType());
+      throw InvalidVisitorException(v.visitableType(), getTypeIndex<TypeList<T>>());
     }
   }
   

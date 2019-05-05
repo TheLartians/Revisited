@@ -111,6 +111,8 @@ namespace lars {
       if constexpr (any_detail::is_shared_ptr<T>::value) {
         using Value = typename any_detail::is_shared_ptr<T>::value_type;
         return std::shared_ptr<Value>(data, &get<Value&>());
+      } else if constexpr (std::is_same<typename std::decay<T>::type, Any>::value) {
+        return *this;
       } else {
         return visitor_cast<T>(*data);
       }
@@ -231,15 +233,6 @@ namespace lars {
     AnyReference &operator=(const Any &other){
       Any::operator=(other);
       return *this;
-    }
-    
-    template <class T> typename std::enable_if<std::is_same<const Any &, T>::value, T>::type get() const {
-      return *this;
-    }
-    
-    template <class T> typename std::enable_if<!std::is_same<const Any &, T>::value, T>::type get() const {
-      if (!data) { throw UndefinedAnyException(); }
-      return visitor_cast<T>(*data);
     }
     
   };

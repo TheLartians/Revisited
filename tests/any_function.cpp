@@ -129,11 +129,21 @@ TEST_CASE("Automatic Casting","[any_function]"){
   struct A: public lars::Visitable<A> { int value = 0; };
   struct B: public lars::DerivedVisitable<B, A> { B(){ value = 1; } };
   struct C: public lars::DerivedVisitable<C, B> { C(){ value = 2; } };
+  
+  SECTION("pass by reference"){
+    AnyFunction f = [](A & x,A & y){ A a; a.value = x.value+y.value; return a; };
+    REQUIRE(f(B(),C()).get<A &>().value == 3);
+    REQUIRE(f(B(),C()).get<const A &>().value == 3);
+    REQUIRE(f(std::make_shared<B>(),std::make_shared<C>()).get<A &>().value == 3);
+    REQUIRE_THROWS(f(B(),C()).get<A>().value);  // currently a problem with visitable types: cannot be captured by value
+  }
 
-  AnyFunction f = [](A & x,A & y){ A a; a.value = x.value+y.value; return a; };
-  REQUIRE_THROWS(f(B(),C()).get<A>().value);  // drawback with visitable types: cannot be captured by value
-  REQUIRE(f(B(),C()).get<A &>().value == 3);
-  REQUIRE(f(B(),C()).get<const A &>().value == 3);
+  SECTION("pass by pointer"){
+    AnyFunction f = [](std::shared_ptr<A> x,std::shared_ptr<A> y){ auto res = std::make_shared<A>(); res->value = x->value+y->value; return res; };
+    REQUIRE(f(B(),C()).get<A &>().value == 3);
+    REQUIRE(f(B(),C()).get<const A &>().value == 3);
+    REQUIRE(f(std::make_shared<B>(),std::make_shared<C>()).get<A &>().value == 3);
+  }
 }
 
 TEST_CASE("non copy-constructable class", "[any_function]"){
