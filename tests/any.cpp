@@ -188,6 +188,10 @@ TEST_CASE("Visitable inheritance","[any]"){
   REQUIRE_THROWS_AS(v.get<C &>(), InvalidVisitorException);
   REQUIRE(v.get<D &>().name == 'D');
   REQUIRE(v.get<const E &>().name == 'E');
+  REQUIRE(v.get<std::shared_ptr<A>>()->name == 'A');
+  REQUIRE(v.get<std::shared_ptr<B>>()->name == 'B');
+  REQUIRE_THROWS_AS(v.get<std::shared_ptr<C>>(), InvalidVisitorException);
+  REQUIRE(v.get<std::shared_ptr<D>>()->name == 'D');
   REQUIRE(v.get<std::shared_ptr<E>>()->name == 'E');
 }
 

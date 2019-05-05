@@ -320,7 +320,7 @@ template <class T> struct lars::AnyVisitable<std::reference_wrapper<const T>> {
  * Allow casts of `shared_ptr` to value references.
  * Note: the origin `shared_ptr` cannot be reconstructed from the value.
  * Instead new `shared_ptr`s will be created for every call to `Any::get<std::shared_ptr<T>>()`.
- */    
+ */
 template <class T> struct lars::AnyVisitable<std::shared_ptr<T>> {
   using type = lars::DataVisitablePrototype<
     lars::any_detail::CapturedSharedPtr<T>,
