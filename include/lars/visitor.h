@@ -530,8 +530,8 @@ using InheritanceList = ::lars::InheritanceList<>;\
 using Type = ::lars::EmptyVisitable;\
 using Types = ::lars::TypeList<>;\
 using ConstTypes = ::lars::TypeList<>;\
-void accept(::lars::VisitorBase &visitor)override{ throw InvalidVisitorException(StaticTypeIndex()); }\
-void accept(::lars::VisitorBase &visitor) const override { throw InvalidVisitorException(StaticTypeIndex()); }\
+void accept(::lars::VisitorBase &visitor)override{ throw ::lars::InvalidVisitorException(StaticTypeIndex()); }\
+void accept(::lars::VisitorBase &visitor) const override { throw ::lars::InvalidVisitorException(StaticTypeIndex()); }\
 bool accept(::lars::RecursiveVisitorBase &visitor) override { return false; }\
 bool accept(::lars::RecursiveVisitorBase &visitor) const override { return false; }\
 ::lars::TypeIndex StaticTypeIndex() const override { return ::lars::getTypeIndex<::lars::EmptyVisitable>(); }
