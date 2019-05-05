@@ -118,7 +118,7 @@ TEST_CASE("any_with_any_function","[any_function][any]"){
   REQUIRE(af.get<const AnyFunction &>()().get<int>() == 42);
 }
 
-TEST_CASE("Automatic Casting"){
+TEST_CASE("Automatic Casting","[any_function]"){
   struct A: public lars::Visitable<A> { int value = 0; };
   struct B: public lars::DerivedVisitable<B, A> { B(){ value = 1; } };
   struct C: public lars::DerivedVisitable<C, B> { C(){ value = 2; } };
@@ -129,7 +129,7 @@ TEST_CASE("Automatic Casting"){
   REQUIRE(f(B(),C()).get<const A &>().value == 3);
 }
 
-TEST_CASE("non copy-constructable class", "[any]"){
+TEST_CASE("non copy-constructable class", "[any_function]"){
   struct A {
     int value;
     A(int v):value(v){}
@@ -156,4 +156,15 @@ TEST_CASE("call with references","[any_function]"){
     const std::string & ref = s; 
     f(ref);
   }
+}
+
+TEST_CASE("passing shared pointers","[any_function]"){
+  AnyFunction f = [](const std::shared_ptr<int> &p){
+    ++(*p);
+    return p;
+  };
+  auto i = std::make_shared<int>(0);
+  auto j = f(f(i)).get<std::shared_ptr<int>>();
+  REQUIRE(*i == 2);
+  REQUIRE(i == j);
 }
