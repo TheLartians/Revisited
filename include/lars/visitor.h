@@ -411,7 +411,7 @@ namespace lars {
     }
     
     TypeIndex visitableType() const override {
-      return getTypeIndex<BaseCast>();
+      return getTypeIndex<typename std::decay<BaseCast>::type>();
     }
     
     template <typename O> O cast(){
