@@ -475,7 +475,7 @@ namespace lars {
     T
   >::type visitor_cast(VisitableBase * v) {
     PointerCastVisitor<T> visitor;
-    if (v->accept(visitor)) {
+    if (v && v->accept(visitor)) {
       return visitor.result;
     } else {
       return nullptr;
@@ -496,7 +496,7 @@ namespace lars {
     T
   >::type visitor_cast(const VisitableBase * v) {
     PointerCastVisitor<T> visitor;
-    if (v->accept(visitor)) {
+    if (v && v->accept(visitor)) {
       return visitor.result;
     } else {
       return nullptr;

@@ -280,8 +280,10 @@ template <class T, class V, class P> void testVisitorCastAs(V & v, P * p) {
   (void)p; // silence unused variable warning for g++
   if constexpr (std::is_base_of<T, P>::value) {
     REQUIRE(visitor_cast<T*>(&v) == p);
+    REQUIRE(visitor_cast<T*>(nullptr) == nullptr);
     REQUIRE(&visitor_cast<T&>(v) == p);
     REQUIRE(visitor_cast<const T *>(&v) == p);
+    REQUIRE(visitor_cast<const T *>(nullptr) == nullptr);
     REQUIRE(&visitor_cast<const T &>(v) == p);
   } else {
     REQUIRE(visitor_cast<T*>(&v) == nullptr);
