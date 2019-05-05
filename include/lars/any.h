@@ -320,6 +320,6 @@ template <class T> struct lars::AnyVisitable<std::shared_ptr<T>> {
     lars::any_detail::CapturedSharedPtr<T>,
     typename TypeList<std::shared_ptr<T> &>::template Merge<typename AnyVisitable<T>::type::Types>,
     typename TypeList<const std::shared_ptr<T> &, std::shared_ptr<T>>::template Merge<typename AnyVisitable<T>::type::ConstTypes>,
-    lars::any_detail::CapturedSharedPtr<T>
+    T
   >;
 };

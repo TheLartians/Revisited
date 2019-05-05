@@ -280,6 +280,7 @@ TEST_CASE("set shared pointers", "[any]"){
   REQUIRE(*v.get<std::shared_ptr<int>>() == 3);
   REQUIRE(*v.get<const std::shared_ptr<int> &>() == 3);
   REQUIRE(v.get<double>() == 3);
+  REQUIRE(v.type() == lars::getTypeIndex<int>());
 }
 
 TEST_CASE("set by reference", "[any]"){

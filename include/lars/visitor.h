@@ -361,6 +361,10 @@ namespace lars {
     
   };
 
+  struct IndirectVisitableData {
+    
+  };
+
   /**
    * Prototype for a visitable object holding data of type `T`.
    * The template paramters `Types` and `ConstTypes` are TypeLists defining the
@@ -375,7 +379,7 @@ namespace lars {
     class BaseCast = T
   > class DataVisitablePrototype: public virtual VisitableBase, public IndirectVisitableBase {
   public:
-    using Type = BaseCast;
+    using Type = T;
     using Types = _Types;
     using ConstTypes = _ConstTypes;
     
@@ -400,7 +404,7 @@ namespace lars {
     }
     
     TypeIndex StaticTypeIndex() const override {
-      return getTypeIndex<T>();
+      return getTypeIndex<BaseCast>();
     }
     
     template <typename O> O cast(){
@@ -411,11 +415,11 @@ namespace lars {
       return static_cast<O>(data);
     }
     
-    operator BaseCast &() {
+    operator Type &() {
       return data;
     }
 
-    operator const BaseCast &() const {
+    operator const Type &() const {
       return data;
     }
 
