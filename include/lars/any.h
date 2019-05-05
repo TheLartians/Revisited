@@ -150,7 +150,7 @@ namespace lars {
      */
     TypeIndex type()const{
       if (!data) { return lars::getTypeIndex<void>(); }
-      return data->StaticTypeIndex();
+      return data->visitableType();
     }
 
     /**
