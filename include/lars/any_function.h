@@ -80,12 +80,12 @@ namespace lars {
         return getTypeIndex<void>();
       } else {
         std::array<TypeIndex,sizeof...(Args)> argumentTypes{
-          getTypeIndex<typename std::remove_reference<typename std::remove_const<Args>::type>::type>()...
+          getTypeIndex<typename std::decay<Args>::type>()...
         };
         return argumentTypes[i];
       }
     }
-    
+
     bool isVariadic() const override {
       return false;
     }
