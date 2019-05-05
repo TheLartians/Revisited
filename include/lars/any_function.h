@@ -99,7 +99,12 @@ namespace lars {
     SpecificAnyFunction(std::function<R(const AnyArguments &)> _callback):callback(_callback){}
     
     Any call(const AnyArguments & args) const override {
-      return callback(args);
+      if constexpr (std::is_same<void,R>::value){
+        callback(args);
+        return Any(); 
+      } else {
+        return callback(args);
+      }
     }
     
     TypeIndex returnType()const override{

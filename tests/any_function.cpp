@@ -86,20 +86,27 @@ TEST_CASE("take any","[any_function]"){
 }
 
 TEST_CASE("call with any arguments","[any_function]"){
-  AnyFunction f = [](const AnyArguments &args){
-    double result = 0;
-    for(auto &arg: args) { result += arg.get<double>(); }
-    return result;
-  };
+  SECTION("return value"){
+    AnyFunction f = [](const AnyArguments &args){
+      double result = 0;
+      for(auto &arg: args) { result += arg.get<double>(); }
+      return result;
+    };
 
-  REQUIRE(f.returnType() == getStaticTypeIndex<double>());
-  REQUIRE(f.isVariadic());
-  REQUIRE(f.argumentCount() == 0);
-  REQUIRE(f.argumentType(42) == getStaticTypeIndex<Any>());
+    REQUIRE(f.returnType() == getStaticTypeIndex<double>());
+    REQUIRE(f.isVariadic());
+    REQUIRE(f.argumentCount() == 0);
+    REQUIRE(f.argumentType(42) == getStaticTypeIndex<Any>());
 
-  REQUIRE(f().get<int>() == 0);
-  REQUIRE(f(1, 2).get<float>() == 3);
-  REQUIRE(f(1, 2, 3, 4, 5).get<unsigned>() == 15);
+    REQUIRE(f().get<int>() == 0);
+    REQUIRE(f(1, 2).get<float>() == 3);
+    REQUIRE(f(1, 2, 3, 4, 5).get<unsigned>() == 15);
+  }
+
+  SECTION("return void"){
+    AnyFunction f = [](const AnyArguments &){};
+    REQUIRE(!f());
+  }
 }
 
 TEST_CASE("implicit_string_conversion","[any_function]"){
