@@ -564,7 +564,7 @@ namespace lars {
 /**
  * Macro for removing visitable methods for a class inheriting from multiple visitable classes.
  */
-#define LARS_VISITOR_REMOVE_VISITABLE_METHODS \
+#define LARS_VISITOR_RESET_VISITOR \
 using InheritanceList = ::lars::InheritanceList<>;\
 using Type = ::lars::EmptyVisitable;\
 using Types = ::lars::TypeList<>;\
