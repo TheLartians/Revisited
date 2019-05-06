@@ -16,6 +16,7 @@ namespace {
   };
   
   struct B: Visitable<B> {
+    std::function<void()> f; // adds alignment requirement
     char name = 'B';
   };
   
@@ -38,7 +39,7 @@ namespace {
   struct BX: public DerivedVisitable<BX, JoinVisitable<B, X>> {
   };
   
-  struct XB: public DerivedVisitable<XB, JoinVisitable<X, B>> {
+  struct XB: public DerivedVisitable<XB, VirtualVisitable<X, B>> {
   };
 
   struct CX: public JoinVisitable<C, X> {

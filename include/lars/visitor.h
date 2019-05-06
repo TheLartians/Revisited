@@ -337,7 +337,7 @@ namespace lars {
    * The bases will be visited in in the order provided, unless a base class is already
    * added further down the dependency tree.
    */
-  template <typename ... Bases> class VirtualVisitable: public virtual Bases ... {
+  template <typename ... Bases> class alignas(Bases...) VirtualVisitable: public virtual Bases ... {
   public:
     using InheritanceList = lars::InheritanceList<>::Merge<typename Bases::InheritanceList ...>;
     using Type = VirtualVisitable;
