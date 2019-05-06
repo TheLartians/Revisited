@@ -16,6 +16,7 @@ namespace {
   };
   
   struct B: Visitable<B> {
+    std::function<void()> f; // adds alignment requirement
     char name = 'B';
   };
   
@@ -38,7 +39,7 @@ namespace {
   struct BX: public DerivedVisitable<BX, JoinVisitable<B, X>> {
   };
   
-  struct XB: public DerivedVisitable<XB, JoinVisitable<X, B>> {
+  struct XB: public DerivedVisitable<XB, VirtualVisitable<X, B>> {
   };
 
   struct CX: public JoinVisitable<C, X> {
@@ -319,7 +320,7 @@ TEST_CASE("Empty Visitable", "[visitor]"){
   REQUIRE(visitor_cast<int *>(&v) == nullptr);
   REQUIRE_THROWS_AS(visitor_cast<int>(std::as_const(v)), InvalidVisitorException);
   REQUIRE(visitor_cast<const  int *>(&std::as_const(v)) == nullptr);
-  REQUIRE(v.StaticTypeIndex() == getTypeIndex<void>());
+  REQUIRE(v.visitableType() == getTypeIndex<void>());
   
   SECTION("Visitor"){
     Visitor<> visitor;
@@ -339,7 +340,7 @@ TEMPLATE_TEST_CASE("Data Visitable", "[visitor]", char, int, float, double, unsi
   using DVisitable = DataVisitablePrototype<TestType, CastTypes, ConstCastTypes> ;
   
   DVisitable v(42);
-  REQUIRE(v.StaticTypeIndex() == getTypeIndex<TestType>());
+  REQUIRE(v.visitableType() == getTypeIndex<TestType>());
 
   SECTION("implicit value casting"){
     REQUIRE(visitor_cast<char>(v) == 42);

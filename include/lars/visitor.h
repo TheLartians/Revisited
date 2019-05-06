@@ -21,6 +21,8 @@ namespace lars {
     template <class T> Single<T> * asVisitorFor(){
       return static_cast<Single<T>*>(getVisitorFor(getStaticTypeIndex<T>()));
     }
+
+    virtual TypeIndex visitorType() const = 0;
     
     virtual ~VisitorBasePrototype(){}
   };
@@ -50,6 +52,10 @@ namespace lars {
       }
     }
   
+    TypeIndex visitorType() const override {
+      return getTypeIndex<TypeList<Args...>>();
+    }
+
   };
 
   class SingleVisitorBase{
@@ -117,12 +123,13 @@ namespace lars {
     mutable std::string buffer;
     
   public:
-    TypeIndex StaticTypeIndex;
-    InvalidVisitorException(TypeIndex t): StaticTypeIndex(t){}
+    TypeIndex visitableType;
+    TypeIndex visitorType;
+    InvalidVisitorException(TypeIndex t, TypeIndex v = getTypeIndex<TypeList<>>()): visitableType(t), visitorType(v){}
     
     const char * what() const noexcept override {
       if (buffer.size() == 0){
-        buffer = "invalid visitor for " + StaticTypeIndex.name();
+        buffer = "invalid visitor for " + visitableType.name() + ". Expected types: " + visitorType.name();
       }
       return buffer.c_str();
     }
@@ -134,7 +141,7 @@ namespace lars {
    */
   class VisitableBase {
   public:
-    virtual TypeIndex StaticTypeIndex()const = 0;
+    virtual TypeIndex visitableType()const = 0;
     virtual void accept(VisitorBase &visitor) = 0;
     virtual void accept(VisitorBase &visitor) const = 0;
     virtual bool accept(RecursiveVisitorBase &) = 0;
@@ -142,6 +149,12 @@ namespace lars {
     virtual ~VisitableBase(){}
   };
   
+  /**
+   * Base class for indirect visitable objects.
+   * Must implement a `cast<T>()` method.
+   */
+  struct IndirectVisitableBase { };
+
   /**
    * The regular visitor algorithm.
    */
@@ -151,16 +164,20 @@ namespace lars {
     VisitorBase &visitor
   ) {
     if (auto *v = visitor.asVisitorFor<T>()) {
-      v->visit(static_cast<T>(*visitable));
+      if constexpr (std::is_base_of<IndirectVisitableBase, typename std::decay<V>::type>::value){
+        v->visit(visitable->template cast<T>());
+      } else {
+        v->visit(static_cast<T>(*visitable));
+      }
     } else if constexpr (sizeof...(Rest) > 0) {
       visit(visitable, TypeList<Rest...>(), visitor);
     } else {
-      throw InvalidVisitorException(getTypeIndex<V>());
+      throw InvalidVisitorException(getTypeIndex<V>(), visitor.visitorType());
     }
   }
   
-  template <class V> static bool visit(V *, TypeList<>, VisitorBase &) {
-    throw InvalidVisitorException(getTypeIndex<V>());
+  template <class V> static bool visit(V *, TypeList<>, VisitorBase &visitor) {
+    throw InvalidVisitorException(getTypeIndex<V>(), visitor.visitorType());
   }
   
   /**
@@ -172,8 +189,14 @@ namespace lars {
     RecursiveVisitorBase &visitor
   ) {
     if (auto *v = visitor.asVisitorFor<T>()) {
-      if (v->visit(static_cast<T>(*visitable))) {
-        return true;
+      if constexpr (std::is_base_of<IndirectVisitableBase, typename std::decay<V>::type>::value){
+        if (v->visit(visitable->template cast<T>())) {
+          return true;
+        }
+      } else {
+        if (v->visit(static_cast<T>(*visitable))) {
+          return true;
+        }
       }
     }
     if constexpr (sizeof...(Rest) > 0) {
@@ -200,7 +223,7 @@ namespace lars {
     void accept(VisitorBase &v) const override { visit(this, ConstTypes(), v); }
     bool accept(RecursiveVisitorBase &) override { return false; }
     bool accept(RecursiveVisitorBase &) const override { return false; }
-    TypeIndex StaticTypeIndex() const override { return getTypeIndex<void>(); }
+    TypeIndex visitableType() const override { return getTypeIndex<void>(); }
   };
   
   /**
@@ -230,7 +253,7 @@ namespace lars {
       return visit(this, ConstTypes(), visitor);
     }
     
-    TypeIndex StaticTypeIndex() const override {
+    TypeIndex visitableType() const override {
       return getTypeIndex<T>();
     }
     
@@ -268,7 +291,7 @@ namespace lars {
       return visit(this, ConstTypes(), visitor);
     }
     
-    TypeIndex StaticTypeIndex() const override {
+    TypeIndex visitableType() const override {
       return getTypeIndex<T>();
     }
 
@@ -285,6 +308,8 @@ namespace lars {
     using Types = typename InheritanceList::ConvertibleTypes;
     using ConstTypes = typename InheritanceList::ConstConvertibleTypes;
 
+    using Bases::accept ...;
+    
     void accept(VisitorBase &visitor) override {
       visit(this, Types(), visitor);
     }
@@ -301,7 +326,7 @@ namespace lars {
       return visit(this, ConstTypes(), visitor);
     }
     
-    TypeIndex StaticTypeIndex() const override {
+    TypeIndex visitableType() const override {
       return getTypeIndex<JoinVisitable>();
     }
 
@@ -312,13 +337,15 @@ namespace lars {
    * The bases will be visited in in the order provided, unless a base class is already
    * added further down the dependency tree.
    */
-  template <typename ... Bases> class VirtualVisitable: public virtual Bases ... {
+  template <typename ... Bases> class alignas(Bases...) VirtualVisitable: public virtual Bases ... {
   public:
     using InheritanceList = lars::InheritanceList<>::Merge<typename Bases::InheritanceList ...>;
     using Type = VirtualVisitable;
     using Types = typename InheritanceList::ConvertibleTypes;
     using ConstTypes = typename InheritanceList::ConstConvertibleTypes;
 
+    using Bases::accept ...;
+    
     void accept(VisitorBase &visitor) override {
       visit(this, Types(), visitor);
     }
@@ -335,9 +362,13 @@ namespace lars {
       return visit(this, ConstTypes(), visitor);
     }
     
-    TypeIndex StaticTypeIndex() const override {
+    TypeIndex visitableType() const override {
       return getTypeIndex<VirtualVisitable>();
     }
+    
+  };
+
+  struct IndirectVisitableData {
     
   };
 
@@ -353,9 +384,9 @@ namespace lars {
     class _Types,
     class _ConstTypes,
     class BaseCast = T
-  > class DataVisitablePrototype: public virtual VisitableBase {
+  > class DataVisitablePrototype: public virtual VisitableBase, public IndirectVisitableBase {
   public:
-    using Type = BaseCast;
+    using Type = T;
     using Types = _Types;
     using ConstTypes = _ConstTypes;
     
@@ -379,15 +410,23 @@ namespace lars {
       return visit(this, ConstTypes(), visitor);
     }
     
-    TypeIndex StaticTypeIndex() const override {
-      return getTypeIndex<T>();
+    TypeIndex visitableType() const override {
+      return getTypeIndex<typename std::decay<BaseCast>::type>();
     }
     
-    operator BaseCast &() {
+    template <typename O> O cast(){
+      return static_cast<O>(data);
+    }
+    
+    template <typename O> O cast() const {
+      return static_cast<O>(data);
+    }
+    
+    operator Type &() {
       return data;
     }
-    
-    operator const BaseCast &() const {
+
+    operator const Type &() const {
       return data;
     }
 
@@ -516,9 +555,23 @@ namespace lars {
     if (auto res = visitor_cast<typename std::remove_reference<T>::type *>(&v)) {
       return *res;
     } else {
-      throw InvalidVisitorException(v.StaticTypeIndex());
+      throw InvalidVisitorException(v.visitableType(), getTypeIndex<TypeList<T>>());
     }
   }
   
-  
 }
+
+/**
+ * Macro for removing visitable methods for a class inheriting from multiple visitable classes.
+ */
+#define LARS_VISITOR_RESET_VISITOR \
+using InheritanceList = ::lars::InheritanceList<>;\
+using Type = ::lars::EmptyVisitable;\
+using Types = ::lars::TypeList<>;\
+using ConstTypes = ::lars::TypeList<>;\
+void accept(::lars::VisitorBase &visitor)override{ throw ::lars::InvalidVisitorException(visitableType()); }\
+void accept(::lars::VisitorBase &visitor) const override { throw ::lars::InvalidVisitorException(visitableType()); }\
+bool accept(::lars::RecursiveVisitorBase &visitor) override { return false; }\
+bool accept(::lars::RecursiveVisitorBase &visitor) const override { return false; }\
+::lars::TypeIndex visitableType() const override { return ::lars::getTypeIndex<::lars::EmptyVisitable>(); }
+

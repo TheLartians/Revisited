@@ -26,7 +26,6 @@ TEST_CASE("AnyBasics", "[any]"){
 
     SECTION("traits"){
       REQUIRE(v.type() == getStaticTypeIndex<MyClass>());
-      REQUIRE_THAT(stream_to_string(v), Catch::Matchers::Contains("Any") && Catch::Matchers::Contains("MyClass"));
       REQUIRE(bool(v) == true);
     }
 
@@ -177,12 +176,23 @@ TEST_CASE("Visitable inheritance","[any]"){
   struct C: public DerivedVisitable<C, A> { char name = 'C'; };
   struct D: public DerivedVisitable<D,VirtualVisitable<A, B>> { char name = 'D'; };
   struct E: public DerivedVisitable<E,VirtualVisitable<D, A>> { char name = 'E'; };
-  auto v = makeAny<E>();
+  Any v;
+  SECTION("value"){
+    v = makeAny<E>();
+  } 
+  SECTION("shared_ptr"){
+    v = std::make_shared<E>();
+  }
   REQUIRE(v.get<A &>().name == 'A');
   REQUIRE(v.get<const B &>().name == 'B');
   REQUIRE_THROWS_AS(v.get<C &>(), InvalidVisitorException);
   REQUIRE(v.get<D &>().name == 'D');
   REQUIRE(v.get<const E &>().name == 'E');
+  REQUIRE(v.get<std::shared_ptr<A>>()->name == 'A');
+  REQUIRE(v.get<std::shared_ptr<B>>()->name == 'B');
+  REQUIRE_THROWS_AS(v.get<std::shared_ptr<C>>(), InvalidVisitorException);
+  REQUIRE(v.get<std::shared_ptr<D>>()->name == 'D');
+  REQUIRE(v.get<std::shared_ptr<E>>()->name == 'E');
 }
 
 TEST_CASE("capture reference","[any]"){
@@ -279,7 +289,10 @@ TEST_CASE("set shared pointers", "[any]"){
   REQUIRE(v.get<int>() == 3);
   REQUIRE(v.get<std::shared_ptr<int>>());
   REQUIRE(*v.get<std::shared_ptr<int>>() == 3);
+  REQUIRE(*v.get<const std::shared_ptr<int> &>() == 3);
+  REQUIRE(*v.get<std::shared_ptr<int> &>() == 3);
   REQUIRE(v.get<double>() == 3);
+  REQUIRE(v.type() == lars::getTypeIndex<int>());
 }
 
 TEST_CASE("set by reference", "[any]"){

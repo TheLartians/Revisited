@@ -1,6 +1,7 @@
 
 #include <catch2/catch.hpp>
 #include <exception>
+#include <sstream>
 
 #include <lars/inheritance_list.h>
 
@@ -13,13 +14,16 @@ TEST_CASE("TypeList", "[TypeList]") {
   REQUIRE(std::is_same<TypeList<A,B>::Filter<std::is_copy_constructible>, TypeList<A>>::value);
   REQUIRE(std::is_same<TypeList<A,B>::Filter<std::is_copy_assignable>, TypeList<B>>::value);
   REQUIRE(std::is_same<TypeList<std::string>::Filter<std::is_copy_assignable>, TypeList<std::string>>::value);
+
+  std::stringstream stream;
+  stream << getTypeIndex<TypeList<A,B>>();
+  REQUIRE_THAT(stream.str(),Catch::Matchers::Contains("A") && Catch::Matchers::Contains("B"));
 }
 
 template <class T, unsigned V> using O = OrderedType<T, V>;
 template <typename ... Args> using T = InheritanceList<Args...>;
 
 TEST_CASE("InheritanceList", "[InheritanceList]") {
-
     
   struct A{};
   struct B{};

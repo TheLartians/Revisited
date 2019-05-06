@@ -80,12 +80,12 @@ namespace lars {
         return getTypeIndex<void>();
       } else {
         std::array<TypeIndex,sizeof...(Args)> argumentTypes{
-          getTypeIndex<typename std::remove_reference<typename std::remove_const<Args>::type>::type>()...
+          getTypeIndex<typename std::decay<Args>::type>()...
         };
         return argumentTypes[i];
       }
     }
-    
+
     bool isVariadic() const override {
       return false;
     }
@@ -99,7 +99,12 @@ namespace lars {
     SpecificAnyFunction(std::function<R(const AnyArguments &)> _callback):callback(_callback){}
     
     Any call(const AnyArguments & args) const override {
-      return callback(args);
+      if constexpr (std::is_same<void,R>::value){
+        callback(args);
+        return Any(); 
+      } else {
+        return callback(args);
+      }
     }
     
     TypeIndex returnType()const override{

@@ -86,20 +86,27 @@ TEST_CASE("take any","[any_function]"){
 }
 
 TEST_CASE("call with any arguments","[any_function]"){
-  AnyFunction f = [](const AnyArguments &args){
-    double result = 0;
-    for(auto &arg: args) { result += arg.get<double>(); }
-    return result;
-  };
+  SECTION("return value"){
+    AnyFunction f = [](const AnyArguments &args){
+      double result = 0;
+      for(auto &arg: args) { result += arg.get<double>(); }
+      return result;
+    };
 
-  REQUIRE(f.returnType() == getStaticTypeIndex<double>());
-  REQUIRE(f.isVariadic());
-  REQUIRE(f.argumentCount() == 0);
-  REQUIRE(f.argumentType(42) == getStaticTypeIndex<Any>());
+    REQUIRE(f.returnType() == getStaticTypeIndex<double>());
+    REQUIRE(f.isVariadic());
+    REQUIRE(f.argumentCount() == 0);
+    REQUIRE(f.argumentType(42) == getStaticTypeIndex<Any>());
 
-  REQUIRE(f().get<int>() == 0);
-  REQUIRE(f(1, 2).get<float>() == 3);
-  REQUIRE(f(1, 2, 3, 4, 5).get<unsigned>() == 15);
+    REQUIRE(f().get<int>() == 0);
+    REQUIRE(f(1, 2).get<float>() == 3);
+    REQUIRE(f(1, 2, 3, 4, 5).get<unsigned>() == 15);
+  }
+
+  SECTION("return void"){
+    AnyFunction f = [](const AnyArguments &){};
+    REQUIRE(!f());
+  }
 }
 
 TEST_CASE("implicit_string_conversion","[any_function]"){
@@ -118,18 +125,28 @@ TEST_CASE("any_with_any_function","[any_function][any]"){
   REQUIRE(af.get<const AnyFunction &>()().get<int>() == 42);
 }
 
-TEST_CASE("Automatic Casting"){
+TEST_CASE("Automatic Casting","[any_function]"){
   struct A: public lars::Visitable<A> { int value = 0; };
   struct B: public lars::DerivedVisitable<B, A> { B(){ value = 1; } };
   struct C: public lars::DerivedVisitable<C, B> { C(){ value = 2; } };
+  
+  SECTION("pass by reference"){
+    AnyFunction f = [](A & x,A & y){ A a; a.value = x.value+y.value; return a; };
+    REQUIRE(f(B(),C()).get<A &>().value == 3);
+    REQUIRE(f(B(),C()).get<const A &>().value == 3);
+    REQUIRE(f(std::make_shared<B>(),std::make_shared<C>()).get<A &>().value == 3);
+    REQUIRE_THROWS(f(B(),C()).get<A>().value);  // currently a problem with visitable types: cannot be captured by value
+  }
 
-  AnyFunction f = [](A & x,A & y){ A a; a.value = x.value+y.value; return a; };
-  REQUIRE_THROWS(f(B(),C()).get<A>().value);  // drawback with visitable types: cannot be captured by value
-  REQUIRE(f(B(),C()).get<A &>().value == 3);
-  REQUIRE(f(B(),C()).get<const A &>().value == 3);
+  SECTION("pass by pointer"){
+    AnyFunction f = [](std::shared_ptr<A> x,std::shared_ptr<A> y){ auto res = std::make_shared<A>(); res->value = x->value+y->value; return res; };
+    REQUIRE(f(B(),C()).get<A &>().value == 3);
+    REQUIRE(f(B(),C()).get<const A &>().value == 3);
+    REQUIRE(f(std::make_shared<B>(),std::make_shared<C>()).get<A &>().value == 3);
+  }
 }
 
-TEST_CASE("non copy-constructable class", "[any]"){
+TEST_CASE("non copy-constructable class", "[any_function]"){
   struct A {
     int value;
     A(int v):value(v){}
@@ -156,4 +173,15 @@ TEST_CASE("call with references","[any_function]"){
     const std::string & ref = s; 
     f(ref);
   }
+}
+
+TEST_CASE("passing shared pointers","[any_function]"){
+  AnyFunction f = [](const std::shared_ptr<int> &p){
+    ++(*p);
+    return p;
+  };
+  auto i = std::make_shared<int>(0);
+  auto j = f(f(i)).get<std::shared_ptr<int>>();
+  REQUIRE(*i == 2);
+  REQUIRE(i == j);
 }
