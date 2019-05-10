@@ -107,13 +107,14 @@ namespace lars {
      * A `InvalidVisitor` exception will be raised if the cast is unsuccessful.
      */
     template <class T> T get() const {
-      if (!data) { throw UndefinedAnyException(); }
-      if constexpr (any_detail::is_shared_ptr<T>::value) {
-        using Value = typename any_detail::is_shared_ptr<T>::value_type;
-        return std::shared_ptr<Value>(data, &get<Value&>());
-      } else if constexpr (std::is_same<typename std::decay<T>::type, Any>::value) {
+      if constexpr (std::is_same<typename std::decay<T>::type, Any>::value) {
         return *this;
+      } else if constexpr (any_detail::is_shared_ptr<T>::value) {
+        using Value = typename any_detail::is_shared_ptr<T>::value_type;
+        if (!data) { throw UndefinedAnyException(); }
+        return std::shared_ptr<Value>(data, &get<Value&>());
       } else {
+        if (!data) { throw UndefinedAnyException(); }
         return visitor_cast<T>(*data);
       }
     }

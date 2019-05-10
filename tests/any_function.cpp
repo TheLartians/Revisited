@@ -81,8 +81,14 @@ TEST_CASE("pass any","[any_function]"){
 }
 
 TEST_CASE("take any","[any_function]"){
-  AnyFunction f = [](const Any &x){ REQUIRE(x.get<int>() == 42); };
-  f(42);
+  SECTION("with value"){
+    AnyFunction f = [](const Any &x){ REQUIRE(x.get<int>() == 42); };
+    f(42);
+  }
+  SECTION("without value") {
+    AnyFunction f = [](const Any &x){ REQUIRE(!x); };
+    f(Any());
+  }
 }
 
 TEST_CASE("call with any arguments","[any_function]"){
