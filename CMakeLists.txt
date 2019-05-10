@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 3.5)
 # ---- create project ----
 
 project(LarsVisitor 
-  VERSION 1.7
+  VERSION 1.7.1
   LANGUAGES CXX
 )
 
