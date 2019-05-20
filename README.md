@@ -69,7 +69,7 @@ std::cout << v.get<std::string>() << std::endl; // -> Hello Any!
 ```cpp
 int x = 42;
 lars::Any a = std::reference_wrapper(x);
-std::cout << a.get<int>() << std::endl; // -> 42
+std::cout << a.get<double>() << std::endl; // -> 42
 std::cout << &a.get<int&>() == &x << std::endl; // -> 1
 ```
 
