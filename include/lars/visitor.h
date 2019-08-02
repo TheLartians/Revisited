@@ -569,9 +569,9 @@ using InheritanceList = ::lars::InheritanceList<>;\
 using Type = ::lars::EmptyVisitable;\
 using Types = ::lars::TypeList<>;\
 using ConstTypes = ::lars::TypeList<>;\
-void accept(::lars::VisitorBase &visitor)override{ throw ::lars::InvalidVisitorException(visitableType()); }\
-void accept(::lars::VisitorBase &visitor) const override { throw ::lars::InvalidVisitorException(visitableType()); }\
-bool accept(::lars::RecursiveVisitorBase &visitor) override { return false; }\
-bool accept(::lars::RecursiveVisitorBase &visitor) const override { return false; }\
+void accept(::lars::VisitorBase &)override{ throw ::lars::InvalidVisitorException(visitableType()); }\
+void accept(::lars::VisitorBase &) const override { throw ::lars::InvalidVisitorException(visitableType()); }\
+bool accept(::lars::RecursiveVisitorBase &) override { return false; }\
+bool accept(::lars::RecursiveVisitorBase &) const override { return false; }\
 ::lars::TypeIndex visitableType() const override { return ::lars::getTypeIndex<::lars::EmptyVisitable>(); }
 
