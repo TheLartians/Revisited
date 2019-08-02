@@ -160,7 +160,10 @@ TEST_CASE("non copy-constructable class", "[any_function]"){
     A(A &&) = default; // required to be std::function return value
   };
   lars::AnyFunction f = [](){ return A(3); };
+  lars::AnyFunction g = [](){ return std::make_shared<A>(3); };
   REQUIRE(f().get<A&>().value == 3);
+  REQUIRE(g().get<A&>().value == 3);
+  REQUIRE(g().get<std::shared_ptr<A>>()->value == 3);
 }
 
 TEST_CASE("call with references","[any_function]"){
