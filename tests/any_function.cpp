@@ -194,3 +194,26 @@ TEST_CASE("passing shared pointers","[any_function]"){
   REQUIRE(*i == 2);
   REQUIRE(i == j);
 }
+
+
+TEST_CASE("return abstract pointer","[any_function]"){
+  struct A {
+    virtual int f() = 0;
+    virtual ~A(){}
+  };
+
+  struct B: public A {
+    int f() override { return 45; }
+  };
+
+  AnyFunction f = []() -> std::shared_ptr<A> {
+    return std::make_shared<B>();
+  };
+
+  AnyFunction g = [](std::shared_ptr<A> a){
+    return a->f();
+  };
+
+  CHECK(g(f()).get<int>() == 45);
+
+}
