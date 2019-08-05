@@ -214,6 +214,6 @@ TEST_CASE("return abstract pointer","[any_function]"){
     return a->f();
   };
 
-  CHECK(g(f()) == 45);
+  CHECK(g(f()).get<int>() == 45);
 
 }
