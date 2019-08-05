@@ -390,8 +390,8 @@ namespace lars {
     using Types = _Types;
     using ConstTypes = _ConstTypes;
     
-    // Store a unique pointer if class is abstract (breaks most functions atm)
-    typename std::conditional<!std::is_abstract<T>::value,T,std::unique_ptr<T>>::type  data;
+    // Store a dummy object if class is abstract (would break type checks elsewhere)
+    typename std::conditional<!std::is_abstract<T>::value,T,void*>::type  data;
 
     template <typename ... Args> DataVisitablePrototype(Args && ... args):data(std::forward<Args>(args)...){}
     
