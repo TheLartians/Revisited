@@ -323,3 +323,18 @@ template <class T> struct lars::AnyVisitable<std::shared_ptr<T>> {
     T
   >;
 };
+
+namespace lars {
+  
+  template <typename ... Args> struct GetAnyVisitableTypes {
+    using Types = lars::TypeList<>::Merge<typename lars::AnyVisitable<Args>::type::Types ...>;
+    using ConstTypes = lars::TypeList<>::Merge<typename lars::AnyVisitable<Args>::type::ConstTypes ...>;
+  };
+
+} 
+
+#define LARS_ANY_DECLARE_BASES(TYPE,...) template <> struct lars::AnyVisitable<TYPE> { \
+  using Types = lars::TypeList<TYPE,TYPE&>::Merge<typename GetAnyVisitableTypes<__VA_ARGS__>::Types>; \
+  using ConstTypes = lars::TypeList<TYPE,const TYPE &>::Merge<typename GetAnyVisitableTypes<__VA_ARGS__>::ConstTypes>; \
+  using type = lars::DataVisitablePrototype<TYPE, Types, ConstTypes>; \
+};
