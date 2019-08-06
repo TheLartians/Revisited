@@ -328,8 +328,8 @@ namespace {
   };
 }
 
-LARS_ANY_DECLARE_BASES(B,A)
-LARS_ANY_DECLARE_BASES(C,B)
+LARS_ANY_DECLARE_BASES(B,A);
+LARS_ANY_DECLARE_BASES(C,B);
 
 TEST_CASE("base conversions", "[any]"){
   lars::Any v;
