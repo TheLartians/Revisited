@@ -313,3 +313,38 @@ TEST_CASE("set by reference", "[any]"){
   REQUIRE(v.get<std::string &>() == "420");
   REQUIRE(v.get<const std::string &>() == "420");
 }
+
+namespace {
+  struct A {
+    int x = 1;
+  };
+
+  struct B: public A {
+    B(){ x++; }
+  };
+
+  struct C: public B {
+    C(){ x++; }
+  };
+}
+
+LARS_ANY_DECLARE_BASES(B,A)
+LARS_ANY_DECLARE_BASES(C,B)
+
+TEST_CASE("base conversions", "[any]"){
+  lars::Any v;
+  v = A();
+  CHECK(v.get<A &>().x == 1);
+  CHECK_THROWS(v.get<B &>());
+  CHECK_THROWS(v.get<C &>());
+
+  v = B();
+  CHECK(v.get<A &>().x == 2);
+  CHECK(v.get<B &>().x == 2);
+  CHECK_THROWS(v.get<C &>());
+
+  v = C();
+  CHECK(v.get<A &>().x == 3);
+  CHECK(v.get<B &>().x == 3);
+  CHECK(v.get<C &>().x == 3);
+}
