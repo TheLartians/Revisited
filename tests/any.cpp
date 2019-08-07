@@ -284,15 +284,25 @@ TEST_CASE("get shared pointers", "[any]"){
 }
 
 TEST_CASE("set shared pointers", "[any]"){
-  auto s = std::make_shared<int>(3);
-  Any v = s;
-  REQUIRE(v.get<int>() == 3);
-  REQUIRE(v.get<std::shared_ptr<int>>());
-  REQUIRE(*v.get<std::shared_ptr<int>>() == 3);
-  REQUIRE(*v.get<const std::shared_ptr<int> &>() == 3);
-  REQUIRE(*v.get<std::shared_ptr<int> &>() == 3);
-  REQUIRE(v.get<double>() == 3);
-  REQUIRE(v.type() == lars::getTypeIndex<int>());
+  SECTION("set to value"){
+    auto s = std::make_shared<int>(3);
+    Any v = s;
+    REQUIRE(v.get<int>() == 3);
+    REQUIRE(v.get<std::shared_ptr<int>>());
+    REQUIRE(*v.get<std::shared_ptr<int>>() == 3);
+    REQUIRE(*v.get<const std::shared_ptr<int> &>() == 3);
+    REQUIRE(*v.get<std::shared_ptr<int> &>() == 3);
+    REQUIRE(v.get<double>() == 3);
+    REQUIRE(v.type() == lars::getTypeIndex<int>());
+  }
+
+  SECTION("empty pointer"){
+    Any v;
+    REQUIRE_NOTHROW(v = std::shared_ptr<int>());
+    REQUIRE(!bool(v));
+    REQUIRE_THROWS(v.get<int>());
+  }
+  
 }
 
 TEST_CASE("set by reference", "[any]"){

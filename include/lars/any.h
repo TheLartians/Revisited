@@ -7,7 +7,7 @@
 #include <exception>
 #include <functional>
 #include <utility>
-
+#include <iostream>
 namespace lars {
   /**
    * Error raised when calling `get` on empty Any object.
@@ -78,9 +78,20 @@ namespace lars {
     > auto & set(Args && ... args) {
       static_assert(!std::is_base_of<Any,T>::value);
       if constexpr (std::is_base_of<VisitableBase,typename any_detail::is_shared_ptr<T>::value_type>::value) {
-        auto value = T(args...);
+        T value(std::forward<Args>(args)...);
         data = value;
+        if constexpr (any_detail::is_shared_ptr<T>::value) { 
+          if (!value) { data.reset(); } 
+        }
         return *value;
+      } else if constexpr (any_detail::is_shared_ptr<T>::value) {
+        T value(std::forward<Args>(args)...);
+        if (!value) { 
+          data.reset();
+        } else {
+          data = std::make_shared<VisitableType>(value);
+        }
+        return *this;
       } else {
         auto value = std::make_shared<VisitableType>(std::forward<Args>(args)...);
         data = value;
