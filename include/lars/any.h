@@ -7,7 +7,7 @@
 #include <exception>
 #include <functional>
 #include <utility>
-#include <iostream>
+
 namespace lars {
   /**
    * Error raised when calling `get` on empty Any object.
