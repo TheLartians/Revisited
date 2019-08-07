@@ -325,6 +325,7 @@ namespace {
 
   struct C: public B {
     C(){ x++; }
+    C(const C &) = delete;
   };
 }
 
@@ -338,12 +339,12 @@ TEST_CASE("base conversions", "[any]"){
   CHECK_THROWS(v.get<B &>());
   CHECK_THROWS(v.get<C &>());
 
-  v = B();
+  v = lars::makeAny<B>();
   CHECK(v.get<A &>().x == 2);
   CHECK(v.get<B &>().x == 2);
   CHECK_THROWS(v.get<C &>());
 
-  v = C();
+  v = lars::makeAny<C>();
   CHECK(v.get<A &>().x == 3);
   CHECK(v.get<B &>().x == 3);
   CHECK(v.get<C &>().x == 3);

@@ -334,7 +334,7 @@ namespace lars {
 } 
 
 #define LARS_ANY_DECLARE_BASES(TYPE,...) template <> struct lars::AnyVisitable<TYPE> { \
-  using Types = lars::TypeList<TYPE,TYPE&>::Merge<typename GetAnyVisitableTypes<__VA_ARGS__>::Types>; \
-  using ConstTypes = lars::TypeList<TYPE,const TYPE &>::Merge<typename GetAnyVisitableTypes<__VA_ARGS__>::ConstTypes>; \
+  using Types = lars::TypeList<TYPE&>::Merge<typename GetAnyVisitableTypes<__VA_ARGS__>::Types>; \
+  using ConstTypes = lars::TypeList<const TYPE &>::Merge<typename GetAnyVisitableTypes<__VA_ARGS__>::ConstTypes>; \
   using type = lars::DataVisitablePrototype<TYPE, Types, ConstTypes>; \
 }
