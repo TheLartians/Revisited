@@ -274,17 +274,19 @@ template <> struct lars::AnyVisitable<Type>{\
 }
 
 #ifndef LARS_ANY_NUMERIC_TYPES
-#define LARS_ANY_NUMERIC_TYPES ::lars::TypeList<char, int, long, long long, unsigned char, unsigned int, unsigned long, unsigned long long, float, double, long double>
+#define LARS_ANY_NUMERIC_TYPES ::lars::TypeList<char, unsigned char, short int, unsigned short int, int, unsigned int, long int, unsigned long int, long long int, unsigned long long int, float, double, long double>
 #endif
 
 LARS_ANY_DEFINE_SCALAR_TYPE(char, LARS_ANY_NUMERIC_TYPES);
-LARS_ANY_DEFINE_SCALAR_TYPE(int, LARS_ANY_NUMERIC_TYPES);
-LARS_ANY_DEFINE_SCALAR_TYPE(long, LARS_ANY_NUMERIC_TYPES);
-LARS_ANY_DEFINE_SCALAR_TYPE(long long, LARS_ANY_NUMERIC_TYPES);
 LARS_ANY_DEFINE_SCALAR_TYPE(unsigned char, LARS_ANY_NUMERIC_TYPES);
+LARS_ANY_DEFINE_SCALAR_TYPE(short int, LARS_ANY_NUMERIC_TYPES);
+LARS_ANY_DEFINE_SCALAR_TYPE(unsigned short int, LARS_ANY_NUMERIC_TYPES);
+LARS_ANY_DEFINE_SCALAR_TYPE(int, LARS_ANY_NUMERIC_TYPES);
 LARS_ANY_DEFINE_SCALAR_TYPE(unsigned int, LARS_ANY_NUMERIC_TYPES);
-LARS_ANY_DEFINE_SCALAR_TYPE(unsigned long, LARS_ANY_NUMERIC_TYPES);
-LARS_ANY_DEFINE_SCALAR_TYPE(unsigned long long, LARS_ANY_NUMERIC_TYPES);
+LARS_ANY_DEFINE_SCALAR_TYPE(long int, LARS_ANY_NUMERIC_TYPES);
+LARS_ANY_DEFINE_SCALAR_TYPE(unsigned long int, LARS_ANY_NUMERIC_TYPES);
+LARS_ANY_DEFINE_SCALAR_TYPE(long long int, LARS_ANY_NUMERIC_TYPES);
+LARS_ANY_DEFINE_SCALAR_TYPE(unsigned long long int, LARS_ANY_NUMERIC_TYPES);
 LARS_ANY_DEFINE_SCALAR_TYPE(float, LARS_ANY_NUMERIC_TYPES);
 LARS_ANY_DEFINE_SCALAR_TYPE(double, LARS_ANY_NUMERIC_TYPES);
 LARS_ANY_DEFINE_SCALAR_TYPE(long double, LARS_ANY_NUMERIC_TYPES);
