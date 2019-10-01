@@ -334,7 +334,7 @@ TEST_CASE("Empty Visitable", "[visitor]"){
 
 }
 
-TEMPLATE_TEST_CASE("Data Visitable", "[visitor]", char, int, float, double, unsigned , size_t, long){
+TEMPLATE_TEST_CASE("Numeric Visitable", "[visitor]", char, int, float, double, unsigned){
   using CastTypes = TypeList<TestType &>;
   using ConstCastTypes = TypeList<const TestType &, char, int, float, double, unsigned , size_t, long>;
   using DVisitable = DataVisitablePrototype<TestType, CastTypes, ConstCastTypes> ;
