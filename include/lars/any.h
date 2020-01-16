@@ -75,7 +75,7 @@ namespace lars {
       class T,
       class VisitableType = typename AnyVisitable<T>::type,
       typename ... Args
-    > auto & set(Args && ... args) {
+    > decltype(auto) set(Args && ... args) {
       static_assert(!std::is_base_of<Any,T>::value);
       if constexpr (std::is_base_of<VisitableBase,typename any_detail::is_shared_ptr<T>::value_type>::value) {
         T value(std::forward<Args>(args)...);
@@ -83,7 +83,6 @@ namespace lars {
         if constexpr (any_detail::is_shared_ptr<T>::value) { 
           if (!value) { data.reset(); } 
         }
-        return *value;
       } else if constexpr (any_detail::is_shared_ptr<T>::value) {
         T value(std::forward<Args>(args)...);
         if (!value) { 
@@ -91,7 +90,6 @@ namespace lars {
         } else {
           data = std::make_shared<VisitableType>(value);
         }
-        return *this;
       } else {
         auto value = std::make_shared<VisitableType>(std::forward<Args>(args)...);
         data = value;
@@ -102,7 +100,7 @@ namespace lars {
     /**
      * Same as `Any::set`, but uses an internal type that can be visitor_casted to the base types.
      */
-    template <class T, typename ... Bases, typename ... Args> T & setWithBases(Args && ... args){
+    template <class T, typename ... Bases, typename ... Args> decltype(auto) setWithBases(Args && ... args){
       return set<T, DataVisitableWithBases<T,Bases...>>(std::forward<Args>(args)...);
     }
     
