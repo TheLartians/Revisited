@@ -2,7 +2,7 @@
 
 #include <type_traits>
 
-namespace lars{
+namespace revisited{
 
   namespace typelist {
     template <typename ... Args> struct Merge;

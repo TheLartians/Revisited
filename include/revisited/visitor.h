@@ -7,16 +7,16 @@
 #include <type_traits>
 #include <optional>
 
-#include <lars/inheritance_list.h>
-#include <lars/type_index.h>
+#include <revisited/inheritance_list.h>
+#include <revisited/type_index.h>
 
-namespace lars {
+namespace revisited {
 
   template <class T> class SingleVisitor;
   
   template <class SingleBase, template <class T> class Single> class VisitorBasePrototype {
   public:
-    virtual SingleBase * getVisitorFor(const lars::StaticTypeIndex &) = 0;
+    virtual SingleBase * getVisitorFor(const revisited::StaticTypeIndex &) = 0;
     
     template <class T> Single<T> * asVisitorFor(){
       return static_cast<Single<T>*>(getVisitorFor(getStaticTypeIndex<T>()));
@@ -32,7 +32,7 @@ namespace lars {
    */
   template <class SingleBase, template <class T> class Single,typename ... Args> class VisitorPrototype: public virtual VisitorBasePrototype<SingleBase, Single>, public Single<Args> ... {
   private:
-    template <class First, typename ... Rest> inline SingleBase * getVisitorForWorker(const lars::StaticTypeIndex &idx){
+    template <class First, typename ... Rest> inline SingleBase * getVisitorForWorker(const revisited::StaticTypeIndex &idx){
       if (idx == getStaticTypeIndex<First>()) {
         return static_cast<Single<First>*>(this);
       }
@@ -44,7 +44,7 @@ namespace lars {
   
   public:
 
-    SingleBase * getVisitorFor(const lars::StaticTypeIndex &idx) override {
+    SingleBase * getVisitorFor(const revisited::StaticTypeIndex &idx) override {
       if constexpr (sizeof...(Args  ) > 0) {
         return getVisitorForWorker<Args...>(idx);
       } else {
@@ -232,7 +232,7 @@ namespace lars {
    */
   template <class T> class Visitable: public virtual VisitableBase {
   public:
-    using InheritanceList = lars::InheritanceList<OrderedType<T, 0>>;
+    using InheritanceList = revisited::InheritanceList<OrderedType<T, 0>>;
     using Type = T;
     using Types = typename InheritanceList::ConvertibleTypes;
     using ConstTypes = typename InheritanceList::ConstConvertibleTypes;
@@ -303,7 +303,7 @@ namespace lars {
    */
   template <typename ... Bases> class JoinVisitable: public Bases ... {
   public:
-    using InheritanceList = lars::InheritanceList<>::Merge<typename Bases::InheritanceList ...>;
+    using InheritanceList = revisited::InheritanceList<>::Merge<typename Bases::InheritanceList ...>;
     using Type = JoinVisitable;
     using Types = typename InheritanceList::ConvertibleTypes;
     using ConstTypes = typename InheritanceList::ConstConvertibleTypes;
@@ -339,7 +339,7 @@ namespace lars {
    */
   template <typename ... Bases> class alignas(Bases...) VirtualVisitable: public virtual Bases ... {
   public:
-    using InheritanceList = lars::InheritanceList<>::Merge<typename Bases::InheritanceList ...>;
+    using InheritanceList = revisited::InheritanceList<>::Merge<typename Bases::InheritanceList ...>;
     using Type = VirtualVisitable;
     using Types = typename InheritanceList::ConvertibleTypes;
     using ConstTypes = typename InheritanceList::ConstConvertibleTypes;
@@ -566,13 +566,13 @@ namespace lars {
  * Macro for removing visitable methods for a class inheriting from multiple visitable classes.
  */
 #define LARS_VISITOR_RESET_VISITOR \
-using InheritanceList = ::lars::InheritanceList<>;\
-using Type = ::lars::EmptyVisitable;\
-using Types = ::lars::TypeList<>;\
-using ConstTypes = ::lars::TypeList<>;\
-void accept(::lars::VisitorBase &)override{ throw ::lars::InvalidVisitorException(visitableType()); }\
-void accept(::lars::VisitorBase &) const override { throw ::lars::InvalidVisitorException(visitableType()); }\
-bool accept(::lars::RecursiveVisitorBase &) override { return false; }\
-bool accept(::lars::RecursiveVisitorBase &) const override { return false; }\
-::lars::TypeIndex visitableType() const override { return ::lars::getTypeIndex<::lars::EmptyVisitable>(); }
+using InheritanceList = ::revisited::InheritanceList<>;\
+using Type = ::revisited::EmptyVisitable;\
+using Types = ::revisited::TypeList<>;\
+using ConstTypes = ::revisited::TypeList<>;\
+void accept(::revisited::VisitorBase &)override{ throw ::revisited::InvalidVisitorException(visitableType()); }\
+void accept(::revisited::VisitorBase &) const override { throw ::revisited::InvalidVisitorException(visitableType()); }\
+bool accept(::revisited::RecursiveVisitorBase &) override { return false; }\
+bool accept(::revisited::RecursiveVisitorBase &) const override { return false; }\
+::revisited::TypeIndex visitableType() const override { return ::revisited::getTypeIndex<::revisited::EmptyVisitable>(); }
 

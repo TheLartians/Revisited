@@ -1,8 +1,8 @@
-#include <lars/any_function.h>
+#include <revisited/any_function.h>
 #include <iostream>
 
 int main() {
-  lars::AnyFunction f;
+  revisited::AnyFunction f;
 
   // creating and calling any function
   f = [](int x, double y){ return x + y; };
@@ -15,7 +15,7 @@ int main() {
   std::cout << "x = " << x << std::endl;
 
   // variadiac arguments
-  f = [](const lars::AnyArguments &args){
+  f = [](const revisited::AnyArguments &args){
     double result = 0;
     for(auto &arg: args) { result += arg.get<double>(); }
     return result;

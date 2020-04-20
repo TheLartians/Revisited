@@ -3,7 +3,7 @@
 #include <ctti/type_id.hpp>
 #include <functional>
 
-namespace lars{
+namespace revisited{
   
   class StaticTypeIndex {
   private:
@@ -47,14 +47,14 @@ namespace lars{
   
 }
 
-template <> struct std::hash<lars::StaticTypeIndex> {
-  std::size_t operator()(const lars::StaticTypeIndex& t) const {
+template <> struct std::hash<revisited::StaticTypeIndex> {
+  std::size_t operator()(const revisited::StaticTypeIndex& t) const {
     return t.hash();
   }
 };
 
-template <> struct std::hash<lars::TypeIndex> {
-  std::size_t operator()(const lars::StaticTypeIndex& t) const {
+template <> struct std::hash<revisited::TypeIndex> {
+  std::size_t operator()(const revisited::StaticTypeIndex& t) const {
     return t.hash();
   }
 };

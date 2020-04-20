@@ -1,8 +1,8 @@
-#include <lars/any.h>
+#include <revisited/any.h>
 #include <iostream>
 
 int main(){
-  lars::Any v = 42;
+  revisited::Any v = 42;
   
   std::cout << "value as int " << v.get<int>() << std::endl;
   std::cout << "value as double " << v.get<double>() << std::endl;

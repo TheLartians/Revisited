@@ -1,31 +1,34 @@
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
-cmake_minimum_required (VERSION 3.5)
+# ---- Project ----
 
-# ---- create project ----
-
-project(LarsVisitor 
-  VERSION 1.7.4
+# Note: update this to your new project's name and version
+project(Revisited 
+  VERSION 2.0
   LANGUAGES CXX
 )
 
-# ---- Configuration variables ----
-
-option(LARS_VISITOR_BUILD_EXAMPLES "Builds exampels" OFF)
-option(LARS_VISITOR_ENABLE_TESTS "Enable tests" OFF)
-
 # ---- Include guards ----
 
-if(TARGET LarsVisitor)
-  return()
+if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
+    message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.")
 endif()
 
-if (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
-      message(FATAL_ERROR "Source and build directories cannot be the same.")
-endif()
+# --- Import tools ----
 
-# ---- dependencies ----
+include(cmake/tools.cmake)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake)
+# ---- Add dependencies via CPM ----
+# see https://github.com/TheLartians/CPM.cmake for more info
+
+include(cmake/CPM.cmake)
+
+# PackageProject.cmake will be used to make our target installable
+CPMAddPackage(
+  NAME PackageProject.cmake
+  GITHUB_REPOSITORY TheLartians/PackageProject.cmake
+  VERSION 1.0
+)
 
 CPMAddPackage(
   NAME ctti
@@ -34,85 +37,33 @@ CPMAddPackage(
   GIT_TAG 0.0.2
 )
 
-CPMAddPackage(
-  NAME LHC
-  GIT_REPOSITORY https://github.com/thelartians/LHC.git
-  VERSION 0.7
-)
+# ---- Add source files ----
 
-# ---- Header target ----
+FILE(GLOB_RECURSE headers CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 
-FILE(GLOB_RECURSE headers "${CMAKE_CURRENT_SOURCE_DIR}/include/lars/*.h")
-add_library(LarsVisitor-headers EXCLUDE_FROM_ALL ${headers})
-SET_TARGET_PROPERTIES(LarsVisitor-headers PROPERTIES LINKER_LANGUAGE CXX)
+# ---- Create library ----
 
-# ---- includes ----
+add_library(Revisited INTERFACE)
+set_target_properties(Revisited PROPERTIES INTERFACE_COMPILE_FEATURES cxx_std_17)
 
-add_library(LarsVisitor INTERFACE)
+# beeing a cross-platform target, we enforce enforce standards conformance on MSVC
+target_compile_options(Revisited INTERFACE "$<$<BOOL:${MSVC}>:/permissive->")
 
-target_link_libraries(LarsVisitor INTERFACE ctti LHC)
+target_link_libraries(Revisited INTERFACE ctti)
 
-target_include_directories(LarsVisitor
+target_include_directories(Revisited
   INTERFACE
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+    $<INSTALL_INTERFACE:include/${PROJECT_NAME}-${PROJECT_VERSION}>
 )
 
-# ---- Install ----
+# ---- Create an installable target ----
+# this allows users to install and find the library via `find_package()`.
 
-include(CMakePackageConfigHelpers)
-
-write_basic_package_version_file(
-  "${PROJECT_BINARY_DIR}/LarsVisitorConfigVersion.cmake"
+packageProject(
+  NAME ${PROJECT_NAME}
   VERSION ${PROJECT_VERSION}
-  COMPATIBILITY AnyNewerVersion
+  BINARY_DIR ${PROJECT_BINARY_DIR}
+  INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include
+  INCLUDE_DESTINATION include/${PROJECT_NAME}-${PROJECT_VERSION}
 )
-
-install(
-  TARGETS LarsVisitor
-  EXPORT LarsVisitorTargets
-  LIBRARY DESTINATION lib COMPONENT Runtime
-  ARCHIVE DESTINATION lib COMPONENT Development
-  RUNTIME DESTINATION bin COMPONENT Runtime
-  PUBLIC_HEADER DESTINATION include COMPONENT Development
-  BUNDLE DESTINATION bin COMPONENT Runtime
-)
-
-include(CMakePackageConfigHelpers)
-
-configure_package_config_file(
-  "${PROJECT_SOURCE_DIR}/cmake/LarsVisitorConfig.cmake.in"
-  "${PROJECT_BINARY_DIR}/LarsVisitorConfig.cmake"
-  INSTALL_DESTINATION lib/cmake/LarsVisitor
-)
-
-install(
-  EXPORT LarsVisitorTargets 
-  DESTINATION lib/cmake/LarsVisitor
-)
-
-install(
-  FILES 
-    "${PROJECT_BINARY_DIR}/LarsVisitorConfigVersion.cmake"
-    "${PROJECT_BINARY_DIR}/LarsVisitorConfig.cmake"
-  DESTINATION 
-    lib/cmake/LarsVisitor
-)
-
-install(
-  DIRECTORY ${PROJECT_SOURCE_DIR}/include/
-  DESTINATION include
-)
-
-# ---- Tests and examples ----
-
-if(${LARS_VISITOR_ENABLE_TESTS})
-  ENABLE_TESTING()  
-  add_subdirectory(tests)  
-endif()
-
-if(${LARS_VISITOR_BUILD_EXAMPLES})
-  add_subdirectory(examples)  
-endif()
-
-

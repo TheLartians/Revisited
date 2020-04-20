@@ -1,4 +1,4 @@
-#include <lars/visitor.h>
+#include <revisited/visitor.h>
 
 #include <memory>
 #include <benchmark/benchmark.h>
@@ -55,7 +55,7 @@ namespace dynamic {
 }
 
 namespace visitor {
-  using namespace lars;
+  using namespace revisited;
   
   struct A:public Visitable<A>{ char a = 'a'; };
   struct B:public DerivedVisitable<B,VirtualVisitable<A>>{ char b = 'B'; };
@@ -126,10 +126,10 @@ static void VisitorCast(benchmark::State& state) {
   std::shared_ptr<A> e = std::make_shared<E>();
 
   for (auto _ : state) {
-    benchmark::DoNotOptimize(Assert(lars::visitor_cast<B *>(b.get())));
-    benchmark::DoNotOptimize(Assert(!lars::visitor_cast<B *>(e.get())));
-    benchmark::DoNotOptimize(Assert(lars::visitor_cast<E *>(e.get())));
-    benchmark::DoNotOptimize(Assert(!lars::visitor_cast<B *>(e.get())));
+    benchmark::DoNotOptimize(Assert(revisited::visitor_cast<B *>(b.get())));
+    benchmark::DoNotOptimize(Assert(!revisited::visitor_cast<B *>(e.get())));
+    benchmark::DoNotOptimize(Assert(revisited::visitor_cast<E *>(e.get())));
+    benchmark::DoNotOptimize(Assert(!revisited::visitor_cast<B *>(e.get())));
   }
 }
 

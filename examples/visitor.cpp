@@ -1,18 +1,18 @@
 #include <memory>
 #include <iostream>
-#include <lars/visitor.h>
+#include <revisited/visitor.h>
 
-struct Base: public virtual lars::VisitableBase{ };
-struct A: public Base, public lars::Visitable<A> { };
-struct B: public Base, public lars::Visitable<B> { };
-struct C: public lars::DerivedVisitable<C, A> { };
+struct Base: public virtual revisited::VisitableBase{ };
+struct A: public Base, public revisited::Visitable<A> { };
+struct B: public Base, public revisited::Visitable<B> { };
+struct C: public revisited::DerivedVisitable<C, A> { };
 
-struct ABVisitor: public lars::Visitor<const A &,const B &> {
+struct ABVisitor: public revisited::Visitor<const A &,const B &> {
   void visit(const A &){ std::cout << "[AB ]: Visiting A" << std::endl; }
   void visit(const B &){ std::cout << "[AB ]: Visiting B" << std::endl; }
 };
 
-struct ABCVisitor: public lars::Visitor<A &,B &, C &> {
+struct ABCVisitor: public revisited::Visitor<A &,B &, C &> {
   void visit(A &){ std::cout << "[ABC]: Visiting A" << std::endl; }
   void visit(B &){ std::cout << "[ABC]: Visiting B" << std::endl; }
   void visit(C &){ std::cout << "[ABC]: Visiting C" << std::endl; }

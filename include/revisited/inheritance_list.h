@@ -2,10 +2,10 @@
 
 #include <type_traits>
 
-#include <lars/type_list.h>
-#include <lars/type_index.h>
+#include <revisited/type_list.h>
+#include <revisited/type_index.h>
 
-namespace lars {
+namespace revisited {
   
   template <class T, unsigned O> struct OrderedType {
     using type = T;
@@ -13,7 +13,7 @@ namespace lars {
   };
   
   template <class OStream, class T, unsigned O> OStream & operator<<(OStream &stream, const OrderedType<T,O> &){
-    stream << '[' << lars::get_type_name<T>() << ',' << O << ']';
+    stream << '[' << revisited::get_type_name<T>() << ',' << O << ']';
     return stream;
   }
 

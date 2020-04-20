@@ -1,7 +1,7 @@
 #pragma once
 
-#include <lars/any.h>
-#include <lars/make_function.h>
+#include <revisited/any.h>
+#include <revisited/make_function.h>
 
 #include <functional>
 #include <memory>
@@ -9,7 +9,7 @@
 #include <array>
 #include <vector>
 
-namespace lars {
+namespace revisited {
   
   /**
    * Is raised when a undefined any function is called
