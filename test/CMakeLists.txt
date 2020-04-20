@@ -66,5 +66,5 @@ doctest_discover_tests(RevisitedTests)
 
 if (ENABLE_TEST_COVERAGE)
   target_compile_options(Revisited PRIVATE -O0 -g -fprofile-arcs -ftest-coverage --coverage)
-  target_link_options(Revisited PUBLIC "--coverage")
+  target_link_options(Revisited INTERFACE "--coverage")
 endif()
