@@ -1,6 +1,9 @@
-[![Build Status](https://travis-ci.com/TheLartians/Visitor.svg?branch=master)](https://travis-ci.com/TheLartians/Visitor)
-[![codecov](https://codecov.io/gh/TheLartians/Visitor/branch/master/graph/badge.svg)](https://codecov.io/gh/TheLartians/Visitor)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/eb1f529643bd4e09a92c9dfc5b5920c4)](https://www.codacy.com/app/TheLartians/Visitor?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=TheLartians/Visitor&amp;utm_campaign=Badge_Grade)
+[![Actions Status](https://github.com/TheLartians/Revisited/workflows/MacOS/badge.svg)](https://github.com/TheLartians/Revisited/actions)
+[![Actions Status](https://github.com/TheLartians/Revisited/workflows/Windows/badge.svg)](https://github.com/TheLartians/Revisited/actions)
+[![Actions Status](https://github.com/TheLartians/Revisited/workflows/Ubuntu/badge.svg)](https://github.com/TheLartians/Revisited/actions)
+[![Actions Status](https://github.com/TheLartians/Revisited/workflows/Style/badge.svg)](https://github.com/TheLartians/Revisited/actions)
+[![Actions Status](https://github.com/TheLartians/Revisited/workflows/Install/badge.svg)](https://github.com/TheLartians/Revisited/actions)
+[![codecov](https://codecov.io/gh/TheLartians/Revisited/branch/master/graph/badge.svg)](https://codecov.io/gh/TheLartians/Revisited)
 
 # Revisited
 
