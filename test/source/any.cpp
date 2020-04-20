@@ -91,7 +91,7 @@ TEST_CASE_TEMPLATE("Numerics", TestType, char, unsigned char, short int,
                    float, double, long double) {
   Any v;
 
-  v.set<TestType>(42);
+  v.set<TestType>(TestType(42));
 
   CHECK(v.type() == getStaticTypeIndex<TestType>());
 
