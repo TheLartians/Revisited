@@ -21,13 +21,11 @@ TEST_CASE("Type Index") {
   REQUIRE(getStaticTypeIndex<B>() != getStaticTypeIndex<int>());
 
   REQUIRE(getStaticTypeIndex<B>() != getStaticTypeIndex<int>());
-  
-
 }
 
 TEST_CASE("TypeIndex string conversions") {
-   using namespace revisited;
- using A = int;
+  using namespace revisited;
+  using A = int;
   using B = float;
 
   std::stringstream stream;
@@ -41,6 +39,4 @@ TEST_CASE("TypeIndex string conversions") {
     stream << getTypeIndex<B>();
     REQUIRE(stream.str() == "float");
   }
-  
 }
-
