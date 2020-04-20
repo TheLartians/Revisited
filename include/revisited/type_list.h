@@ -13,8 +13,8 @@ template <typename... Types> struct TypeList {
   template <typename... Other> using Push = TypeList<Types..., Other...>;
   template <typename... Other>
   using Merge = typename typelist::Merge<TypeList, Other...>::type;
-  template <template <class> typename Filter>
-  using Filter = typename typelist::Filter<TypeList, Filter>::type;
+  template <template <class> typename F>
+  using Filter = typename typelist::Filter<TypeList, F>::type;
   template <template <class> typename T>
   using Transform = TypeList<typename T<Types>::type...>;
   template <class F, template <class> typename T>
