@@ -31,10 +31,9 @@ CPMAddPackage(
 )
 
 CPMAddPackage(
-  NAME ctti
-  GIT_REPOSITORY https://github.com/hunter-packages/ctti.git
-  VERSION 0.0.2
-  GIT_TAG 0.0.2
+  NAME StaticTypeInfo
+  VERSION 1.2
+  GIT_REPOSITORY https://github.com/TheLartians/StaticTypeInfo
 )
 
 # ---- Add source files ----
@@ -43,13 +42,16 @@ FILE(GLOB_RECURSE headers CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/include
 
 # ---- Create library ----
 
+add_library(RevisitedHeaders EXCLUDE_FROM_ALL ${headers})
+set_target_properties(RevisitedHeaders PROPERTIES LINKER_LANGUAGE CXX)
+
 add_library(Revisited INTERFACE)
 set_target_properties(Revisited PROPERTIES INTERFACE_COMPILE_FEATURES cxx_std_17)
 
 # beeing a cross-platform target, we enforce enforce standards conformance on MSVC
 target_compile_options(Revisited INTERFACE "$<$<BOOL:${MSVC}>:/permissive->")
 
-target_link_libraries(Revisited INTERFACE ctti)
+target_link_libraries(Revisited INTERFACE StaticTypeInfo)
 
 target_include_directories(Revisited
   INTERFACE

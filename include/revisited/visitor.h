@@ -136,8 +136,8 @@ public:
 
   const char *what() const noexcept override {
     if (buffer.size() == 0) {
-      buffer = "invalid visitor for " + visitableType.name() +
-               ". Expected types: " + visitorType.name();
+      buffer = "invalid visitor for " + std::string(visitableType.name) +
+               ". Expected types: " + std::string(visitorType.name);
     }
     return buffer.c_str();
   }
