@@ -54,7 +54,9 @@ protected:
 
 public:
   Any() {}
+  Any(Any &&) = default;
   Any(const Any &) = default;
+  Any &operator=(Any &&) = default;
   Any &operator=(const Any &) = default;
 
   template <class T, typename = typename std::enable_if<
@@ -62,8 +64,6 @@ public:
   Any(T &&v) {
     set<typename any_detail::remove_cvref<T>::type>(std::forward<T>(v));
   }
-  Any(Any &&) = default;
-  Any &operator=(Any &&) = default;
 
   template <class T, typename = typename std::enable_if<!std::is_base_of<
                          Any, typename std::decay<T>::type>::value>::type>
