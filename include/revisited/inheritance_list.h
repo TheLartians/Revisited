@@ -1,7 +1,7 @@
 #pragma once
 
-#include <type_traits>
 #include <algorithm>
+#include <type_traits>
 
 #include <revisited/type_index.h>
 #include <revisited/type_list.h>

@@ -50,7 +50,8 @@ private:
   }
 
 public:
-  SingleBase *getVisitorFor(const revisited::StaticTypeIndex &idx) override {
+  SingleBase *getVisitorFor([
+      [maybe_unused]] const revisited::StaticTypeIndex &idx) override {
     if constexpr (sizeof...(Args) > 0) {
       return getVisitorForWorker<Args...>(idx);
     } else {
