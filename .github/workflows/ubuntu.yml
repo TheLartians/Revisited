@@ -27,15 +27,14 @@ jobs:
 
     - name: install code coverage tools
       run: |
-        sudo apt-get install llvm-9
         wget https://github.com/linux-test-project/lcov/releases/download/v1.14/lcov-1.14.tar.gz
         tar xvfz lcov-1.14.tar.gz;
         sudo make install -C lcov-1.14
 
     - name: collect code coverage
       run: |
-        printf '#!/bin/bash\nexec llvm-cov-9 gcov "$@"' > llvm-gcov.sh
-        chmod +x llvm-gcov.sh
-        lcov --gcov-tool "$(pwd)/llvm-gcov.sh" --directory . --exclude "*_deps*" --capture --no-external --quiet --output-file  coverage.info
-        lcov --gcov-tool "$(pwd)/llvm-gcov.sh" --list coverage.info
+        # printf '#!/bin/bash\nexec llvm-cov-9 gcov "$@"' > llvm-gcov.sh
+        # chmod +x llvm-gcov.sh
+        lcov --gcov-tool gcov-9 --directory . --exclude "*_deps*" --capture --no-external --quiet --output-file  coverage.info
+        lcov --gcov-tool gcov-9 --list coverage.info
         bash <(curl -s https://codecov.io/bash) -X gcov || echo "Codecov did not collect coverage reports"
