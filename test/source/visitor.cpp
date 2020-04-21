@@ -338,7 +338,7 @@ TEST_CASE_TEMPLATE("Numeric Visitable", TestType, char, int, float, double,
   using DVisitable =
       DataVisitablePrototype<TestType, CastTypes, ConstCastTypes>;
 
-  DVisitable v(42);
+  DVisitable v(TestType(42));
   REQUIRE(v.visitableType() == getTypeIndex<TestType>());
 
   SUBCASE("implicit value casting") {
