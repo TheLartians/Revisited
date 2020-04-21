@@ -25,11 +25,15 @@ jobs:
         cd build
         ctest --build-config Debug
 
-    - name: collect code coverage
+    - name: install code coverage tools
       run: |
+        sudo apt-get install llvm-9
         wget https://github.com/linux-test-project/lcov/releases/download/v1.14/lcov-1.14.tar.gz
         tar xvfz lcov-1.14.tar.gz;
         sudo make install -C lcov-1.14
+
+    - name: collect code coverage
+      run: |
         printf '#!/bin/bash\nexec llvm-cov gcov-9 "$@"' > llvm-gcov.sh
         chmod +x llvm-gcov.sh
         lcov --gcov-tool "$(pwd)/llvm-gcov.sh" --directory . --exclude "*_deps*" --capture --no-external --quiet --output-file  coverage.info
