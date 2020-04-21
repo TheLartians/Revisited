@@ -21,7 +21,6 @@ struct UndefinedAnyException : public std::exception {
 template <class T> struct AnyVisitable;
 
 class Any;
-struct AnyReference;
 
 namespace any_detail {
 template <typename T> struct is_shared_ptr : std::false_type {
@@ -53,11 +52,11 @@ class Any {
 protected:
   std::shared_ptr<VisitableBase> data;
 
+public:
+  Any() {}
   Any(const Any &) = default;
   Any &operator=(const Any &) = default;
 
-public:
-  Any() {}
   template <class T, typename = typename std::enable_if<
                          any_detail::NotDerivedFromAny<T>>::type>
   Any(T &&v) {
@@ -243,28 +242,8 @@ template <class T, typename... Args> Any makeAny(Args &&... args) {
   return v;
 }
 
-/**
- * An Any object that can implicitly capture another Any by reference.
- */
-struct AnyReference : public Any {
-  AnyReference() {}
-  AnyReference(const Any &other) : Any(other) {}
-  AnyReference(const AnyReference &other) : Any(other) {}
-
-  template <class T, typename = typename std::enable_if<
-                         any_detail::NotDerivedFromAny<T>>::type>
-  AnyReference(T &&v) : Any(std::forward<T>(v)) {}
-
-  AnyReference &operator=(const AnyReference &other) {
-    Any::operator=(other);
-    return *this;
-  }
-
-  AnyReference &operator=(const Any &other) {
-    Any::operator=(other);
-    return *this;
-  }
-};
+// legacy type
+using AnyReference = Any;
 
 /**
  * Defines the default internal type for Any<T>.
