@@ -104,7 +104,7 @@ With [CPM](https://github.com/TheLartians/CPM), revisited::Visitor can be used i
 CPMAddPackage(
   NAME Revisited
   GIT_REPOSITORY https://github.com/TheLartians/Visitor.git
-  VERSION 1.7
+  VERSION 2.0
 )
 
 target_link_libraries(myProject Revisited)
