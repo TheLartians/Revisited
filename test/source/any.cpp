@@ -7,7 +7,7 @@ TEST_CASE("AnyBasics") {
   Any v;
 
   SUBCASE("undefined") {
-    CHECK(v.type() == getStaticTypeIndex<void>());
+    CHECK(v.type() == getTypeID<void>());
     CHECK(bool(v) == false);
     CHECK_THROWS_AS(v.get<int>(), UndefinedAnyException);
     CHECK_THROWS_WITH(v.get<int>(), "called get() on undefined Any");
@@ -23,7 +23,7 @@ TEST_CASE("AnyBasics") {
     CHECK(v.set<MyClass>(3).value == 3);
 
     SUBCASE("traits") {
-      CHECK(v.type() == getStaticTypeIndex<MyClass>());
+      CHECK(v.type() == getTypeID<MyClass>());
       CHECK(bool(v) == true);
     }
 
@@ -91,7 +91,7 @@ TEST_CASE_TEMPLATE("Numerics", TestType, char, unsigned char, short int,
 
   v.set<TestType>(TestType(42));
 
-  CHECK(v.type() == getStaticTypeIndex<TestType>());
+  CHECK(v.type() == getTypeID<TestType>());
 
   CHECK(v.get<TestType &>() == 42);
   CHECK(v.get<const TestType &>() == 42);
@@ -152,7 +152,7 @@ TEST_CASE("Inheritance") {
 
   SUBCASE("Custom class") {
     Any v = A();
-    CHECK(v.type() == getStaticTypeIndex<A>());
+    CHECK(v.type() == getTypeID<A>());
     CHECK(v.get<A>().a == 'A');
     CHECK(v.get<A &>().a == 'A');
     CHECK(v.get<const A &>().a == 'A');
@@ -310,7 +310,7 @@ TEST_CASE("set shared pointers") {
     CHECK(*v.get<const std::shared_ptr<int> &>() == 3);
     CHECK(*v.get<std::shared_ptr<int> &>() == 3);
     CHECK(v.get<double>() == 3);
-    CHECK(v.type() == revisited::getTypeIndex<int>());
+    CHECK(v.type() == revisited::getTypeID<int>());
   }
 
   SUBCASE("empty pointer") {

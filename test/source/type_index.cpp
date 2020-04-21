@@ -1,5 +1,6 @@
 #include <doctest/doctest.h>
 
+#include <ostream>
 #include <revisited/type_index.h>
 #include <sstream>
 
@@ -7,23 +8,23 @@ TEST_CASE("Type Index") {
 
   using namespace revisited;
 
-  REQUIRE(getStaticTypeIndex<int>() == getStaticTypeIndex<int>());
-  REQUIRE(getStaticTypeIndex<float>() == getStaticTypeIndex<float>());
-  REQUIRE(getStaticTypeIndex<int>() != getStaticTypeIndex<float>());
+  REQUIRE(getTypeID<int>() == getTypeID<int>());
+  REQUIRE(getTypeID<float>() == getTypeID<float>());
+  REQUIRE(getTypeID<int>() != getTypeID<float>());
 
   using A = int;
   using B = float;
 
-  REQUIRE(getStaticTypeIndex<A>() == getStaticTypeIndex<int>());
-  REQUIRE(getStaticTypeIndex<B>() == getStaticTypeIndex<float>());
-  REQUIRE(getStaticTypeIndex<A>() != getStaticTypeIndex<B>());
-  REQUIRE(getStaticTypeIndex<A>() != getStaticTypeIndex<float>());
-  REQUIRE(getStaticTypeIndex<B>() != getStaticTypeIndex<int>());
+  REQUIRE(getTypeID<A>() == getTypeID<int>());
+  REQUIRE(getTypeID<B>() == getTypeID<float>());
+  REQUIRE(getTypeID<A>() != getTypeID<B>());
+  REQUIRE(getTypeID<A>() != getTypeID<float>());
+  REQUIRE(getTypeID<B>() != getTypeID<int>());
 
-  REQUIRE(getStaticTypeIndex<B>() != getStaticTypeIndex<int>());
+  REQUIRE(getTypeID<B>() != getTypeID<int>());
 }
 
-TEST_CASE("TypeIndex string conversions") {
+TEST_CASE("TypeID string conversions") {
   using namespace revisited;
   using A = int;
   using B = float;
@@ -31,12 +32,12 @@ TEST_CASE("TypeIndex string conversions") {
   std::stringstream stream;
 
   SUBCASE("int") {
-    stream << getTypeIndex<A>();
+    stream << getTypeID<A>().name;
     REQUIRE(stream.str() == "int");
   }
 
   SUBCASE("float") {
-    stream << getTypeIndex<B>();
+    stream << getTypeID<B>().name;
     REQUIRE(stream.str() == "float");
   }
 }

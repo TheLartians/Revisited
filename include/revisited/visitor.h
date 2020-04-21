@@ -17,13 +17,13 @@ template <class T> class SingleVisitor;
 template <class SingleBase, template <class T> class Single>
 class VisitorBasePrototype {
 public:
-  virtual SingleBase *getVisitorFor(const revisited::StaticTypeIndex &) = 0;
+  virtual SingleBase *getVisitorFor(const revisited::TypeIndex &) = 0;
 
   template <class T> Single<T> *asVisitorFor() {
-    return static_cast<Single<T> *>(getVisitorFor(getStaticTypeIndex<T>()));
+    return static_cast<Single<T> *>(getVisitorFor(getTypeIndex<T>()));
   }
 
-  virtual TypeIndex visitorType() const = 0;
+  virtual TypeID visitorType() const = 0;
 
   virtual ~VisitorBasePrototype() {}
 };
@@ -38,9 +38,8 @@ class VisitorPrototype
       public Single<Args>... {
 private:
   template <class First, typename... Rest>
-  inline SingleBase *
-  getVisitorForWorker(const revisited::StaticTypeIndex &idx) {
-    if (idx == getStaticTypeIndex<First>()) {
+  inline SingleBase *getVisitorForWorker(const revisited::TypeIndex &idx) {
+    if (idx == getTypeIndex<First>()) {
       return static_cast<Single<First> *>(this);
     } else if constexpr (sizeof...(Rest) > 0) {
       return getVisitorForWorker<Rest...>(idx);
@@ -51,7 +50,7 @@ private:
 
 public:
   SingleBase *getVisitorFor([
-      [maybe_unused]] const revisited::StaticTypeIndex &idx) override {
+      [maybe_unused]] const revisited::TypeIndex &idx) override {
     if constexpr (sizeof...(Args) > 0) {
       return getVisitorForWorker<Args...>(idx);
     } else {
@@ -59,9 +58,7 @@ public:
     }
   }
 
-  TypeIndex visitorType() const override {
-    return getTypeIndex<TypeList<Args...>>();
-  }
+  TypeID visitorType() const override { return getTypeID<TypeList<Args...>>(); }
 };
 
 class SingleVisitorBase {
@@ -130,9 +127,9 @@ private:
   mutable std::string buffer;
 
 public:
-  TypeIndex visitableType;
-  TypeIndex visitorType;
-  InvalidVisitorException(TypeIndex t, TypeIndex v = getTypeIndex<TypeList<>>())
+  TypeID visitableType;
+  TypeID visitorType;
+  InvalidVisitorException(TypeID t, TypeID v = getTypeID<TypeList<>>())
       : visitableType(t), visitorType(v) {}
 
   const char *what() const noexcept override {
@@ -150,7 +147,7 @@ public:
  */
 class VisitableBase {
 public:
-  virtual TypeIndex visitableType() const = 0;
+  virtual TypeID visitableType() const = 0;
   virtual void accept(VisitorBase &visitor) = 0;
   virtual void accept(VisitorBase &visitor) const = 0;
   virtual bool accept(RecursiveVisitorBase &) = 0;
@@ -179,12 +176,12 @@ static void visit(V *visitable, TypeList<T, Rest...>, VisitorBase &visitor) {
   } else if constexpr (sizeof...(Rest) > 0) {
     visit(visitable, TypeList<Rest...>(), visitor);
   } else {
-    throw InvalidVisitorException(getTypeIndex<V>(), visitor.visitorType());
+    throw InvalidVisitorException(getTypeID<V>(), visitor.visitorType());
   }
 }
 
 template <class V> static bool visit(V *, TypeList<>, VisitorBase &visitor) {
-  throw InvalidVisitorException(getTypeIndex<V>(), visitor.visitorType());
+  throw InvalidVisitorException(getTypeID<V>(), visitor.visitorType());
 }
 
 /**
@@ -230,7 +227,7 @@ public:
   void accept(VisitorBase &v) const override { visit(this, ConstTypes(), v); }
   bool accept(RecursiveVisitorBase &) override { return false; }
   bool accept(RecursiveVisitorBase &) const override { return false; }
-  TypeIndex visitableType() const override { return getTypeIndex<void>(); }
+  TypeID visitableType() const override { return getTypeID<void>(); }
 };
 
 /**
@@ -258,7 +255,7 @@ public:
     return visit(this, ConstTypes(), visitor);
   }
 
-  TypeIndex visitableType() const override { return getTypeIndex<T>(); }
+  TypeID visitableType() const override { return getTypeID<T>(); }
 };
 
 /**
@@ -293,7 +290,7 @@ public:
     return visit(this, ConstTypes(), visitor);
   }
 
-  TypeIndex visitableType() const override { return getTypeIndex<T>(); }
+  TypeID visitableType() const override { return getTypeID<T>(); }
 };
 
 /**
@@ -324,9 +321,7 @@ public:
     return visit(this, ConstTypes(), visitor);
   }
 
-  TypeIndex visitableType() const override {
-    return getTypeIndex<JoinVisitable>();
-  }
+  TypeID visitableType() const override { return getTypeID<JoinVisitable>(); }
 };
 
 /**
@@ -359,8 +354,8 @@ public:
     return visit(this, ConstTypes(), visitor);
   }
 
-  TypeIndex visitableType() const override {
-    return getTypeIndex<VirtualVisitable>();
+  TypeID visitableType() const override {
+    return getTypeID<VirtualVisitable>();
   }
 };
 
@@ -417,8 +412,8 @@ public:
     return visit(this, ConstTypes(), visitor);
   }
 
-  TypeIndex visitableType() const override {
-    return getTypeIndex<typename std::decay<BaseCast>::type>();
+  TypeID visitableType() const override {
+    return getTypeID<typename std::decay<BaseCast>::type>();
   }
 
   template <typename O> O cast() { return static_cast<O>(data); }
@@ -556,8 +551,7 @@ visitor_cast(VisitableBase &v) {
   if (auto res = visitor_cast<typename std::remove_reference<T>::type *>(&v)) {
     return *res;
   } else {
-    throw InvalidVisitorException(v.visitableType(),
-                                  getTypeIndex<TypeList<T>>());
+    throw InvalidVisitorException(v.visitableType(), getTypeID<TypeList<T>>());
   }
 }
 
@@ -582,6 +576,6 @@ visitor_cast(VisitableBase &v) {
   bool accept(::revisited::RecursiveVisitorBase &) const override {            \
     return false;                                                              \
   }                                                                            \
-  ::revisited::TypeIndex visitableType() const override {                      \
-    return ::revisited::getTypeIndex<::revisited::EmptyVisitable>();           \
+  ::revisited::TypeID visitableType() const override {                         \
+    return ::revisited::getTypeID<::revisited::EmptyVisitable>();              \
   }

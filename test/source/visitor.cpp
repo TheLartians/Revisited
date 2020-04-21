@@ -322,7 +322,7 @@ TEST_CASE("Empty Visitable") {
   REQUIRE_THROWS_AS(visitor_cast<int>(std::as_const(v)),
                     InvalidVisitorException);
   REQUIRE(visitor_cast<const int *>(&std::as_const(v)) == nullptr);
-  REQUIRE(v.visitableType() == getTypeIndex<void>());
+  REQUIRE(v.visitableType() == getTypeID<void>());
 
   SUBCASE("Visitor") {
     Visitor<> visitor;
@@ -344,7 +344,7 @@ TEST_CASE_TEMPLATE("Numeric Visitable", TestType, char, int, float, double,
       DataVisitablePrototype<TestType, CastTypes, ConstCastTypes>;
 
   DVisitable v(TestType(42));
-  REQUIRE(v.visitableType() == getTypeIndex<TestType>());
+  REQUIRE(v.visitableType() == getTypeID<TestType>());
 
   SUBCASE("implicit value casting") {
     REQUIRE(visitor_cast<char>(v) == 42);

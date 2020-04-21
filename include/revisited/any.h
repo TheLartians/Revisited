@@ -179,9 +179,9 @@ public:
   /**
    * the type of the stored value
    */
-  TypeIndex type() const {
+  TypeID type() const {
     if (!data) {
-      return revisited::getTypeIndex<void>();
+      return revisited::getTypeID<void>();
     }
     return data->visitableType();
   }

@@ -19,9 +19,9 @@ TEST_CASE("call without arguments") {
     auto value = 0;
     f = [&]() { value = 42; };
 
-    REQUIRE(f.returnType() == getStaticTypeIndex<void>());
+    REQUIRE(f.returnType() == getTypeID<void>());
     REQUIRE(f.argumentCount() == 0);
-    REQUIRE(f.argumentType(0) == getStaticTypeIndex<void>());
+    REQUIRE(f.argumentType(0) == getTypeID<void>());
     REQUIRE(!f.isVariadic());
 
     REQUIRE_NOTHROW(f());
@@ -31,9 +31,9 @@ TEST_CASE("call without arguments") {
   SUBCASE("return value") {
     f = []() -> int { return 42; };
 
-    REQUIRE(f.returnType() == getStaticTypeIndex<int>());
+    REQUIRE(f.returnType() == getTypeID<int>());
     REQUIRE(f.argumentCount() == 0);
-    REQUIRE(f.argumentType(0) == getStaticTypeIndex<void>());
+    REQUIRE(f.argumentType(0) == getTypeID<void>());
     REQUIRE(!f.isVariadic());
 
     REQUIRE(f().get<int>() == 42);
@@ -47,13 +47,13 @@ TEST_CASE("call without arguments") {
 
 TEST_CASE("call with arguments") {
   AnyFunction f = [](int a, double b) { return a - b; };
-  REQUIRE(f.returnType() == getStaticTypeIndex<double>());
+  REQUIRE(f.returnType() == getTypeID<double>());
   REQUIRE(f.argumentCount() == 2);
-  REQUIRE(f.argumentType(0) == getStaticTypeIndex<int>());
-  REQUIRE(f.argumentType(1) == getStaticTypeIndex<double>());
+  REQUIRE(f.argumentType(0) == getTypeID<int>());
+  REQUIRE(f.argumentType(1) == getTypeID<double>());
   REQUIRE(!f.isVariadic());
 
-  REQUIRE(f(1, 2).type() == getStaticTypeIndex<double>());
+  REQUIRE(f(1, 2).type() == getTypeID<double>());
   REQUIRE(f(1, 2).get<int>() == -1);
   REQUIRE(f(2, 1).get<int>() == 1);
   REQUIRE(f(1.5, 1).get<double>() == 0);
@@ -103,10 +103,10 @@ TEST_CASE("call with any arguments") {
       return result;
     };
 
-    REQUIRE(f.returnType() == getStaticTypeIndex<double>());
+    REQUIRE(f.returnType() == getTypeID<double>());
     REQUIRE(f.isVariadic());
     REQUIRE(f.argumentCount() == 0);
-    REQUIRE(f.argumentType(42) == getStaticTypeIndex<Any>());
+    REQUIRE(f.argumentType(42) == getTypeID<Any>());
 
     REQUIRE(f().get<int>() == 0);
     REQUIRE(f(1, 2).get<float>() == 3);
