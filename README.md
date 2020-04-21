@@ -102,12 +102,12 @@ With [CPM](https://github.com/TheLartians/CPM), revisited::Visitor can be used i
 
 ```cmake
 CPMAddPackage(
-  NAME LarsVisitor
+  NAME Revisited
   GIT_REPOSITORY https://github.com/TheLartians/Visitor.git
   VERSION 1.7
 )
 
-target_link_libraries(myProject LarsVisitor)
+target_link_libraries(myProject Revisited)
 ```
 
 Alternatively, the repository can be cloned locally and included it via `add_subdirectory`. Installing revisited::Visitor will make it findable in CMake's `find_package`.
@@ -122,5 +122,5 @@ There is an benchmark suite included in the repository that compares the pure co
 git clone https://github.com/TheLartians/Visitor.git
 cmake -HVisitor/benchmark -BVisitor/build/benchmark -DCMAKE_BUILD_TYPE=Release
 cmake --build Visitor/build/benchmark -j
-./Visitor/build/benchmark/LarsVisitorBenchmark
+./Visitor/build/benchmark/RevisitedBenchmark
 ```
