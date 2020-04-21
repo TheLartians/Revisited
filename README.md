@@ -121,6 +121,6 @@ There is an benchmark suite included in the repository that compares the pure co
 ```bash
 git clone https://github.com/TheLartians/Visitor.git
 cmake -HVisitor/benchmark -BVisitor/build/benchmark -DCMAKE_BUILD_TYPE=Release
-cmake --build Visitor/build/benchmark -j
+cmake --build Visitor/build/benchmark -j8
 ./Visitor/build/benchmark/RevisitedBenchmark
 ```

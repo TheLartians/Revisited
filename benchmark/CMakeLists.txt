@@ -10,8 +10,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/CPM.cmake)
 
 CPMAddPackage(
   NAME Revisited
-  SOURCE_DIR https://github.com/TheLartians/Visitor.git
-  GIT_TAG master
+  SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/..
 )
 
 CPMAddPackage(
