@@ -211,10 +211,15 @@ TEST_CASE("visitor_inheritance") {
     REQUIRE(visitor.getTypeName(*b) == 'B');
     REQUIRE(visitor.getTypeName(*c) == 'C');
     REQUIRE_THROWS_AS(visitor.getTypeName(*x), InvalidVisitorException);
-    // TODO
-    // REQUIRE_THROWS_WITH(visitor.getTypeName(*x),
-    // Catch::Matchers::Contains("X") && Catch::Matchers::Contains("invalid
-    // visitor"));
+
+    try {
+      visitor.getTypeName(*x);
+    } catch (InvalidVisitorException &error) {
+      std::string what = error.what();
+      CHECK(what.find("invalid visitor for") != std::string::npos);
+      CHECK(what.find("Expected types") != std::string::npos);
+    }
+
     REQUIRE(visitor.getTypeName(*d) == 'A');
     REQUIRE(visitor.getTypeName(*e) == 'A');
     REQUIRE(visitor.getTypeName(*f) == 'B');

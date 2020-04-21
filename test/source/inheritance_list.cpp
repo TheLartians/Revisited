@@ -25,9 +25,8 @@ TEST_CASE("TypeList") {
 
   std::stringstream stream;
   stream << getTypeIndex<TypeList<A, B>>();
-  // TODO
-  // REQUIRE_THAT(stream.str(),Catch::Matchers::Contains("A") &&
-  // Catch::Matchers::Contains("B"));
+  REQUIRE(stream.str().find("A") != std::string::npos);
+  REQUIRE(stream.str().find("B") != std::string::npos);
 }
 
 template <class T, unsigned V> using O = OrderedType<T, V>;

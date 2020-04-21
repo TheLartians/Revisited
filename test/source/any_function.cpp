@@ -13,9 +13,7 @@ TEST_CASE("call without arguments") {
   REQUIRE_THROWS_AS(f.argumentCount(), UndefinedAnyFunctionException);
   REQUIRE_THROWS_AS(f.argumentType(0), UndefinedAnyFunctionException);
 
-  // TODO
-  // REQUIRE_THROWS_WITH(f(), Catch::Matchers::Contains("undefined
-  // AnyFunction"));
+  REQUIRE_THROWS_WITH(f(), "use of undefined AnyFunction");
 
   SUBCASE("no return value") {
     auto value = 0;
@@ -43,9 +41,8 @@ TEST_CASE("call without arguments") {
 
   REQUIRE(bool(f) == true);
   REQUIRE_THROWS_AS(f(1), AnyFunctionInvalidArgumentCountException);
-  // TODO
-  // REQUIRE_THROWS_WITH(f(1), Catch::Matchers::Contains("wrong number of
-  // arguments"));
+  REQUIRE_THROWS_WITH(f(1),
+                      "called AnyFunction with wrong number of arguments");
 }
 
 TEST_CASE("call with arguments") {

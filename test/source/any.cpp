@@ -10,9 +10,7 @@ TEST_CASE("AnyBasics") {
     CHECK(v.type() == getStaticTypeIndex<void>());
     CHECK(bool(v) == false);
     CHECK_THROWS_AS(v.get<int>(), UndefinedAnyException);
-    // TODO: update for doctest
-    // CHECK_THROWS_WITH(v.get<int>(), Catch::Matchers::Contains("undefined
-    // Any"));
+    CHECK_THROWS_WITH(v.get<int>(), "called get() on undefined Any");
   }
 
   SUBCASE("with value") {
