@@ -8,3 +8,6 @@ parsers:
       loop: yes
       method: no
       macro: no
+
+ignore:
+  - "test"
