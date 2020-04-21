@@ -28,4 +28,4 @@ jobs:
     - name: collect code coverage
       run: |
         find . -name "*.gcno"
-        bash <(curl -s https://codecov.io/bash) -X gcov || echo "Codecov did not collect coverage reports"
+        bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
