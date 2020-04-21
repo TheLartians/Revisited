@@ -34,7 +34,7 @@ jobs:
 
     - name: collect code coverage
       run: |
-        printf '#!/bin/bash\nexec llvm-cov gcov-9 "$@"' > llvm-gcov.sh
+        printf '#!/bin/bash\nexec llvm-cov-9 gcov-9 "$@"' > llvm-gcov.sh
         chmod +x llvm-gcov.sh
         lcov --gcov-tool "$(pwd)/llvm-gcov.sh" --directory . --exclude "*_deps*" --capture --no-external --quiet --output-file  coverage.info
         lcov --gcov-tool "$(pwd)/llvm-gcov.sh" --list coverage.info
