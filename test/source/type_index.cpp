@@ -1,6 +1,5 @@
 #include <doctest/doctest.h>
 
-#include <ostream>
 #include <revisited/type_index.h>
 #include <sstream>
 
