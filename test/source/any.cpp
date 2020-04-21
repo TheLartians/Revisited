@@ -8,6 +8,7 @@ TEST_CASE("AnyBasics") {
 
   SUBCASE("undefined") {
     CHECK(v.type() == getTypeID<void>());
+    CHECK(v.tryGet<int>() == nullptr);
     CHECK(bool(v) == false);
     CHECK_THROWS_AS(v.get<int>(), UndefinedAnyException);
     CHECK_THROWS_WITH(v.get<int>(), "called get() on undefined Any");
@@ -204,6 +205,7 @@ TEST_CASE("Visitable inheritance") {
   CHECK(v.get<A &>().name == 'A');
   CHECK(v.get<const B &>().name == 'B');
   CHECK_THROWS_AS(v.get<C &>(), InvalidVisitorException);
+  CHECK_THROWS_AS(v.get<std::shared_ptr<C>>(), InvalidVisitorException);
   CHECK(v.get<D &>().name == 'D');
   CHECK(v.get<const E &>().name == 'E');
   CHECK(v.get<std::shared_ptr<A>>()->name == 'A');
@@ -248,12 +250,14 @@ TEST_CASE("AnyReference") {
 
 TEST_CASE("Accept visitors") {
   Any x = 1;
+  Any y;
 
   SUBCASE("Visitor") {
     struct Visitor : revisited::Visitor<int &> {
       void visit(int &) override {}
     } visitor;
     CHECK_NOTHROW(x.accept(visitor));
+    CHECK_THROWS_AS(y.accept(visitor), UndefinedAnyException);
   }
 
   SUBCASE("ConstVisitor") {
@@ -261,6 +265,7 @@ TEST_CASE("Accept visitors") {
       void visit(const int &) override {}
     } visitor;
     CHECK_NOTHROW(std::as_const(x).accept(visitor));
+    CHECK_THROWS_AS(y.accept(visitor), UndefinedAnyException);
   }
 
   SUBCASE("RecursiveVisitor") {
@@ -268,6 +273,7 @@ TEST_CASE("Accept visitors") {
       bool visit(int &) override { return true; }
     } visitor;
     CHECK(x.accept(visitor));
+    CHECK_THROWS_AS(y.accept(visitor), UndefinedAnyException);
   }
 
   SUBCASE("ConstRecursiveVisitor") {
@@ -275,6 +281,7 @@ TEST_CASE("Accept visitors") {
       bool visit(const int &) override { return true; }
     } visitor;
     CHECK(std::as_const(x).accept(visitor));
+    CHECK_THROWS_AS(y.accept(visitor), UndefinedAnyException);
   }
 }
 
