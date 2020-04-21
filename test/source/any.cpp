@@ -355,8 +355,8 @@ struct C : public B {
 };
 } // namespace
 
-LARS_ANY_DECLARE_BASES(B, A);
-LARS_ANY_DECLARE_BASES(C, B);
+REVISITED_DECLARE_BASES(B, A);
+REVISITED_DECLARE_BASES(C, B);
 
 TEST_CASE("base conversions") {
   revisited::Any v;
