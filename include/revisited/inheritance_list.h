@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <ostream>
 #include <type_traits>
 
 #include <revisited/type_index.h>
@@ -14,8 +15,9 @@ template <class T, unsigned O> struct OrderedType {
 };
 
 template <class OStream, class T, unsigned O>
-OStream &operator<<(OStream &stream, const OrderedType<T, O> &) {
-  stream << '[' << revisited::get_type_name<T>() << ',' << O << ']';
+inline std::ostream &operator<<(std::ostream &stream,
+                                const OrderedType<T, O> &) {
+  stream << '[' << revisited::getTypeID<T>().name << ',' << O << ']';
   return stream;
 }
 
@@ -125,7 +127,8 @@ public:
 };
 
 template <class OStream, typename... Types>
-OStream &operator<<(OStream &stream, const InheritanceList<Types...> &) {
+inline std::ostream &operator<<(std::ostream &stream,
+                                const InheritanceList<Types...> &) {
   stream << '{';
   auto forEach = [](auto...) {};
   auto print = [&](auto t) {

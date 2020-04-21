@@ -179,9 +179,9 @@ public:
   /**
    * the type of the stored value
    */
-  TypeIndex type() const {
+  TypeID type() const {
     if (!data) {
-      return revisited::getTypeIndex<void>();
+      return revisited::getTypeID<void>();
     }
     return data->visitableType();
   }
@@ -281,7 +281,7 @@ template <class T> struct AnyVisitable {
 /**
  * Numeric any conversions.
  */
-#define LARS_ANY_DEFINE_SCALAR_TYPE(Type, Conversions)                         \
+#define REVISITED_DEFINE_SCALAR_TYPE(Type, Conversions)                        \
   template <> struct revisited::AnyVisitable<Type> {                           \
     using Types = typename revisited::TypeList<                                \
         Type &, const Type &>::template Merge<Conversions>;                    \
@@ -290,27 +290,27 @@ template <class T> struct AnyVisitable {
     using type = revisited::DataVisitablePrototype<Type, Types, ConstTypes>;   \
   }
 
-#ifndef LARS_ANY_NUMERIC_TYPES
-#define LARS_ANY_NUMERIC_TYPES                                                 \
+#ifndef REVISITED_NUMERIC_TYPES
+#define REVISITED_NUMERIC_TYPES                                                \
   ::revisited::TypeList<char, unsigned char, short int, unsigned short int,    \
                         int, unsigned int, long int, unsigned long int,        \
                         long long int, unsigned long long int, float, double,  \
                         long double>
 #endif
 
-LARS_ANY_DEFINE_SCALAR_TYPE(char, LARS_ANY_NUMERIC_TYPES);
-LARS_ANY_DEFINE_SCALAR_TYPE(unsigned char, LARS_ANY_NUMERIC_TYPES);
-LARS_ANY_DEFINE_SCALAR_TYPE(short int, LARS_ANY_NUMERIC_TYPES);
-LARS_ANY_DEFINE_SCALAR_TYPE(unsigned short int, LARS_ANY_NUMERIC_TYPES);
-LARS_ANY_DEFINE_SCALAR_TYPE(int, LARS_ANY_NUMERIC_TYPES);
-LARS_ANY_DEFINE_SCALAR_TYPE(unsigned int, LARS_ANY_NUMERIC_TYPES);
-LARS_ANY_DEFINE_SCALAR_TYPE(long int, LARS_ANY_NUMERIC_TYPES);
-LARS_ANY_DEFINE_SCALAR_TYPE(unsigned long int, LARS_ANY_NUMERIC_TYPES);
-LARS_ANY_DEFINE_SCALAR_TYPE(long long int, LARS_ANY_NUMERIC_TYPES);
-LARS_ANY_DEFINE_SCALAR_TYPE(unsigned long long int, LARS_ANY_NUMERIC_TYPES);
-LARS_ANY_DEFINE_SCALAR_TYPE(float, LARS_ANY_NUMERIC_TYPES);
-LARS_ANY_DEFINE_SCALAR_TYPE(double, LARS_ANY_NUMERIC_TYPES);
-LARS_ANY_DEFINE_SCALAR_TYPE(long double, LARS_ANY_NUMERIC_TYPES);
+REVISITED_DEFINE_SCALAR_TYPE(char, REVISITED_NUMERIC_TYPES);
+REVISITED_DEFINE_SCALAR_TYPE(unsigned char, REVISITED_NUMERIC_TYPES);
+REVISITED_DEFINE_SCALAR_TYPE(short int, REVISITED_NUMERIC_TYPES);
+REVISITED_DEFINE_SCALAR_TYPE(unsigned short int, REVISITED_NUMERIC_TYPES);
+REVISITED_DEFINE_SCALAR_TYPE(int, REVISITED_NUMERIC_TYPES);
+REVISITED_DEFINE_SCALAR_TYPE(unsigned int, REVISITED_NUMERIC_TYPES);
+REVISITED_DEFINE_SCALAR_TYPE(long int, REVISITED_NUMERIC_TYPES);
+REVISITED_DEFINE_SCALAR_TYPE(unsigned long int, REVISITED_NUMERIC_TYPES);
+REVISITED_DEFINE_SCALAR_TYPE(long long int, REVISITED_NUMERIC_TYPES);
+REVISITED_DEFINE_SCALAR_TYPE(unsigned long long int, REVISITED_NUMERIC_TYPES);
+REVISITED_DEFINE_SCALAR_TYPE(float, REVISITED_NUMERIC_TYPES);
+REVISITED_DEFINE_SCALAR_TYPE(double, REVISITED_NUMERIC_TYPES);
+REVISITED_DEFINE_SCALAR_TYPE(long double, REVISITED_NUMERIC_TYPES);
 
 /**
  * Char arrays are captured as strings.
@@ -369,7 +369,7 @@ template <typename... Args> struct GetAnyVisitableTypes {
 
 } // namespace revisited
 
-#define LARS_ANY_DECLARE_BASES(TYPE, ...)                                      \
+#define REVISITED_DECLARE_BASES(TYPE, ...)                                     \
   template <> struct revisited::AnyVisitable<TYPE> {                           \
     using Types = revisited::TypeList<TYPE &>::Merge<                          \
         typename GetAnyVisitableTypes<__VA_ARGS__>::Types>;                    \

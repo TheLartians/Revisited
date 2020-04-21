@@ -35,8 +35,8 @@ class AnyArguments : public std::vector<AnyReference> {
 
 struct SpecificAnyFunctionBase {
   virtual Any call(const AnyArguments &args) const = 0;
-  virtual TypeIndex returnType() const = 0;
-  virtual TypeIndex argumentType(size_t) const = 0;
+  virtual TypeID returnType() const = 0;
+  virtual TypeID argumentType(size_t) const = 0;
   virtual size_t argumentCount() const = 0;
   virtual bool isVariadic() const = 0;
   virtual ~SpecificAnyFunctionBase() {}
@@ -72,16 +72,16 @@ public:
     return callWithArgumentIndices(args, Indices());
   }
 
-  TypeIndex returnType() const override { return getTypeIndex<R>(); }
+  TypeID returnType() const override { return getTypeID<R>(); }
 
   size_t argumentCount() const override { return sizeof...(Args); }
 
-  TypeIndex argumentType(size_t i) const override {
+  TypeID argumentType(size_t i) const override {
     if (i >= sizeof...(Args)) {
-      return getTypeIndex<void>();
+      return getTypeID<void>();
     } else {
-      std::array<TypeIndex, sizeof...(Args)> argumentTypes{
-          getTypeIndex<typename std::decay<Args>::type>()...};
+      std::array<TypeID, sizeof...(Args)> argumentTypes{
+          getTypeID<typename std::decay<Args>::type>()...};
       return argumentTypes[i];
     }
   }
@@ -108,11 +108,11 @@ public:
     }
   }
 
-  TypeIndex returnType() const override { return getTypeIndex<R>(); }
+  TypeID returnType() const override { return getTypeID<R>(); }
 
   size_t argumentCount() const override { return 0; }
 
-  TypeIndex argumentType(size_t) const override { return getTypeIndex<Any>(); }
+  TypeID argumentType(size_t) const override { return getTypeID<Any>(); }
 
   bool isVariadic() const override { return true; }
 };
@@ -181,14 +181,14 @@ public:
 
   explicit operator bool() const { return bool(specific); }
 
-  TypeIndex returnType() const {
+  TypeID returnType() const {
     if (!specific) {
       throw UndefinedAnyFunctionException();
     }
     return specific->returnType();
   }
 
-  TypeIndex argumentType(size_t i) const {
+  TypeID argumentType(size_t i) const {
     if (!specific) {
       throw UndefinedAnyFunctionException();
     }

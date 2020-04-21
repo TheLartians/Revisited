@@ -24,7 +24,7 @@ TEST_CASE("TypeList") {
                        TypeList<std::string>>::value);
 
   std::stringstream stream;
-  stream << getTypeIndex<TypeList<A, B>>();
+  stream << getTypeID<TypeList<A, B>>().name;
   REQUIRE(stream.str().find("A") != std::string::npos);
   REQUIRE(stream.str().find("B") != std::string::npos);
 }
