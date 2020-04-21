@@ -25,14 +25,6 @@ jobs:
         cd build
         ctest --build-config Debug
 
-    - name: install code coverage tools
-      run: |
-        wget https://github.com/linux-test-project/lcov/releases/download/v1.14/lcov-1.14.tar.gz
-        tar xvfz lcov-1.14.tar.gz;
-        sudo make install -C lcov-1.14
-
     - name: collect code coverage
       run: |
-        lcov --gcov-tool $(which gcov-9) --directory . --exclude "*_deps*" --capture --no-external --quiet --output-file  coverage.info
-        lcov --gcov-tool $(which gcov-9) --list coverage.info
-        bash <(curl -s https://codecov.io/bash) -X gcov || echo "Codecov did not collect coverage reports"
+        bash <(curl -s https://codecov.io/bash) -x gcov-9 || echo "Codecov did not collect coverage reports"
