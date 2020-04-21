@@ -281,7 +281,7 @@ template <class T> struct AnyVisitable {
 /**
  * Numeric any conversions.
  */
-#define REVISITED_DEFINE_SCALAR_TYPE(Type, Conversions)                         \
+#define REVISITED_DEFINE_SCALAR_TYPE(Type, Conversions)                        \
   template <> struct revisited::AnyVisitable<Type> {                           \
     using Types = typename revisited::TypeList<                                \
         Type &, const Type &>::template Merge<Conversions>;                    \
@@ -291,7 +291,7 @@ template <class T> struct AnyVisitable {
   }
 
 #ifndef REVISITED_NUMERIC_TYPES
-#define REVISITED_NUMERIC_TYPES                                                 \
+#define REVISITED_NUMERIC_TYPES                                                \
   ::revisited::TypeList<char, unsigned char, short int, unsigned short int,    \
                         int, unsigned int, long int, unsigned long int,        \
                         long long int, unsigned long long int, float, double,  \
@@ -369,7 +369,7 @@ template <typename... Args> struct GetAnyVisitableTypes {
 
 } // namespace revisited
 
-#define REVISITED_DECLARE_BASES(TYPE, ...)                                      \
+#define REVISITED_DECLARE_BASES(TYPE, ...)                                     \
   template <> struct revisited::AnyVisitable<TYPE> {                           \
     using Types = revisited::TypeList<TYPE &>::Merge<                          \
         typename GetAnyVisitableTypes<__VA_ARGS__>::Types>;                    \

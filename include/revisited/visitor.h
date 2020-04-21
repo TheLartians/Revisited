@@ -567,7 +567,7 @@ visitor_cast(VisitableBase &v) {
  * Macro for removing visitable methods for a class inheriting from multiple
  * visitable classes.
  */
-#define LARS_VISITOR_RESET_VISITOR                                             \
+#define REVISITED_RESET_VISITOR                                                \
   using InheritanceList = ::revisited::InheritanceList<>;                      \
   using Type = ::revisited::EmptyVisitable;                                    \
   using Types = ::revisited::TypeList<>;                                       \
