@@ -372,17 +372,32 @@ struct IndirectVisitableData {};
  * const, otherwise `Types`. When accepting a visitor, `data` will be statically
  * casted to the according type.
  */
-template <class T, class _Types, class _ConstTypes, class BaseCast = T>
-class DataVisitablePrototype : public virtual VisitableBase,
-                               public IndirectVisitableBase {
+template <class T, class _Types, class _ConstTypes, class BaseCast = T,
+          typename Enable = void>
+class DataVisitablePrototype;
+
+template <class T, class _Types, class _ConstTypes, class BaseCast>
+class DataVisitablePrototype<
+    T, _Types, _ConstTypes, BaseCast,
+    typename std::enable_if<std::is_abstract<T>::value>::type>
+    : public virtual VisitableBase, public IndirectVisitableBase {
+public:
+  using Type = T;
+  using Types = _Types;
+  using ConstTypes = _ConstTypes;
+};
+
+template <class T, class _Types, class _ConstTypes, class BaseCast>
+class DataVisitablePrototype<
+    T, _Types, _ConstTypes, BaseCast,
+    typename std::enable_if<!std::is_abstract<T>::value>::type>
+    : public virtual VisitableBase, public IndirectVisitableBase {
 public:
   using Type = T;
   using Types = _Types;
   using ConstTypes = _ConstTypes;
 
-  // Store a dummy object if class is abstract (would break type checks
-  // elsewhere)
-  typename std::conditional<!std::is_abstract<T>::value, T, void *>::type data;
+  T data;
 
   template <typename... Args>
   DataVisitablePrototype(Args &&... args) : data(std::forward<Args>(args)...) {}
