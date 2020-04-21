@@ -61,7 +61,6 @@ doctest_discover_tests(RevisitedTests)
 # ---- code coverage ----
 
 if (ENABLE_TEST_COVERAGE)
-  SET(CMAKE_CXX_FLAGS "-O0")
   target_compile_options(Revisited INTERFACE -O0 -g -fprofile-arcs -ftest-coverage)
   target_link_options(Revisited INTERFACE -fprofile-arcs -ftest-coverage)
 endif()

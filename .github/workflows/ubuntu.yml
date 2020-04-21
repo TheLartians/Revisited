@@ -27,4 +27,11 @@ jobs:
 
     - name: collect code coverage
       run: |
-        bash <(curl -s https://codecov.io/bash) -x gcov-9 || echo "Codecov did not collect coverage reports"
+        wget https://github.com/linux-test-project/lcov/releases/download/v1.14/lcov-1.14.tar.gz
+        tar xvfz lcov-1.14.tar.gz;
+        sudo make install -C lcov-1.14
+        printf '#!/bin/bash\nexec llvm-cov gcov-9 "$@"' > llvm-gcov.sh
+        chmod +x llvm-gcov.sh
+        lcov --gcov-tool "$(pwd)/llvm-gcov.sh" --directory . --exclude "*_deps*" --capture --no-external --quiet --output-file  coverage.info
+        lcov --gcov-tool "$(pwd)/llvm-gcov.sh" --list coverage.info
+        bash <(curl -s https://codecov.io/bash) -X gcov || echo "Codecov did not collect coverage reports"
