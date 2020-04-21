@@ -27,4 +27,4 @@ jobs:
 
     - name: collect code coverage
       run: |
-        bash <(curl -s https://codecov.io/bash)  -X gcov -x gcov-9 || echo "Codecov did not collect coverage reports"
+        bash <(curl -s https://codecov.io/bash) -x gcov-9 || echo "Codecov did not collect coverage reports"
