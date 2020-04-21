@@ -33,8 +33,6 @@ jobs:
 
     - name: collect code coverage
       run: |
-        # printf '#!/bin/bash\nexec llvm-cov-9 gcov "$@"' > llvm-gcov.sh
-        # chmod +x llvm-gcov.sh
-        lcov --gcov-tool gcov-9 --directory . --exclude "*_deps*" --capture --no-external --quiet --output-file  coverage.info
-        lcov --gcov-tool gcov-9 --list coverage.info
+        lcov --gcov-tool $(which gcov-9) --directory . --exclude "*_deps*" --capture --no-external --quiet --output-file  coverage.info
+        lcov --gcov-tool $(which gcov-9) --list coverage.info
         bash <(curl -s https://codecov.io/bash) -X gcov || echo "Codecov did not collect coverage reports"
