@@ -42,11 +42,11 @@ private:
   getVisitorForWorker(const revisited::StaticTypeIndex &idx) {
     if (idx == getStaticTypeIndex<First>()) {
       return static_cast<Single<First> *>(this);
-    }
-    if constexpr (sizeof...(Rest) > 0) {
+    } else if constexpr (sizeof...(Rest) > 0) {
       return getVisitorForWorker<Rest...>(idx);
+    } else {
+      return nullptr;
     }
-    return nullptr;
   }
 
 public:
