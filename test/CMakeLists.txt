@@ -61,6 +61,5 @@ doctest_discover_tests(RevisitedTests)
 # ---- code coverage ----
 
 if (ENABLE_TEST_COVERAGE)
-  target_compile_options(Revisited INTERFACE -O0 -g -fprofile-arcs -ftest-coverage --coverage)
-  target_link_options(Revisited INTERFACE "--coverage")
+  target_compile_options(RevisitedTests INTERFACE -O0 -g -fprofile-arcs -ftest-coverage --coverage)
 endif()
