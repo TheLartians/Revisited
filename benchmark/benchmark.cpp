@@ -110,7 +110,7 @@ static void ClassicVisitor(benchmark::State &state) {
   }
 }
 
-static void LarsVisitor(benchmark::State &state) {
+static void Revisited(benchmark::State &state) {
   using namespace visitor;
   std::shared_ptr<A> b = std::make_shared<B>();
   std::shared_ptr<A> d = std::make_shared<D>();
@@ -163,7 +163,7 @@ static void DynamicCast(benchmark::State &state) {
 }
 
 BENCHMARK(ClassicVisitor);
-BENCHMARK(LarsVisitor);
+BENCHMARK(Revisited);
 BENCHMARK(DynamicVisitor);
 
 BENCHMARK(VisitorCast);

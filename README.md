@@ -102,25 +102,24 @@ With [CPM](https://github.com/TheLartians/CPM), revisited::Visitor can be used i
 
 ```cmake
 CPMAddPackage(
-  NAME LarsVisitor
+  NAME Revisited
   GIT_REPOSITORY https://github.com/TheLartians/Visitor.git
-  VERSION 1.7
+  VERSION 2.0
 )
 
-target_link_libraries(myProject LarsVisitor)
+target_link_libraries(myProject Revisited)
 ```
 
 Alternatively, the repository can be cloned locally and included it via `add_subdirectory`. Installing revisited::Visitor will make it findable in CMake's `find_package`.
 
 ## Performance
 
-revisited::Visitor uses metaprogramming to determine the inheritance hierachy at compile-time for optimal performance. Compared to the traditional visitor pattern revisited::Visitor requires an additional virtual calls (as the type of the visitor and the visitable object are unknown). With compiler optimizations enabled, these calls should not be noticable in real-world applications.
+revisited::Visitor uses meta-programming to determine the inheritance hierarchy at compile-time for optimal performance. Compared to the traditional visitor pattern revisited::Visitor requires an additional virtual calls (as the type of the visitor and the visitable object are unknown). With compiler optimizations enabled, these calls should be hardly noticeable in real-world applications.
 
 There is an benchmark suite included in the repository that compares the pure cost of the different approaches.
 
 ```bash
-git clone https://github.com/TheLartians/Visitor.git
-cmake -HVisitor/benchmark -BVisitor/build/benchmark -DCMAKE_BUILD_TYPE=Release
-cmake --build Visitor/build/benchmark -j
-./Visitor/build/benchmark/LarsVisitorBenchmark
+cmake -Hbenchmark -Bbuild/bench -DCMAKE_BUILD_TYPE=Release
+cmake --build build/bench -j8
+./build/bench/RevisitedBenchmark
 ```
