@@ -1,29 +1,32 @@
-[![Build Status](https://travis-ci.com/TheLartians/Visitor.svg?branch=master)](https://travis-ci.com/TheLartians/Visitor)
-[![codecov](https://codecov.io/gh/TheLartians/Visitor/branch/master/graph/badge.svg)](https://codecov.io/gh/TheLartians/Visitor)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/eb1f529643bd4e09a92c9dfc5b5920c4)](https://www.codacy.com/app/TheLartians/Visitor?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=TheLartians/Visitor&amp;utm_campaign=Badge_Grade)
+[![Actions Status](https://github.com/TheLartians/Revisited/workflows/MacOS/badge.svg)](https://github.com/TheLartians/Revisited/actions)
+[![Actions Status](https://github.com/TheLartians/Revisited/workflows/Windows/badge.svg)](https://github.com/TheLartians/Revisited/actions)
+[![Actions Status](https://github.com/TheLartians/Revisited/workflows/Ubuntu/badge.svg)](https://github.com/TheLartians/Revisited/actions)
+[![Actions Status](https://github.com/TheLartians/Revisited/workflows/Style/badge.svg)](https://github.com/TheLartians/Revisited/actions)
+[![Actions Status](https://github.com/TheLartians/Revisited/workflows/Install/badge.svg)](https://github.com/TheLartians/Revisited/actions)
+[![codecov](https://codecov.io/gh/TheLartians/Revisited/branch/master/graph/badge.svg)](https://codecov.io/gh/TheLartians/Revisited)
 
-# lars::Visitor
+# Revisited
 
-A C++17 acyclic visitor template and inheritance-aware any and any-function class. Using lars::Visitor greatly reduces the boilerplate code required for implementing the [visitor pattern](https://en.wikipedia.org/wiki/Visitor_pattern) in C++. It uses only [compile time type information](https://github.com/Manu343726/ctti) and has better performance than solutions relying on run time type information such as `dynamic_cast`.
+A C++17 acyclic visitor template and inheritance-aware any and any-function class. Using revisited::Visitor greatly reduces the boilerplate code required for implementing the [visitor pattern](https://en.wikipedia.org/wiki/Visitor_pattern) in C++. It uses only [compile time type information](https://github.com/Manu343726/ctti) and has better performance than solutions relying on run time type information such as `dynamic_cast`.
 
 ## Examples
 
 See the [examples directory](https://github.com/TheLartians/Visitor/tree/master/examples) for full examples.
 
-### lars::Visitor Examples
+### Revisited Examples
 
 #### Simple Visitor
 
 ```cpp
 #include <memory>
 #include <iostream>
-#include <lars/visitor.h>
+#include <revisited/visitor.h>
 
-struct Base: public virtual lars::VisitableBase { };
-struct A: public Base, public lars::Visitable<A> { };
-struct B: public Base, public lars::Visitable<B> { };
+struct Base: public virtual revisited::VisitableBase { };
+struct A: public Base, public revisited::Visitable<A> { };
+struct B: public Base, public revisited::Visitable<B> { };
 
-struct Visitor: public lars::Visitor<A &,B &> {
+struct Visitor: public revisited::Visitor<A &,B &> {
   void visit(A &){ std::cout << "Visiting A" << std::endl; }
   void visit(B &){ std::cout << "Visiting B" << std::endl; }
 };
@@ -40,23 +43,23 @@ int main() {
 
 #### Derived Classes
 
-lars::Visitor also understands derived classes and classes with multiple visitable base classes. Virtual visitable base classes are also supported. When visiting a derived object, the first class matching the visitor is used (starting from parent classes). Multiple and virtual inheritance is fully supported.
+revisited::Visitor also understands derived classes and classes with multiple visitable base classes. Virtual visitable base classes are also supported. When visiting a derived object, the first class matching the visitor is used (starting from parent classes). Multiple and virtual inheritance is fully supported.
 
 ```cpp
 // C is inherited from A (both can be visited)
-struct C: public lars::DerivedVisitable<C, A> { };
+struct C: public revisited::DerivedVisitable<C, A> { };
 // D is inherited from A and B (A and B can be visited)
-struct D: public lars::JoinVisitable<A, B> { };
+struct D: public revisited::JoinVisitable<A, B> { };
 // E is virtually inherited from  A and B (E, A and B can be visited)
-struct E: public lars::DerivedVisitable<E, lars::VirtualVisitable<A, B>> { };
+struct E: public revisited::DerivedVisitable<E, revisited::VirtualVisitable<A, B>> { };
 ```
 
-### lars::Any Examples
+### revisited::Any Examples
 
 #### Implicit casting
 
 ```cpp
-lars::Any v;
+revisited::Any v;
 v = 42;
 std::cout << v.get<int>() << std::endl; // -> 42
 std::cout << v.get<double>() << std::endl; // -> 42
@@ -68,7 +71,7 @@ std::cout << v.get<std::string>() << std::endl; // -> Hello Any!
 
 ```cpp
 int x = 42;
-lars::Any a = std::reference_wrapper(x);
+revisited::Any a = std::reference_wrapper(x);
 std::cout << a.get<double>() << std::endl; // -> 42
 std::cout << &a.get<int&>() == &x << std::endl; // -> 1
 ```
@@ -79,23 +82,23 @@ std::cout << &a.get<int&>() == &x << std::endl; // -> 1
 // inheritance aware
 struct MyClassBase{ int value; };
 struct MyClass: public MyClassBase{ MyClass(int value):MyClassBase{value}{ } };
-lars::Any v;
+revisited::Any v;
 v.setWithBases<MyClass, MyClassBase>(42);
 std::cout << v.get<MyClassBase &>().value << std::endl; // -> 42
 std::cout << v.get<MyClass &>().value << std::endl; // -> 42
 ```
 
-### lars::AnyFunction Examples
+### revisited::AnyFunction Examples
 
 ```cpp
-lars::AnyFunction f;
+revisited::AnyFunction f;
 f = [](int x, float y){ return x + y; };
 std::cout << f(40,2).get<int>() << std::endl; // -> 42
 ```
 
 ## Installation and usage
 
-With [CPM](https://github.com/TheLartians/CPM), lars::Visitor can be used in a CMake project simply by adding the following to the project's `CMakeLists.txt`.
+With [CPM](https://github.com/TheLartians/CPM), revisited::Visitor can be used in a CMake project simply by adding the following to the project's `CMakeLists.txt`.
 
 ```cmake
 CPMAddPackage(
@@ -107,11 +110,11 @@ CPMAddPackage(
 target_link_libraries(myProject LarsVisitor)
 ```
 
-Alternatively, the repository can be cloned locally and included it via `add_subdirectory`. Installing lars::Visitor will make it findable in CMake's `find_package`.
+Alternatively, the repository can be cloned locally and included it via `add_subdirectory`. Installing revisited::Visitor will make it findable in CMake's `find_package`.
 
 ## Performance
 
-lars::Visitor uses metaprogramming to determine the inheritance hierachy at compile-time for optimal performance. Compared to the traditional visitor pattern lars::Visitor requires an additional virtual calls (as the type of the visitor and the visitable object are unknown). With compiler optimizations enabled, these calls should not be noticable in real-world applications.
+revisited::Visitor uses metaprogramming to determine the inheritance hierachy at compile-time for optimal performance. Compared to the traditional visitor pattern revisited::Visitor requires an additional virtual calls (as the type of the visitor and the visitable object are unknown). With compiler optimizations enabled, these calls should not be noticable in real-world applications.
 
 There is an benchmark suite included in the repository that compares the pure cost of the different approaches.
 

@@ -1,12 +1,11 @@
-#include <catch2/catch.hpp>
-#include <lars/to_string.h>
+#include <doctest/doctest.h>
 
-#include <lars/type_index.h>
-
+#include <revisited/type_index.h>
+#include <sstream>
 
 TEST_CASE("Type Index") {
 
-  using namespace lars;
+  using namespace revisited;
 
   REQUIRE(getStaticTypeIndex<int>() == getStaticTypeIndex<int>());
   REQUIRE(getStaticTypeIndex<float>() == getStaticTypeIndex<float>());
@@ -22,8 +21,22 @@ TEST_CASE("Type Index") {
   REQUIRE(getStaticTypeIndex<B>() != getStaticTypeIndex<int>());
 
   REQUIRE(getStaticTypeIndex<B>() != getStaticTypeIndex<int>());
-  
-  REQUIRE(lars::stream_to_string(getTypeIndex<A>()) == "int");
-  REQUIRE(lars::stream_to_string(getTypeIndex<B>()) == "float");
+}
 
+TEST_CASE("TypeIndex string conversions") {
+  using namespace revisited;
+  using A = int;
+  using B = float;
+
+  std::stringstream stream;
+
+  SUBCASE("int") {
+    stream << getTypeIndex<A>();
+    REQUIRE(stream.str() == "int");
+  }
+
+  SUBCASE("float") {
+    stream << getTypeIndex<B>();
+    REQUIRE(stream.str() == "float");
+  }
 }
