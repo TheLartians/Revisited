@@ -1,5 +1,6 @@
-#include <iostream>
 #include <revisited/any_function.h>
+
+#include <iostream>
 
 int main() {
   revisited::AnyFunction f;

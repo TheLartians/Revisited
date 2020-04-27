@@ -1,94 +1,94 @@
+#include <benchmark/benchmark.h>
 #include <revisited/visitor.h>
 
-#include <benchmark/benchmark.h>
 #include <memory>
 
 namespace classic {
-struct B;
-struct E;
+  struct B;
+  struct E;
 
-struct BEVisitor {
-  virtual void visit(B &) = 0;
-  virtual void visit(E &) = 0;
-};
+  struct BEVisitor {
+    virtual void visit(B &) = 0;
+    virtual void visit(E &) = 0;
+  };
 
-struct A {
-  char a = 'A';
-  virtual void accept(BEVisitor &v) = 0;
-  virtual ~A() {}
-};
+  struct A {
+    char a = 'A';
+    virtual void accept(BEVisitor &v) = 0;
+    virtual ~A() {}
+  };
 
-struct B : public virtual A {
-  char b = 'B';
-  void accept(BEVisitor &v) override { v.visit(*this); }
-};
+  struct B : public virtual A {
+    char b = 'B';
+    void accept(BEVisitor &v) override { v.visit(*this); }
+  };
 
-struct C : public virtual A {
-  char c = 'C';
-};
-struct D : public B, public C {
-  D() { a = b = c = 'D'; };
-};
+  struct C : public virtual A {
+    char c = 'C';
+  };
+  struct D : public B, public C {
+    D() { a = b = c = 'D'; };
+  };
 
-struct E : public A {
-  char e = 'E';
-  void accept(BEVisitor &v) override { v.visit(*this); }
-};
+  struct E : public A {
+    char e = 'E';
+    void accept(BEVisitor &v) override { v.visit(*this); }
+  };
 
-struct BOrEVisitor : public BEVisitor {
-  char result;
-  void visit(B &b) override { result = b.b; }
-  void visit(E &e) override { result = e.e; }
-};
+  struct BOrEVisitor : public BEVisitor {
+    char result;
+    void visit(B &b) override { result = b.b; }
+    void visit(E &e) override { result = e.e; }
+  };
 
-char __attribute__((noinline)) getValue(A &a) {
-  BOrEVisitor visitor;
-  a.accept(visitor);
-  return visitor.result;
-}
-} // namespace classic
+  char __attribute__((noinline)) getValue(A &a) {
+    BOrEVisitor visitor;
+    a.accept(visitor);
+    return visitor.result;
+  }
+}  // namespace classic
 
 namespace dynamic {
-char __attribute__((noinline)) getValue(classic::A &a) {
-  if (auto b = dynamic_cast<classic::B *>(&a)) {
-    return b->b;
-  } else {
-    return dynamic_cast<classic::E &>(a).e;
+  char __attribute__((noinline)) getValue(classic::A &a) {
+    if (auto b = dynamic_cast<classic::B *>(&a)) {
+      return b->b;
+    } else {
+      return dynamic_cast<classic::E &>(a).e;
+    }
   }
-}
-} // namespace dynamic
+}  // namespace dynamic
 
 namespace visitor {
-using namespace revisited;
+  using namespace revisited;
 
-struct A : public Visitable<A> {
-  char a = 'a';
-};
-struct B : public DerivedVisitable<B, VirtualVisitable<A>> {
-  char b = 'B';
-};
-struct C : public DerivedVisitable<C, VirtualVisitable<A>> {
-  char c = 'C';
-};
-struct D : public DerivedVisitable<D, JoinVisitable<B, C>> {
-  D() { a = b = c = 'D'; };
-};
-struct E : public DerivedVisitable<E, A> {
-  char e = 'E';
-};
+  struct A : public Visitable<A> {
+    char a = 'a';
+  };
+  struct B : public DerivedVisitable<B, VirtualVisitable<A>> {
+    char b = 'B';
+  };
+  struct C : public DerivedVisitable<C, VirtualVisitable<A>> {
+    char c = 'C';
+  };
+  struct D : public DerivedVisitable<D, JoinVisitable<B, C>> {
+    D() { a = b = c = 'D'; };
+  };
+  struct E : public DerivedVisitable<E, A> {
+    char e = 'E';
+  };
 
-struct BOrEVisitor : public Visitor<B &, E &> {
-  char result;
-  void visit(B &b) override { result = b.b; }
-  void visit(E &e) override { result = e.e; }
-};
+  struct BOrEVisitor : public Visitor<B &, E &> {
+    char result;
+    void visit(B &b) override { result = b.b; }
+    void visit(E &e) override { result = e.e; }
+  };
 
-char __attribute__((noinline)) getValue(A &a) {
-  BOrEVisitor visitor;
-  a.accept(visitor);
-  return visitor.result;
-}
-} // namespace visitor
+  char __attribute__((noinline)) getValue(A &a) {
+    BOrEVisitor visitor;
+    a.accept(visitor);
+    return visitor.result;
+  }
+}  // namespace visitor
 
 bool Assert(bool v) {
   if (!v) {

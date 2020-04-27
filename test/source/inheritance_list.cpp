@@ -1,9 +1,9 @@
 
 #include <doctest/doctest.h>
+#include <revisited/inheritance_list.h>
+
 #include <exception>
 #include <sstream>
-
-#include <revisited/inheritance_list.h>
 
 using namespace revisited;
 
@@ -16,10 +16,8 @@ TEST_CASE("TypeList") {
     B &operator=(const B &) = default;
   };
 
-  REQUIRE(std::is_same<TypeList<A, B>::Filter<std::is_copy_constructible>,
-                       TypeList<A>>::value);
-  REQUIRE(std::is_same<TypeList<A, B>::Filter<std::is_copy_assignable>,
-                       TypeList<B>>::value);
+  REQUIRE(std::is_same<TypeList<A, B>::Filter<std::is_copy_constructible>, TypeList<A>>::value);
+  REQUIRE(std::is_same<TypeList<A, B>::Filter<std::is_copy_assignable>, TypeList<B>>::value);
   REQUIRE(std::is_same<TypeList<std::string>::Filter<std::is_copy_assignable>,
                        TypeList<std::string>>::value);
 
@@ -33,7 +31,6 @@ template <class T, unsigned V> using O = OrderedType<T, V>;
 template <typename... Args> using T = InheritanceList<Args...>;
 
 TEST_CASE("InheritanceList") {
-
   struct A {};
   struct B {};
   struct C {};
@@ -77,12 +74,9 @@ TEST_CASE("InheritanceList") {
     using LAB10 = LAB9::Push<D, 4>;
     REQUIRE(std::is_same<LAB10, T<O<D, 4>, O<A, 3>, O<B, 2>, O<C, 0>>>::value);
 
-    using ACE =
-        revisited::InheritanceList<>::Push<A, 5>::Push<C, 3>::Push<E, 1>;
+    using ACE = revisited::InheritanceList<>::Push<A, 5>::Push<C, 3>::Push<E, 1>;
     using LAB11 = LAB10::Merge<ACE>;
-    REQUIRE(
-        std::is_same<LAB11,
-                     T<O<A, 5>, O<D, 4>, O<C, 3>, O<B, 2>, O<E, 1>>>::value);
+    REQUIRE(std::is_same<LAB11, T<O<A, 5>, O<D, 4>, O<C, 3>, O<B, 2>, O<E, 1>>>::value);
   }
 
   SUBCASE("Push") {

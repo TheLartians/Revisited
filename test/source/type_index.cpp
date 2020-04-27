@@ -1,10 +1,9 @@
 #include <doctest/doctest.h>
-
 #include <revisited/type_index.h>
+
 #include <sstream>
 
 TEST_CASE("Type Index") {
-
   using namespace revisited;
 
   REQUIRE(getTypeID<int>() == getTypeID<int>());
