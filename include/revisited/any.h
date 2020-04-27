@@ -75,19 +75,14 @@ namespace revisited {
     template <class T, class VisitableType = typename AnyVisitable<T>::type, typename... Args>
     decltype(auto) set(Args &&... args) {
       static_assert(!std::is_base_of<Any, T>::value);
-      if constexpr (std::is_base_of<VisitableBase,
-                                    typename any_detail::is_shared_ptr<T>::value_type>::value) {
-        T value(std::forward<Args>(args)...);
-        data = value;
-        if constexpr (any_detail::is_shared_ptr<T>::value) {
-          if (!value) {
-            data.reset();
-          }
-        }
-      } else if constexpr (any_detail::is_shared_ptr<T>::value) {
+
+      if constexpr (any_detail::is_shared_ptr<T>::value) {
         T value(std::forward<Args>(args)...);
         if (!value) {
           data.reset();
+        } else if constexpr (std::is_base_of<VisitableBase, typename any_detail::is_shared_ptr<
+                                                                T>::value_type>::value) {
+          data = value;
         } else {
           data = std::make_shared<VisitableType>(value);
         }
