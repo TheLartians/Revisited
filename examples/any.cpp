@@ -1,5 +1,6 @@
-#include <iostream>
 #include <revisited/any.h>
+
+#include <iostream>
 
 int main() {
   revisited::Any v = 42;

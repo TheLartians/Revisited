@@ -1,6 +1,7 @@
+#include <revisited/visitor.h>
+
 #include <iostream>
 #include <memory>
-#include <revisited/visitor.h>
 
 struct Base : public virtual revisited::VisitableBase {};
 struct A : public Base, public revisited::Visitable<A> {};

@@ -1,5 +1,4 @@
 #include <doctest/doctest.h>
-
 #include <revisited/any_function.h>
 
 using namespace revisited;
@@ -41,8 +40,7 @@ TEST_CASE("call without arguments") {
 
   REQUIRE(bool(f) == true);
   REQUIRE_THROWS_AS(f(1), AnyFunctionInvalidArgumentCountException);
-  REQUIRE_THROWS_WITH(f(1),
-                      "called AnyFunction with wrong number of arguments");
+  REQUIRE_THROWS_WITH(f(1), "called AnyFunction with wrong number of arguments");
 }
 
 TEST_CASE("call with arguments") {
@@ -120,9 +118,7 @@ TEST_CASE("call with any arguments") {
 }
 
 TEST_CASE("implicit_string_conversion") {
-  AnyFunction f = [](std::string v) -> std::string {
-    return "Hello " + v + "!";
-  };
+  AnyFunction f = [](std::string v) -> std::string { return "Hello " + v + "!"; };
   REQUIRE(f("AnyFunction").get<std::string>() == "Hello AnyFunction!");
 }
 
@@ -156,10 +152,9 @@ TEST_CASE("Automatic Casting") {
     };
     REQUIRE(f(B(), C()).get<A &>().value == 3);
     REQUIRE(f(B(), C()).get<const A &>().value == 3);
-    REQUIRE(f(std::make_shared<B>(), std::make_shared<C>()).get<A &>().value ==
-            3);
-    REQUIRE_THROWS(f(B(), C()).get<A>()); // currently a problem with visitable
-                                          // types: cannot be captured by value
+    REQUIRE(f(std::make_shared<B>(), std::make_shared<C>()).get<A &>().value == 3);
+    REQUIRE_THROWS(f(B(), C()).get<A>());  // currently a problem with visitable
+                                           // types: cannot be captured by value
   }
 
   SUBCASE("pass by pointer") {
@@ -170,8 +165,7 @@ TEST_CASE("Automatic Casting") {
     };
     REQUIRE(f(B(), C()).get<A &>().value == 3);
     REQUIRE(f(B(), C()).get<const A &>().value == 3);
-    REQUIRE(f(std::make_shared<B>(), std::make_shared<C>()).get<A &>().value ==
-            3);
+    REQUIRE(f(std::make_shared<B>(), std::make_shared<C>()).get<A &>().value == 3);
   }
 }
 
@@ -180,7 +174,7 @@ TEST_CASE("non copy-constructable class") {
     int value;
     A(int v) : value(v) {}
     A(const A &) = delete;
-    A(A &&) = default; // required to be std::function return value
+    A(A &&) = default;  // required to be std::function return value
   };
   revisited::AnyFunction f = []() { return A(3); };
   revisited::AnyFunction g = []() { return std::make_shared<A>(3); };

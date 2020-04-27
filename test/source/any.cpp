@@ -11,7 +11,8 @@ TEST_CASE("AnyBasics") {
     CHECK(v.tryGet<int>() == nullptr);
     CHECK(bool(v) == false);
     CHECK_THROWS_AS(v.get<int>(), UndefinedAnyException);
-    CHECK_THROWS_WITH(v.get<int>(), "called get() on undefined Any");
+    CHECK_THROWS_WITH(v.get<int>(), "accessed data on undefined Any");
+    CHECK(v.as<int>() == std::nullopt);
   }
 
   SUBCASE("with value") {
@@ -30,12 +31,19 @@ TEST_CASE("AnyBasics") {
 
     SUBCASE("get") {
       CHECK(v.get<MyClass>().value == 3);
+      CHECK(v.get<std::shared_ptr<MyClass>>()->value == 3);
       CHECK(v.get<MyClass &>().value == 3);
       CHECK(v.get<const MyClass &>().value == 3);
+      REQUIRE(v.as<MyClass>());
+      CHECK(v.as<MyClass>()->value == 3);
+      CHECK(v.as<MyClass &>()->value == 3);
+      CHECK(v.as<const MyClass &>()->value == 3);
     }
 
     SUBCASE("invalid get") {
       CHECK_THROWS_AS(v.get<int>(), InvalidVisitorException);
+      CHECK(!v.as<int>());
+      CHECK(!v.as<int &>());
     }
 
     SUBCASE("try get") {
@@ -43,6 +51,11 @@ TEST_CASE("AnyBasics") {
       CHECK(v.tryGet<const MyClass>() == &v.get<MyClass &>());
       CHECK(v.tryGet<int>() == nullptr);
     }
+  }
+
+  SUBCASE("set to undefined shared ptr") {
+    v.set<std::shared_ptr<int>>();
+    CHECK(!v);
   }
 }
 
@@ -84,9 +97,8 @@ TEST_CASE("Any string conversions") {
   CHECK(v.tryGet<int>() == nullptr);
 }
 
-TEST_CASE_TEMPLATE("Numerics", TestType, char, unsigned char, short int,
-                   unsigned short int, int, unsigned int, long int,
-                   unsigned long int, long long int, unsigned long long int,
+TEST_CASE_TEMPLATE("Numerics", TestType, char, unsigned char, short int, unsigned short int, int,
+                   unsigned int, long int, unsigned long int, long long int, unsigned long long int,
                    float, double, long double) {
   Any v;
 
@@ -161,7 +173,6 @@ TEST_CASE("Inheritance") {
   }
 
   SUBCASE("Inheritance") {
-
     SUBCASE("set with bases") {
       Any v;
       v.setWithBases<E, D, C, B, A>('E');
@@ -273,7 +284,7 @@ TEST_CASE("Accept visitors") {
       bool visit(int &) override { return true; }
     } visitor;
     CHECK(x.accept(visitor));
-    CHECK_THROWS_AS(y.accept(visitor), UndefinedAnyException);
+    CHECK(!y.accept(visitor));
   }
 
   SUBCASE("ConstRecursiveVisitor") {
@@ -281,7 +292,7 @@ TEST_CASE("Accept visitors") {
       bool visit(const int &) override { return true; }
     } visitor;
     CHECK(std::as_const(x).accept(visitor));
-    CHECK_THROWS_AS(y.accept(visitor), UndefinedAnyException);
+    CHECK(!y.accept(visitor));
   }
 }
 
@@ -348,19 +359,19 @@ TEST_CASE("set by reference") {
 }
 
 namespace {
-struct A {
-  int x = 1;
-};
+  struct A {
+    int x = 1;
+  };
 
-struct B : public A {
-  B() { x++; }
-};
+  struct B : public A {
+    B() { x++; }
+  };
 
-struct C : public B {
-  C() { x++; }
-  C(const C &) = delete;
-};
-} // namespace
+  struct C : public B {
+    C() { x++; }
+    C(const C &) = delete;
+  };
+}  // namespace
 
 REVISITED_DECLARE_BASES(B, A);
 REVISITED_DECLARE_BASES(C, B);
