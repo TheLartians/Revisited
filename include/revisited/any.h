@@ -148,16 +148,12 @@ namespace revisited {
     template <class T> T get() const {
       if constexpr (std::is_same<typename std::decay<T>::type, Any>::value) {
         return *this;
+      } else if (!data) {
+        throw UndefinedAnyException();
       } else if constexpr (any_detail::is_shared_ptr<T>::value) {
         using Value = typename any_detail::is_shared_ptr<T>::value_type;
-        if (!data) {
-          throw UndefinedAnyException();
-        }
         return std::shared_ptr<Value>(data, &get<Value &>());
       } else {
-        if (!data) {
-          throw UndefinedAnyException();
-        }
         return visitor_cast<T>(*data);
       }
     }
@@ -208,32 +204,18 @@ namespace revisited {
     /**
      * Accept visitor
      */
-    void accept(VisitorBase &visitor) {
+    void accept(VisitorBase &visitor) const {
       if (!data) {
         throw UndefinedAnyException();
       }
       data->accept(visitor);
     }
 
-    void accept(VisitorBase &visitor) const {
-      if (!data) {
-        throw UndefinedAnyException();
-      }
-      std::as_const(*data).accept(visitor);
-    }
-
-    bool accept(RecursiveVisitorBase &visitor) {
-      if (!data) {
-        throw UndefinedAnyException();
-      }
-      return data->accept(visitor);
-    }
-
     bool accept(RecursiveVisitorBase &visitor) const {
       if (!data) {
-        throw UndefinedAnyException();
+        return false;
       }
-      return std::as_const(*data).accept(visitor);
+      return data->accept(visitor);
     }
 
     /**

@@ -52,6 +52,11 @@ TEST_CASE("AnyBasics") {
       CHECK(v.tryGet<int>() == nullptr);
     }
   }
+
+  SUBCASE("set to undefined shared ptr") {
+    v.set<std::shared_ptr<int>>();
+    CHECK(!v);
+  }
 }
 
 TEST_CASE("Reassign") {
@@ -279,7 +284,7 @@ TEST_CASE("Accept visitors") {
       bool visit(int &) override { return true; }
     } visitor;
     CHECK(x.accept(visitor));
-    CHECK_THROWS_AS(y.accept(visitor), UndefinedAnyException);
+    CHECK(!y.accept(visitor));
   }
 
   SUBCASE("ConstRecursiveVisitor") {
@@ -287,7 +292,7 @@ TEST_CASE("Accept visitors") {
       bool visit(const int &) override { return true; }
     } visitor;
     CHECK(std::as_const(x).accept(visitor));
-    CHECK_THROWS_AS(y.accept(visitor), UndefinedAnyException);
+    CHECK(!y.accept(visitor));
   }
 }
 
