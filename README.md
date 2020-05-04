@@ -7,7 +7,7 @@
 
 # Revisited
 
-A C++17 acyclic visitor template and inheritance-aware any and any-function class. Using revisited::Visitor greatly reduces the boilerplate code required for implementing the [visitor pattern](https://en.wikipedia.org/wiki/Visitor_pattern) in C++. It uses only [compile time type information](https://github.com/Manu343726/ctti) and has better performance than solutions relying on run time type information such as `dynamic_cast`.
+A C++17 acyclic visitor template and inheritance-aware any and any-function class. Using revisited::Visitor greatly reduces the boilerplate code required for implementing the [visitor pattern](https://en.wikipedia.org/wiki/Visitor_pattern) in C++. It uses only [compile time type information](https://github.com/TheLartians/StaticTypeInfo) and has better performance than solutions relying on run time type information such as `dynamic_cast`.
 
 ## Examples
 
