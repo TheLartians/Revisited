@@ -18,5 +18,6 @@ namespace revisited {
 }  // namespace revisited
 
 template <> struct std::hash<revisited::TypeID> {
-  std::size_t operator()(const revisited::TypeID &t) const { return t.index; }
+  hash<static_type_info::TypeID> hasher;
+  std::size_t operator()(const revisited::TypeID &t) const { return hasher(t); }
 };

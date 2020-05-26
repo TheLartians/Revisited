@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 # Note: update this to your new project's name and version
 project(Revisited 
-  VERSION 2.3
+  VERSION 2.4
   LANGUAGES CXX
 )
 
@@ -32,8 +32,8 @@ CPMAddPackage(
 
 CPMAddPackage(
   NAME StaticTypeInfo
-  VERSION 1.2
-  GIT_REPOSITORY https://github.com/TheLartians/StaticTypeInfo
+  VERSION 1.3
+  GITHUB_REPOSITORY TheLartians/StaticTypeInfo
 )
 
 # ---- Add source files ----
